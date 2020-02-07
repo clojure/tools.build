@@ -1,0 +1,14 @@
+{:paths ["src/main/clojure"]
+ :deps
+ {org.clojure/clojure {:mvn/version "1.10.1"}
+  org.clojure/tools.deps.alpha {:mvn/version "0.8.661"}}
+
+ :aliases
+ {:build-info
+  {:build/clj-paths ["src/main/clojure"]
+   :build/lib foo/bar
+   :build/version "1.2.3"}
+
+  :build
+  {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
+   :main-opts ["-e" "(require,'[clojure.tools.build,:refer,:all])(require,'[clojure.tools.build.tasks,:refer,:all])(->,(build-info),clean,sync-pom,jar,end)"]}}}
