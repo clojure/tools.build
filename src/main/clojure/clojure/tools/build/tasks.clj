@@ -14,7 +14,10 @@
   (:import
     [java.io File FileOutputStream FileInputStream BufferedInputStream]
     [java.nio.file Path Paths Files LinkOption]
-    [java.util.jar Manifest Attributes$Name JarOutputStream JarEntry]))
+    [java.util.jar Manifest Attributes$Name JarOutputStream JarEntry]
+    [javax.tools ToolProvider]))
+
+(set! *warn-on-reflection* true)
 
 ;; clean
 
@@ -39,12 +42,19 @@
 ;; javac
 
 (defn javac
-  [{:keys [params] :as build-info}]
-  (let [{:build/keys [target-dir java-paths]} params]
+  [{:keys [classpath params] :as build-info}]
+  (let [{:build/keys [target-dir java-paths javac-opts]} params]
     (println "Compiling Java")
-
-    ;; TODO
-
+    (when (seq java-paths)
+      (let [class-dir (file/ensure-dir (jio/file target-dir "classes"))
+            compiler (ToolProvider/getSystemJavaCompiler)
+            listener nil ;; TODO - implement listener for errors
+            file-mgr (.getStandardFileManager compiler listener nil nil)
+            options (concat ["-classpath" classpath "-d" (.getPath class-dir)] javac-opts)
+            java-files (mapcat #(file/collect-files (jio/file %) :collect (file/suffix ".java")) java-paths)
+            file-objs (.getJavaFileObjectsFromFiles file-mgr java-files)
+            task (.getTask compiler nil file-mgr listener options nil file-objs)]
+        (.call task)))
     build-info))
 
 ;; pom
@@ -73,32 +83,23 @@
 ;; jar
 
 (defn- add-jar-entry
-  [^JarOutputStream output-stream ^String lib file]
-  (.putNextEntry output-stream (JarEntry. (name lib)))
+  [^JarOutputStream output-stream ^String path ^File file]
+  (.putNextEntry output-stream (JarEntry. path))
   (with-open [fis (BufferedInputStream. (FileInputStream. file))]
     (jio/copy fis output-stream))
   (.closeEntry output-stream))
 
-(defn delete-path
-  "Recursively delete Path, which may be a file or directory"
-  [^Path path]
-  (when (.exists (.toFile path))
-    (when (Files/isDirectory path (into-array LinkOption [LinkOption/NOFOLLOW_LINKS]))
-      (with-open [entries (Files/newDirectoryStream path)]
-        (run! delete-path entries)))
-    (Files/delete path)))
-
 (defn- copy-to-jar
-  ([^JarOutputStream jos ^Path root]
+  ([^JarOutputStream jos ^File root]
     (copy-to-jar jos root root))
-  ([^JarOutputStream jos ^Path root ^Path path]
-   (when (.exists (.toFile path))
-     (if (Files/isDirectory path (into-array LinkOption [LinkOption/NOFOLLOW_LINKS]))
-       (with-open [entries (Files/newDirectoryStream path)]
-         (run! #(copy-to-jar jos root %) entries))
-       (let [rel-path (.. root (relativize path) toString)]
-         (println "  Adding" rel-path)
-         (add-jar-entry jos rel-path (.toFile path)))))))
+  ([^JarOutputStream jos ^File root ^File path]
+   (let [root-path (.toPath root)
+         files (file/collect-files root)]
+     (run! (fn [^File f]
+             (let [rel-path (.toString (.relativize root-path (.toPath f)))]
+               (println "  Adding" rel-path)
+               (add-jar-entry jos rel-path f)))
+       files))))
 
 (defn- fill-manifest!
   [^Manifest manifest props]
@@ -112,7 +113,7 @@
   (let [{:build/keys [lib version main-class target-dir
                       clj-paths resource-dirs]} params
         jar-name (str (name lib) "-" version ".jar")
-        jar-file (File. target-dir jar-name)
+        jar-file (jio/file target-dir jar-name)
         class-dir (jio/file target-dir "classes")]
     (println "Writing jar" jar-name)
     (let [manifest (Manifest.)]
@@ -121,11 +122,10 @@
           {"Manifest-Version" "1.0"
            "Created-By" "org.clojure/tools.build"
            "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
-          main-class (assoc "Main-Class" main-class)))
+          main-class (assoc "Main-Class" (str main-class))))
       (with-open [jos (JarOutputStream. (FileOutputStream. jar-file) manifest)]
-        (copy-to-jar jos (.toPath class-dir))
-        (run! #(copy-to-jar jos (Paths/get ^String % (into-array String []))) clj-paths)))
-
+        (copy-to-jar jos class-dir)
+        (run! #(copy-to-jar jos (jio/file %)) clj-paths)))
     build-info))
 
 ;; end
