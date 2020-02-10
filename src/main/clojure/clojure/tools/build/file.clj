@@ -37,10 +37,11 @@
             (recur (into (pop queue) children) (if collect? (conj collected file) collected)))
           (when (seq collected) collected))))))
 
-(defn suffix
-  "Returns a suffix-matching predicate"
-  [^String suffix]
-  (fn [^File f] (str/ends-with? (.toString f) suffix)))
+(defn suffixes
+  "Returns a predicate matching suffixes"
+  [& suffixes]
+  (apply some-fn
+    (map #(fn [^File f] (str/ends-with? (.toString f) ^String %)) suffixes)))
 
 (defn delete
   "Recursively delete file, where file is coerced with clojure.java.io/file"

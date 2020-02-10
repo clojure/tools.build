@@ -32,11 +32,9 @@
 
 (defn aot
   [{:keys [params] :as build-info}]
-  (let [{:build/keys [target-dir clj-paths]} params]
-    (println "AOT compiling Clojure")
-
-    ;; TODO
-
+  (let [{:build/keys [target-dir main-class]} params]
+    (binding [*compile-path* (.toString (file/ensure-dir (jio/file target-dir "classes")))]
+      (compile main-class))
     build-info))
 
 ;; javac
@@ -51,7 +49,7 @@
             listener nil ;; TODO - implement listener for errors
             file-mgr (.getStandardFileManager compiler listener nil nil)
             options (concat ["-classpath" classpath "-d" (.getPath class-dir)] javac-opts)
-            java-files (mapcat #(file/collect-files (jio/file %) :collect (file/suffix ".java")) java-paths)
+            java-files (mapcat #(file/collect-files (jio/file %) :collect (file/suffixes ".java")) java-paths)
             file-objs (.getJavaFileObjectsFromFiles file-mgr java-files)
             task (.getTask compiler nil file-mgr listener options nil file-objs)]
         (.call task)))

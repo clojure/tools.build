@@ -57,4 +57,9 @@
   ;; javac, executable jar
   (-> (build-info :params {:build/main-class 'foo.Demo1})
     clean javac jar end)
+
+  ;; aot app jar
+  (-> (build-info :params {:build/main-class 'clojure.tools.build.demo})
+    clean aot jar end)
+
   )
