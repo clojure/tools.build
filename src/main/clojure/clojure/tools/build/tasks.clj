@@ -40,7 +40,7 @@
 ;; javac
 
 (defn javac
-  [{:keys [classpath params] :as build-info}]
+  [{:keys [lib-map params] :as build-info}]
   (let [{:build/keys [target-dir java-paths javac-opts]} params]
     (println "Compiling Java")
     (when (seq java-paths)
@@ -48,6 +48,7 @@
             compiler (ToolProvider/getSystemJavaCompiler)
             listener nil ;; TODO - implement listener for errors
             file-mgr (.getStandardFileManager compiler listener nil nil)
+            classpath (mapcat :paths (vals lib-map))
             options (concat ["-classpath" classpath "-d" (.getPath class-dir)] javac-opts)
             java-files (mapcat #(file/collect-files (jio/file %) :collect (file/suffixes ".java")) java-paths)
             file-objs (.getJavaFileObjectsFromFiles file-mgr java-files)

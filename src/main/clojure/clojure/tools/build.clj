@@ -41,10 +41,8 @@
         project-deps (when (.exists project-dep-loc) (reader/slurp-deps project-dep-loc))
         deps-map (->> [install-deps user-deps project-deps] (remove nil?) reader/merge-deps)
         resolve-args (look-up deps-map resolve)
-        lib-map (deps/resolve-deps deps-map nil nil)
-        cp (deps/make-classpath lib-map (:paths deps-map) nil)]
+        lib-map (deps/resolve-deps deps-map nil nil)]
     {:lib-map lib-map
-     :classpath cp
      :aliases (:aliases deps-map)
      :params (merge defaults (look-up deps-map param-alias) params)}))
 
