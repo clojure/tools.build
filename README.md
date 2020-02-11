@@ -6,13 +6,6 @@ A library for building artifacts in Clojure projects.
 # Usage as a library
 
 ```clojure
-(require '[clojure.tools.build :as build] '[clojure.tools.build.tasks :as tasks])
-(-> (build/build-info
-      :deps "deps.edn"
-      :params [{:build/lib 'foo/bar, :build/version "1.2.3"})]
-    tasks/clean
-    tasks/sync-pom
-    tasks/jar)
 ```
 
 # Usage as a deps tool

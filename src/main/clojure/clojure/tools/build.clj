@@ -12,7 +12,29 @@
    [clojure.tools.deps.alpha :as deps]
    [clojure.tools.deps.alpha.reader :as reader]))
 
-(def defaults
+(defn load-deps
+  "Load deps.edn file and produce merged deps map"
+  ([]
+    (load-deps "deps.edn"))
+  ([deps-file]
+   (let [install-deps (reader/install-deps)
+         user-dep-loc (jio/file (reader/user-deps-location))
+         user-deps (when (.exists user-dep-loc) (reader/slurp-deps user-dep-loc))
+         project-dep-loc (jio/file deps-file)
+         project-deps (when (.exists project-dep-loc) (reader/slurp-deps project-dep-loc))]
+     (->> [install-deps user-deps project-deps] (remove nil?) reader/merge-deps))))
+
+(defn resolve-deps
+  "Resolve deps.edn and create lib-map and aliases"
+  [deps & {:keys [resolve-src]}]
+  (let [resolve-args (if (keyword? resolve-src)
+                       (-> deps :aliases resolve-src)
+                       resolve-src)
+        lib-map (deps/resolve-deps deps resolve-args nil)]
+    {:lib-map lib-map
+     :aliases (:aliases deps)}))
+
+(def default-params
   "Build param defaults"
   {:build/target-dir "target"
    :build/clj-paths ["src"]
@@ -20,47 +42,61 @@
    :build/resource-dirs ["resources"]
    :build/src-pom "pom.xml"})
 
-(defn- look-up
-  [deps-map alias-or-data]
-  (if (keyword? alias-or-data)
-    (get-in deps-map [:aliases alias-or-data])
-    alias-or-data))
+(defn build-params
+  [build-info param-src]
+  "Load build-params from param-src and merge into build-info.
+  param-src can either be a deps alias or a map"
+  (let [resolved-params (if (keyword? param-src)
+                          (-> build-info :aliases param-src)
+                          param-src)]
+    (update-in build-info [:params] merge resolved-params)))
 
-(defn build-info
-  "Construct an initial build info. Optional kwargs:
-    :deps Path to deps.edn file to use (\"deps.edn\" by default)
-    :resolve Alias in deps.edn with resolve-deps args or a map of that data
-    :params Aliases in deps.edn with initial build params OR param maps to be merged"
-  [& {:keys [deps resolve params]
-      :or {deps "deps.edn"}}]
-  (let [install-deps (reader/install-deps)
-        user-dep-loc (jio/file (reader/user-deps-location))
-        user-deps (when (.exists user-dep-loc) (reader/slurp-deps user-dep-loc))
-        project-dep-loc (jio/file deps)
-        project-deps (when (.exists project-dep-loc) (reader/slurp-deps project-dep-loc))
-        deps-map (->> [install-deps user-deps project-deps] (remove nil?) reader/merge-deps)
-        resolve-args (look-up deps-map resolve)
-        lib-map (deps/resolve-deps deps-map nil nil)
-        merge-params (apply merge defaults (map #(look-up deps-map %) params))]
-    {:lib-map lib-map
-     :aliases (:aliases deps-map)
-     :params merge-params}))
+;(defn build-info
+;  "Construct an initial build info. Optional kwargs:
+;    :deps Path to deps.edn file to use (\"deps.edn\" by default)
+;    :resolve Alias in deps.edn with resolve-deps args or a map of that data
+;    :params Aliases in deps.edn with initial build params OR param maps to be merged"
+;  [& {:keys [deps resolve params]
+;      :or {deps "deps.edn"}}]
+;  (let [install-deps (reader/install-deps)
+;        user-dep-loc (jio/file (reader/user-deps-location))
+;        user-deps (when (.exists user-dep-loc) (reader/slurp-deps user-dep-loc))
+;        project-dep-loc (jio/file deps)
+;        project-deps (when (.exists project-dep-loc) (reader/slurp-deps project-dep-loc))
+;        deps-map (->> [install-deps user-deps project-deps] (remove nil?) reader/merge-deps)
+;        resolve-args (look-up deps-map resolve)
+;        lib-map (deps/resolve-deps deps-map nil nil)
+;        merge-params (apply merge defaults (map #(look-up deps-map %) params))]
+;    {:lib-map lib-map
+;     :aliases (:aliases deps-map)
+;     :params merge-params}))
 
 (comment
   (require '[clojure.tools.build.tasks :refer :all])
 
   ;; basic clojure lib build
-  (-> (build-info :params [:build-info]) clean sync-pom jar end)
+  (-> (resolve-deps (load-deps))
+    (build-params default-params)
+    (build-params :build-info)
+    clean sync-pom jar end)
 
   ;; javac, executable jar
-  (-> (build-info :params [:build-info {:build/main-class 'foo.Demo1}])
+  (-> (resolve-deps (load-deps))
+    (build-params default-params)
+    (build-params :build-info)
+    (build-params {:build/main-class 'foo.Demo1})
     clean javac jar end)
 
   ;; aot app jar
-  (-> (build-info :params [:build-info {:build/main-class 'clojure.tools.build.demo}])
+  (-> (resolve-deps (load-deps))
+    (build-params default-params)
+    (build-params :build-info)
+    (build-params {:build/main-class 'clojure.tools.build.demo})
     clean aot jar end)
 
   ;; uber jar
-  (-> (build-info :params [:build-info]) clean sync-pom jar uber end)
-
+  (-> (resolve-deps (load-deps))
+    (build-params default-params)
+    (build-params :build-info)
+    clean sync-pom jar uber end)
   )
