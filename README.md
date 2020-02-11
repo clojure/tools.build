@@ -9,7 +9,7 @@ A library for building artifacts in Clojure projects.
 (require '[clojure.tools.build :as build] '[clojure.tools.build.tasks :as tasks])
 (-> (build/build-info
       :deps "deps.edn"
-      :params '{:build/lib foo/bar, :build/version "1.2.3"})
+      :params [{:build/lib 'foo/bar, :build/version "1.2.3"})]
     tasks/clean
     tasks/sync-pom
     tasks/jar)
