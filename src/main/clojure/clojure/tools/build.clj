@@ -32,7 +32,7 @@
     :resolve Alias in deps.edn with resolve-deps args or a map of that data
     :params Aliases in deps.edn with initial build params OR param maps to be merged"
   [& {:keys [deps resolve params]
-      :or {deps "deps.edn", params [:build-info]}}]
+      :or {deps "deps.edn"}}]
   (let [install-deps (reader/install-deps)
         user-dep-loc (jio/file (reader/user-deps-location))
         user-deps (when (.exists user-dep-loc) (reader/slurp-deps user-dep-loc))
@@ -50,7 +50,7 @@
   (require '[clojure.tools.build.tasks :refer :all])
 
   ;; basic clojure lib build
-  (-> (build-info) clean sync-pom jar end)
+  (-> (build-info :params [:build-info]) clean sync-pom jar end)
 
   ;; javac, executable jar
   (-> (build-info :params [:build-info {:build/main-class 'foo.Demo1}])
@@ -61,6 +61,6 @@
     clean aot jar end)
 
   ;; uber jar
-  (-> (build-info) clean sync-pom jar uber end)
+  (-> (build-info :params [:build-info]) clean sync-pom jar uber end)
 
   )
