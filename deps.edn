@@ -6,9 +6,9 @@
  :aliases
  {:build-info
   {:build/clj-paths ["src/main/clojure"]
-   :build/lib foo/bar
-   :build/version "1.2.3"}
+   :build/lib org.clojure/tools.build
+   :build/version "0.1.0"}
 
   :build
   {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
-   :main-opts ["-e" "(require,'[clojure.tools.build,:refer,:all])(require,'[clojure.tools.build.tasks,:refer,:all])(->,(build-info),clean,sync-pom,jar,end)"]}}}
+   :main-opts ["-e" "(require,'[clojure.tools.build,:refer,:all],'[clojure.tools.build.tasks,:refer,:all])(->,(build-info),clean,sync-pom,jar,end)"]}}}

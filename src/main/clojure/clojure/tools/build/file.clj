@@ -12,7 +12,7 @@
     [clojure.string :as str])
   (:import
     [java.io File]
-    [java.nio.file Path Files LinkOption]))
+    [java.nio.file Path Paths Files LinkOption CopyOption StandardCopyOption]))
 
 (set! *warn-on-reflection* true)
 
@@ -46,7 +46,29 @@
 (defn delete
   "Recursively delete file, where file is coerced with clojure.java.io/file"
   [file]
-  (run! #(.delete ^File %) (rseq (collect-files (jio/file file) :dirs true))))
+  (run! #(.delete ^File %) (reverse (collect-files (jio/file file) :dirs true))))
+
+(def ^{:private true, :tag "[Ljava.nio.file.CopyOption;"}
+  copy-options
+  (into-array CopyOption [StandardCopyOption/COPY_ATTRIBUTES StandardCopyOption/REPLACE_EXISTING]))
+
+(defn copy
+  "Recursively copy files from source to target, retaining timestamps"
+  [^File source ^File target]
+  (let [source-path (.toPath source)
+        target-path (.toPath target)
+        source-files (collect-files source)]
+    ;(println "source" (str source-path))
+    ;(println "target" (str target-path))
+    ;(println "source-files" (map str source-files))
+    (run!
+      (fn [^File f]
+        (let [p (.toPath f)
+              new-path (.resolve target-path (.relativize source-path p))]
+          (println "copying" (str p) (str new-path))
+          (.mkdirs (.toFile new-path))
+          (Files/copy p new-path copy-options)))
+      source-files)))
 
 (defn ensure-dir
   ^File [dir]

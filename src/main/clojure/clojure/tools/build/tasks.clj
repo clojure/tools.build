@@ -12,9 +12,9 @@
     [clojure.string :as str]
     [clojure.tools.build.file :as file])
   (:import
-    [java.io File FileOutputStream FileInputStream BufferedInputStream]
+    [java.io File FileOutputStream FileInputStream BufferedInputStream BufferedOutputStream]
     [java.nio.file Path Paths Files LinkOption]
-    [java.util.jar Manifest Attributes$Name JarOutputStream JarEntry]
+    [java.util.jar Manifest Attributes$Name JarOutputStream JarEntry JarInputStream JarFile]
     [javax.tools ToolProvider]))
 
 (set! *warn-on-reflection* true)
@@ -83,21 +83,25 @@
 
 (defn- add-jar-entry
   [^JarOutputStream output-stream ^String path ^File file]
-  (.putNextEntry output-stream (JarEntry. path))
-  (with-open [fis (BufferedInputStream. (FileInputStream. file))]
-    (jio/copy fis output-stream))
-  (.closeEntry output-stream))
+  (let [dir (.isDirectory file)
+        path (if (and dir (not (.endsWith path "/"))) (str path "/") path)]
+    (.putNextEntry output-stream (JarEntry. path))
+    (when-not dir
+      (with-open [fis (BufferedInputStream. (FileInputStream. file))]
+        (jio/copy fis output-stream)))
+    (.closeEntry output-stream)))
 
 (defn- copy-to-jar
   ([^JarOutputStream jos ^File root]
     (copy-to-jar jos root root))
   ([^JarOutputStream jos ^File root ^File path]
    (let [root-path (.toPath root)
-         files (file/collect-files root)]
+         files (file/collect-files root :dirs true)]
      (run! (fn [^File f]
              (let [rel-path (.toString (.relativize root-path (.toPath f)))]
-               (println "  Adding" rel-path)
-               (add-jar-entry jos rel-path f)))
+               (when-not (= rel-path "")
+                 ;(println "  Adding" rel-path)
+                 (add-jar-entry jos rel-path f))))
        files))))
 
 (defn- fill-manifest!
@@ -107,11 +111,15 @@
       (fn [[name value]]
         (.put attrs (Attributes$Name. ^String name) value)) props)))
 
+(defn- jar-name
+  [lib version]
+  (str (name lib) "-" version ".jar"))
+
 (defn jar
   [{:keys [params] :as build-info}]
   (let [{:build/keys [lib version main-class target-dir
                       clj-paths resource-dirs]} params
-        jar-name (str (name lib) "-" version ".jar")
+        jar-name (jar-name lib version)
         jar-file (jio/file target-dir jar-name)
         class-dir (jio/file target-dir "classes")]
     (println "Writing jar" jar-name)
@@ -123,8 +131,48 @@
            "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
           main-class (assoc "Main-Class" (str main-class))))
       (with-open [jos (JarOutputStream. (FileOutputStream. jar-file) manifest)]
-        (copy-to-jar jos class-dir)
-        (run! #(copy-to-jar jos (jio/file %)) clj-paths)))
+        (copy-to-jar jos class-dir)))
+    build-info))
+
+;; uberjar
+
+(defn- explode
+  [^File lib-file out-dir]
+  (if (str/ends-with? (.getPath lib-file) ".jar")
+    (let [buffer (byte-array 1024)]
+      (with-open [jis (JarInputStream. (BufferedInputStream. (FileInputStream. lib-file)))]
+        (loop []
+          (when-let [entry (.getNextJarEntry jis)]
+            ;(println "entry:" (.getName entry) (.isDirectory entry))
+            (let [out-file (jio/file out-dir (.getName entry))]
+              (jio/make-parents out-file)
+              (when-not (.isDirectory entry)
+                (when (.exists out-file)
+                  (println "CONFLICT: " (.getName entry)))
+                (let [output (BufferedOutputStream. (FileOutputStream. out-file))]
+                  (loop []
+                    (let [size (.read jis buffer)]
+                      (if (pos? size)
+                        (do
+                          (.write output buffer 0 size)
+                          (recur))
+                        (.close output))))))
+              (recur))))))
+    (file/copy lib-file out-dir)))
+
+(defn uber
+  [{:keys [params lib-map] :as build-info}]
+  (let [{:build/keys [target-dir lib version]} params
+        uber-dir (file/ensure-dir (jio/file target-dir "uber"))
+        jar-name (jar-name lib version)
+        project-jar-file (jio/file target-dir jar-name)
+        manifest (with-open [j (JarFile. project-jar-file)] (.getManifest j))
+        lib-paths (conj (->> lib-map vals (mapcat :paths) (map #(jio/file %))) project-jar-file)
+        uber-file (jio/file target-dir (str (name lib) "-" version "-standalone.jar"))]
+    (println "Creating uber jar" (str uber-file))
+    (run! #(explode % uber-dir) lib-paths)
+    (with-open [jos (JarOutputStream. (FileOutputStream. uber-file) manifest)]
+      (copy-to-jar jos uber-dir))
     build-info))
 
 ;; end

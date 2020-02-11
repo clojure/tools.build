@@ -60,4 +60,7 @@
   (-> (build-info :params [:build-info {:build/main-class 'clojure.tools.build.demo}])
     clean aot jar end)
 
+  ;; uber jar
+  (-> (build-info) clean sync-pom jar uber end)
+
   )
