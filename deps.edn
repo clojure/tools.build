@@ -1,7 +1,7 @@
 {:paths ["src/main/clojure"]
  :deps
  {org.clojure/clojure {:mvn/version "1.10.1"}
-  org.clojure/tools.deps.alpha {:mvn/version "0.8.661"}}
+  org.clojure/tools.deps.alpha {:mvn/version "0.8.678-SNAPSHOT"}}
 
  :aliases
  {:build-info

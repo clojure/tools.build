@@ -40,7 +40,7 @@
 ;; javac
 
 (defn javac
-  [{:keys [lib-map params] :as build-info}]
+  [{:keys [libs params] :as build-info}]
   (let [{:build/keys [target-dir java-paths javac-opts]} params]
     (println "Compiling Java")
     (when (seq java-paths)
@@ -48,7 +48,7 @@
             compiler (ToolProvider/getSystemJavaCompiler)
             listener nil ;; TODO - implement listener for errors
             file-mgr (.getStandardFileManager compiler listener nil nil)
-            classpath (str/join File/pathSeparator (mapcat :paths (vals lib-map)))
+            classpath (str/join File/pathSeparator (mapcat :paths (vals libs)))
             options (concat ["-classpath" classpath "-d" (.getPath class-dir)] javac-opts)
             java-files (mapcat #(file/collect-files (jio/file %) :collect (file/suffixes ".java")) java-paths)
             file-objs (.getJavaFileObjectsFromFiles file-mgr java-files)
@@ -161,13 +161,13 @@
     (file/copy lib-file out-dir)))
 
 (defn uber
-  [{:keys [params lib-map] :as build-info}]
+  [{:keys [params libs] :as build-info}]
   (let [{:build/keys [target-dir lib version]} params
         uber-dir (file/ensure-dir (jio/file target-dir "uber"))
         jar-name (jar-name lib version)
         project-jar-file (jio/file target-dir jar-name)
         manifest (with-open [j (JarFile. project-jar-file)] (.getManifest j))
-        lib-paths (conj (->> lib-map vals (mapcat :paths) (map #(jio/file %))) project-jar-file)
+        lib-paths (conj (->> libs vals (mapcat :paths) (map #(jio/file %))) project-jar-file)
         uber-file (jio/file target-dir (str (name lib) "-" version "-standalone.jar"))]
     (println "Creating uber jar" (str uber-file))
     (run! #(explode % uber-dir) lib-paths)
