@@ -16,7 +16,7 @@
     [java.io File FileOutputStream FileInputStream BufferedInputStream BufferedOutputStream]
     [java.nio.file Path Paths Files LinkOption]
     [java.util.jar Manifest Attributes$Name JarOutputStream JarEntry JarInputStream JarFile]
-    [javax.tools ToolProvider]))
+    [javax.tools ToolProvider DiagnosticListener]))
 
 (set! *warn-on-reflection* true)
 
@@ -30,9 +30,11 @@
     build-info))
 
 ;; aot
+;; TODO - needs some thinking
 
 (defn aot
   [{:build/keys [params] :as build-info}]
+  (println "AOT compiling Clojure")
   (let [{:build/keys [target-dir main-class]} params]
     (binding [*compile-path* (.toString (file/ensure-dir (jio/file target-dir "classes")))]
       (compile main-class))
@@ -48,15 +50,17 @@
     (when (seq java-paths')
       (let [class-dir (file/ensure-dir (jio/file target-dir "classes"))
             compiler (ToolProvider/getSystemJavaCompiler)
-            listener nil ;; TODO - implement listener for errors
+            listener (reify DiagnosticListener (report [_ diag] (println (str diag))))
             file-mgr (.getStandardFileManager compiler listener nil nil)
             classpath (str/join File/pathSeparator (mapcat :paths (vals libs)))
             options (concat ["-classpath" classpath "-d" (.getPath class-dir)] javac-opts)
             java-files (mapcat #(file/collect-files (jio/file %) :collect (file/suffixes ".java")) java-paths')
             file-objs (.getJavaFileObjectsFromFiles file-mgr java-files)
-            task (.getTask compiler nil file-mgr listener options nil file-objs)]
-        (.call task)))
-    build-info))
+            task (.getTask compiler nil file-mgr listener options nil file-objs)
+            success (.call task)]
+        (if success
+          build-info
+          (throw (RuntimeException. "Java compilation failed")))))))
 
 ;; pom
 
