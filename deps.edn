@@ -1,12 +1,16 @@
-{:paths ["src/main/clojure"]
+{:paths [:clj-paths :resource-dirs]
+
  :deps
  {org.clojure/clojure {:mvn/version "1.10.1"}
   org.clojure/tools.deps.alpha {:mvn/version "0.8.678-SNAPSHOT"}}
 
  :aliases
- {:build-info
-  {:build/clj-paths ["src/main/clojure"]
-   :build/lib org.clojure/tools.build
+ {:clj-paths ["src/main/clojure"]
+  :java-paths ["java" "src/main/java"]
+  :resource-dirs ["resources"]
+
+  :build-info
+  {:build/lib org.clojure/tools.build
    :build/version "0.1.0"}
 
 ;  :build

@@ -12,40 +12,30 @@
    [clojure.tools.deps.alpha :as deps]
    [clojure.tools.deps.alpha.reader :as reader]))
 
+(defn resolve-alias
+  [basis key]
+  (if (keyword? key)
+    (-> basis :aliases key)
+    key))
+
 (def default-params
   "Build param defaults"
   {:build/target-dir "target"
-   :build/clj-paths ["src"]
-   :build/java-paths ["java" "src/main/java"]
-   :build/resource-dirs ["resources"]
+   :build/clj-paths :clj-paths ; ["src"]
+   :build/java-paths :java-paths ; ["java" "src/main/java"]
+   :build/resource-dirs :resource-paths ; ["resources"]
    :build/src-pom "pom.xml"})
 
 (defn build-params
-  [build-info & param-srcs]
-  "Load build-params from param-srcs and merge those into build-info.
-  Each param-src can either be a deps alias or a map."
-  (let [params (map #(if (keyword? %) (-> build-info :aliases %) %) param-srcs)]
-    (update build-info :params #(apply merge % params))))
-
-;(defn build-info
-;  "Construct an initial build info. Optional kwargs:
-;    :deps Path to deps.edn file to use (\"deps.edn\" by default)
-;    :resolve Alias in deps.edn with resolve-deps args or a map of that data
-;    :params Aliases in deps.edn with initial build params OR param maps to be merged"
-;  [& {:keys [deps resolve params]
-;      :or {deps "deps.edn"}}]
-;  (let [install-deps (reader/install-deps)
-;        user-dep-loc (jio/file (reader/user-deps-location))
-;        user-deps (when (.exists user-dep-loc) (reader/slurp-deps user-dep-loc))
-;        project-dep-loc (jio/file deps)
-;        project-deps (when (.exists project-dep-loc) (reader/slurp-deps project-dep-loc))
-;        deps-map (->> [install-deps user-deps project-deps] (remove nil?) reader/merge-deps)
-;        resolve-args (look-up deps-map resolve)
-;        libs (deps/resolve-deps deps-map nil nil)
-;        merge-params (apply merge defaults (map #(look-up deps-map %) params))]
-;    {:libs libs
-;     :aliases (:aliases deps-map)
-;     :params merge-params}))
+  [basis & param-srcs]
+  "Load build-params from param-srcs and merge those into basis under
+  :build/params. Each param-src can either be a deps alias or a map."
+  (println "param-srcs" param-srcs)
+  (let [params (map #(resolve-alias basis %) param-srcs)]
+    (println "params" params)
+    (println "merged" (:build/params (update basis :build/params #(apply merge % params))))
+    (println "aliases" (:aliases basis))
+    (update basis :build/params #(apply merge % params))))
 
 (comment
   (require '[clojure.tools.build.tasks :refer :all])

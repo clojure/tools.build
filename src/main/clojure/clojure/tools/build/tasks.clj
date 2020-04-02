@@ -10,6 +10,7 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.string :as str]
+    [clojure.tools.build :as build]
     [clojure.tools.build.file :as file])
   (:import
     [java.io File FileOutputStream FileInputStream BufferedInputStream BufferedOutputStream]
@@ -22,7 +23,7 @@
 ;; clean
 
 (defn clean
-  [{:keys [params] :as build-info}]
+  [{:build/keys [params] :as build-info}]
   (let [{:build/keys [target-dir]} params]
     (println "Cleaning" target-dir)
     (file/delete target-dir)
@@ -31,7 +32,7 @@
 ;; aot
 
 (defn aot
-  [{:keys [params] :as build-info}]
+  [{:build/keys [params] :as build-info}]
   (let [{:build/keys [target-dir main-class]} params]
     (binding [*compile-path* (.toString (file/ensure-dir (jio/file target-dir "classes")))]
       (compile main-class))
@@ -40,17 +41,18 @@
 ;; javac
 
 (defn javac
-  [{:keys [libs params] :as build-info}]
-  (let [{:build/keys [target-dir java-paths javac-opts]} params]
+  [{:keys [libs] :build/keys [params] :as build-info}]
+  (let [{:build/keys [target-dir java-paths javac-opts]} params
+        java-paths' (build/resolve-alias build-info java-paths)]
     (println "Compiling Java")
-    (when (seq java-paths)
+    (when (seq java-paths')
       (let [class-dir (file/ensure-dir (jio/file target-dir "classes"))
             compiler (ToolProvider/getSystemJavaCompiler)
             listener nil ;; TODO - implement listener for errors
             file-mgr (.getStandardFileManager compiler listener nil nil)
             classpath (str/join File/pathSeparator (mapcat :paths (vals libs)))
             options (concat ["-classpath" classpath "-d" (.getPath class-dir)] javac-opts)
-            java-files (mapcat #(file/collect-files (jio/file %) :collect (file/suffixes ".java")) java-paths)
+            java-files (mapcat #(file/collect-files (jio/file %) :collect (file/suffixes ".java")) java-paths')
             file-objs (.getJavaFileObjectsFromFiles file-mgr java-files)
             task (.getTask compiler nil file-mgr listener options nil file-objs)]
         (.call task)))
@@ -59,7 +61,7 @@
 ;; pom
 
 (defn sync-pom
-  [{:keys [params] :as build-info}]
+  [{:build/keys [params] :as build-info}]
   (let [{:build/keys [src-pom lib version target-dir]} params
         group-id (or (namespace lib) (name lib))
         artifact-id (name lib)]
@@ -116,13 +118,13 @@
   (str (name lib) "-" version ".jar"))
 
 (defn jar
-  [{:keys [params] :as build-info}]
-  (let [{:build/keys [lib version main-class target-dir
-                      clj-paths resource-dirs]} params
+  [{:build/keys [params] :as build-info}]
+  (let [{:build/keys [lib version main-class target-dir resource-dirs]} params
         jar-name (jar-name lib version)
         jar-file (jio/file target-dir jar-name)
         class-dir (jio/file target-dir "classes")]
     (println "Writing jar" jar-name)
+    ;; TODO - handle resource dirs
     (let [manifest (Manifest.)]
       (fill-manifest! manifest
         (cond->
@@ -161,7 +163,7 @@
     (file/copy lib-file out-dir)))
 
 (defn uber
-  [{:keys [params libs] :as build-info}]
+  [{:keys [libs] :build/keys [params] :as build-info}]
   (let [{:build/keys [target-dir lib version]} params
         uber-dir (file/ensure-dir (jio/file target-dir "uber"))
         jar-name (jar-name lib version)
@@ -179,5 +181,5 @@
 
 (defn end
   "Terminate the build and return nil instead of build-info"
-  [build-info]
+  [_build-info]
   nil)
