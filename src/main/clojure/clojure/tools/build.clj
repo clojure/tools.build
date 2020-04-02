@@ -32,9 +32,6 @@
   :build/params. Each param-src can either be a deps alias or a map."
   (println "param-srcs" param-srcs)
   (let [params (map #(resolve-alias basis %) param-srcs)]
-    (println "params" params)
-    (println "merged" (:build/params (update basis :build/params #(apply merge % params))))
-    (println "aliases" (:aliases basis))
     (update basis :build/params #(apply merge % params))))
 
 (comment
