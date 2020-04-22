@@ -9,8 +9,12 @@
 (ns clojure.tools.build.extra)
 
 (defn git-version
-  [basis {version-template :git-version/version-template
-          flow-key :build/flow}]
+  [basis {version-template :git-version/template
+          flow-key :git-version/version>}]
   (let [git-version "123" ;; TODO use git to determine git distance
         version (format version-template git-version)]
     {flow-key version}))
+
+(comment
+  (git-version nil #:git-version{:template "0.1.%s" :version> :flow/version})
+  )

@@ -13,7 +13,9 @@
     [clojure.string :as str]
     [clojure.tools.deps.alpha.gen.pom :as pom]
     [clojure.tools.build :as build]
-    [clojure.tools.build.file :as file])
+    [clojure.tools.build.file :as file]
+    [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.namespace.find :as find])
   (:import
     [java.io File FileOutputStream FileInputStream BufferedInputStream BufferedOutputStream]
     [java.nio.file Path Paths Files LinkOption]
@@ -31,19 +33,43 @@
 ;; compile-clj
 ;; TODO - needs some thinking
 
+(defn- write-compile-script
+  ^File [target-dir class-dir nses]
+  (let [script-file (jio/file target-dir (str (gensym "compile-") ".clj"))
+        script (str/join (System/lineSeparator)
+                 (concat [(str "(binding [*compile-path* " (pr-str class-dir) "]")]
+                   (map #(str "  (compile '" % ")") nses)
+                   ["  )"]))]
+    (spit script-file script)
+    script-file))
+
 (defn compile-clj
-  [basis {:build/keys [target-dir main-class]}]
-  (binding [*compile-path* (.toString (file/ensure-dir (jio/file target-dir "classes")))]
-    ;(compile main-class)
-    ))
+  [{:keys [classpath] :as basis} {:build/keys [clj-paths target-dir class-dir ns-compile]}]
+  (file/ensure-dir (jio/file class-dir))
+  (let [srcs (deps/resolve-path-ref clj-paths basis)
+        nses (or ns-compile
+               (mapcat #(find/find-namespaces-in-dir (jio/file %) find/clj) srcs))
+        compile-script (write-compile-script target-dir class-dir nses)
+
+        cp-str (-> classpath keys (conj class-dir) deps/join-classpath)
+        args ["java" "-cp" cp-str "clojure.main" (.getCanonicalPath compile-script)]
+        proc (.exec (Runtime/getRuntime) ^"[Ljava.lang.String;" (into-array args))
+
+        ;; TODO - write stderr/stdout so you can see compile errors
+        ;out-spooler (doto (Thread.
+        ;                    #( ())
+        ;                    "clj-compile spooler")
+        ;              (.setDaemon true)
+        ;              (.start))
+        exit (.waitFor proc)])) ;; TODO: check?
 
 ;; javac
 
 (defn javac
-  [{:keys [libs] :as basis} {:build/keys [target-dir java-paths javac-opts]}]
+  [{:keys [libs] :as basis} {:build/keys [class-dir java-paths javac-opts]}]
   (let [java-paths' (build/resolve-alias basis java-paths)]
     (when (seq java-paths')
-      (let [class-dir (file/ensure-dir (jio/file target-dir "classes"))
+      (let [class-dir (file/ensure-dir (jio/file class-dir))
             compiler (ToolProvider/getSystemJavaCompiler)
             listener (reify DiagnosticListener (report [_ diag] (println (str diag))))
             file-mgr (.getStandardFileManager compiler listener nil nil)
@@ -59,9 +85,12 @@
 ;; pom
 
 (defn sync-pom
-  [basis {:build/keys [src-pom lib version class-dir]}]
+  [basis {:build/keys [src-pom lib version class-dir] :as params}]
   (let [group-id (or (namespace lib) (name lib))
-        artifact-id (name lib)]
+        artifact-id (name lib)
+        version (if (keyword? version)
+                  (or (get params version) (build/resolve-alias basis version))
+                  version)]
     (let [pom-dir (file/ensure-dir
                     (jio/file class-dir "META-INF" "maven" group-id artifact-id))]
       (pom/sync-pom
@@ -84,7 +113,6 @@
   [basis {:build/keys [resources class-dir]}]
   (let [classes (jio/file class-dir)
         dirs (build/resolve-alias basis resources)]
-    (println "dirs" dirs)
     (doseq [src-dir dirs]
       (file/copy (jio/file src-dir) classes))))
 
@@ -125,8 +153,11 @@
   (str (name lib) "-" version ".jar"))
 
 (defn jar
-  [_basis {:build/keys [lib version main-class target-dir class-dir]}]
-  (let [jar-name (jar-name lib version)
+  [basis {:build/keys [lib version main-class target-dir class-dir] :as params}]
+  (let [version (if (keyword? version)
+                  (or (get params version) (build/resolve-alias basis version))
+                  version)
+        jar-name (jar-name lib version)
         jar-file (jio/file target-dir jar-name)
         class-dir (jio/file class-dir)]
     (let [manifest (Manifest.)]
@@ -166,13 +197,20 @@
     (file/copy lib-file out-dir)))
 
 (defn uber
-  [{:keys [libs] :as basis} {:build/keys [target-dir lib version]}]
-  (let [uber-dir (file/ensure-dir (jio/file target-dir "uber"))
-        jar-name (jar-name lib version)
-        project-jar-file (jio/file target-dir jar-name)
-        manifest (with-open [j (JarFile. project-jar-file)] (.getManifest j))
-        lib-paths (conj (->> libs vals (mapcat :paths) (map #(jio/file %))) project-jar-file)
+  [{:keys [libs] :as basis} {:build/keys [target-dir class-dir lib version main-class] :as params}]
+  (let [version (if (keyword? version)
+                  (or (get params version) (build/resolve-alias basis version))
+                  version)
+        uber-dir (file/ensure-dir (jio/file target-dir "uber"))
+        manifest (Manifest.)
+        lib-paths (conj (->> libs vals (mapcat :paths) (map #(jio/file %))) (jio/file class-dir))
         uber-file (jio/file target-dir (str (name lib) "-" version "-standalone.jar"))]
     (run! #(explode % uber-dir) lib-paths)
+    (fill-manifest! manifest
+      (cond->
+        {"Manifest-Version" "1.0"
+         "Created-By" "org.clojure/tools.build"
+         "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
+        main-class (assoc "Main-Class" (str main-class))))
     (with-open [jos (JarOutputStream. (FileOutputStream. uber-file) manifest)]
       (copy-to-jar jos uber-dir))))

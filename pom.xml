@@ -33,6 +33,11 @@
       <artifactId>tools.deps.alpha</artifactId>
       <version>0.8.678-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.namespace</artifactId>
+      <version>1.0.0</version>
+    </dependency>
   </dependencies>
 
   <build>
