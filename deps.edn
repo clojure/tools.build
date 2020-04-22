@@ -10,46 +10,6 @@
   :java-paths ["java" "src/main/java"]
   :resource-paths ["resources"]
 
-  :build1
-  {:build/target-dir "target1"
-   :build/src-pom "pom.xml"
-   :build/lib org.clojure/tools.build
-   :git-version/version-template "0.8.VERSION"
-   :git-version/version :flow/version
-   :build/version :flow/version
-   :build/resource-dirs :resource-paths
-   :build/clj-paths :clj-paths}
-
-  :build2
-  {:build/target-dir "target2"
-   :build/clj-paths :clj-paths ; ["src"]
-   :build/java-paths :java-paths ; ["java" "src/main/java"]
-   :build/resource-dirs :resource-paths ; ["resources"]
-   :build/src-pom "pom.xml"
-   :build/lib org.clojure/tools.build
-   :build/version "0.1.0"
-   :build/main-class clojure.tools.build.demo}
-
-  :build3
-  {:build/target-dir "target3"
-   :build/clj-paths :clj-paths ; ["src"]
-   :build/java-paths :java-paths ; ["java" "src/main/java"]
-   :build/resource-dirs :resource-paths ; ["resources"]
-   :build/src-pom "pom.xml"
-   :build/lib org.clojure/tools.build
-   :build/version "0.1.0"
-   :build/main-class clojure.tools.build.demo}
-
-  :build4
-  {:build/target-dir "target4"
-   :build/clj-paths :clj-paths ; ["src"]
-   :build/java-paths :java-paths ; ["java" "src/main/java"]
-   :build/resource-dirs :resource-paths ; ["resources"]
-   :build/src-pom "pom.xml"
-   :build/lib org.clojure/tools.build
-   :build/version "0.1.0"
-   :build/main-class clojure.tools.build.demo}
-
 ;  :build
 ;  {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
 ;   :main-opts ["-e" "(require,'[clojure.tools.build,:refer,:all],'[clojure.tools.build.tasks,:refer,:all])(->,(build-info),clean,sync-pom,jar,end)"]}

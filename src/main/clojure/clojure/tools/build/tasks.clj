@@ -14,6 +14,7 @@
     [clojure.tools.deps.alpha.gen.pom :as pom]
     [clojure.tools.build :as build]
     [clojure.tools.build.file :as file]
+    [clojure.tools.build.process :as process]
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.namespace.find :as find])
   (:import
@@ -52,11 +53,7 @@
 
         cp-str (-> classpath keys (conj class-dir) deps/join-classpath)
         args ["java" "-cp" cp-str "clojure.main" (.getCanonicalPath compile-script)]
-        proc-builder (doto (java.lang.ProcessBuilder. ^java.util.List args)
-                       (.redirectOutput java.lang.ProcessBuilder$Redirect/INHERIT)
-                       (.redirectError java.lang.ProcessBuilder$Redirect/INHERIT))
-        proc (.start proc-builder)
-        exit (.waitFor proc)]
+        exit (process/exec args)]
     (when (not= exit 0)
       {:error "Clojure compilation failed"})))
 

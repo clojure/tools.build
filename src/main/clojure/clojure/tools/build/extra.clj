@@ -6,12 +6,15 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.build.extra)
+(ns clojure.tools.build.extra
+  (:require
+    [clojure.string :as str]
+    [clojure.tools.build.process :as process]))
 
 (defn git-version
   [basis {version-template :git-version/template
           flow-key :git-version/version>}]
-  (let [git-version "123" ;; TODO use git to determine git distance
+  (let [git-version (str/trim (process/invoke ["git" "rev-list" "HEAD" "--count"]))
         version (format version-template git-version)]
     {flow-key version}))
 
