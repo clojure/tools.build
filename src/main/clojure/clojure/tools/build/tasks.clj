@@ -31,7 +31,6 @@
   (file/delete target-dir))
 
 ;; compile-clj
-;; TODO - needs some thinking
 
 (defn- write-compile-script
   ^File [target-dir class-dir nses]
@@ -53,15 +52,13 @@
 
         cp-str (-> classpath keys (conj class-dir) deps/join-classpath)
         args ["java" "-cp" cp-str "clojure.main" (.getCanonicalPath compile-script)]
-        proc (.exec (Runtime/getRuntime) ^"[Ljava.lang.String;" (into-array args))
-
-        ;; TODO - write stderr/stdout so you can see compile errors
-        ;out-spooler (doto (Thread.
-        ;                    #( ())
-        ;                    "clj-compile spooler")
-        ;              (.setDaemon true)
-        ;              (.start))
-        exit (.waitFor proc)])) ;; TODO: check?
+        proc-builder (doto (java.lang.ProcessBuilder. ^java.util.List args)
+                       (.redirectOutput java.lang.ProcessBuilder$Redirect/INHERIT)
+                       (.redirectError java.lang.ProcessBuilder$Redirect/INHERIT))
+        proc (.start proc-builder)
+        exit (.waitFor proc)]
+    (when (not= exit 0)
+      {:error "Clojure compilation failed"})))
 
 ;; javac
 
