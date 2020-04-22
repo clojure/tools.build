@@ -90,6 +90,7 @@
       :params {:build/target-dir "target3"
                :build/class-dir "target3/classes"
                :build/java-paths :java-paths ; ["java" "src/main/java"]
+               :build/javac-opts ["-source" "8" "-target" "8"]
                :build/resources :resource-paths ; ["resources"]
                :build/src-pom "pom.xml"
                :build/lib org.clojure/tools.build
