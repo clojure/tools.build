@@ -20,6 +20,7 @@
   (:import
     [java.io File FileOutputStream FileInputStream BufferedInputStream BufferedOutputStream]
     [java.nio.file Path Paths Files LinkOption]
+    [java.nio.file.attribute BasicFileAttributes]
     [java.util.jar Manifest Attributes$Name JarOutputStream JarEntry JarInputStream JarFile]
     [javax.tools ToolProvider DiagnosticListener]))
 
@@ -115,11 +116,17 @@
 (defn- add-jar-entry
   [^JarOutputStream output-stream ^String path ^File file]
   (let [dir (.isDirectory file)
-        path (if (and dir (not (.endsWith path "/"))) (str path "/") path)]
-    (.putNextEntry output-stream (JarEntry. path))
+        attrs (Files/readAttributes (.toPath file) BasicFileAttributes ^"[Ljava.nio.file.LinkOption;" (into-array LinkOption []))
+        path (if (and dir (not (.endsWith path "/"))) (str path "/") path)
+        entry (doto (JarEntry. path)
+                (.setSize (.size attrs))
+                (.setLastAccessTime (.lastAccessTime attrs))
+                (.setLastModifiedTime (.lastModifiedTime attrs)))]
+    (.putNextEntry output-stream entry)
     (when-not dir
       (with-open [fis (BufferedInputStream. (FileInputStream. file))]
         (jio/copy fis output-stream)))
+
     (.closeEntry output-stream)))
 
 (defn- copy-to-jar

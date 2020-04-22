@@ -45,7 +45,6 @@
                 arg-data (merge default-params (resolve-alias basis args) flow)
                 ;_ (clojure.pprint/pprint arg-data)
                 res (task-fn basis arg-data)]
-            (println "res=" res)
             (if-let [err (:error res)]
               (throw (ex-info err {:task resolved-task, :arg-data arg-data}))
               (merge flow res))))
