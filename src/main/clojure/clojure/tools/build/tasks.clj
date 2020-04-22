@@ -142,16 +142,12 @@
       (fn [[name value]]
         (.put attrs (Attributes$Name. ^String name) value)) props)))
 
-(defn- jar-name
-  [lib version]
-  (str (name lib) "-" version ".jar"))
-
 (defn jar
-  [basis {:build/keys [lib version main-class target-dir class-dir] :as params}]
+  [basis {:build/keys [lib version classifier main-class target-dir class-dir] :as params}]
   (let [version (if (keyword? version)
                   (or (get params version) (build/resolve-alias basis version))
                   version)
-        jar-name (jar-name lib version)
+        jar-name (str (name lib) "-" version (if classifier (str "-" classifier) "") ".jar")
         jar-file (jio/file target-dir jar-name)
         class-dir (jio/file class-dir)]
     (let [manifest (Manifest.)]

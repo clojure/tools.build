@@ -130,18 +130,17 @@
                :build/lib my/lib1
                :build/version "1.2.3"}})
 
-  ;; src lib AND compiled lib
+  ;; compiled lib
   (build
-    '{:tasks [[clean] [sync-pom] [include-resources] [jar]
-              [clean] [sync-pom] [include-resources] [compile-clj] [jar {:build/classifier "aot"}]]
+    '{:tasks [[clean] [clojure.tools.build.extra/git-version] [sync-pom] [compile-clj] [jar]]
       :params {:build/target-dir "target6"
                :build/class-dir "target6/classes"
                :build/src-pom "pom.xml"
                :build/lib org.clojure/tools.build
+               :build/classifier "aot"
                :git-version/template "0.8.%s"
                :git-version/version> :flow/version
                :build/version :flow/version
-               :build/resource-dirs :resource-paths
                :build/clj-paths :clj-paths}})
 
   )
