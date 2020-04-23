@@ -65,7 +65,7 @@
       (fn [^File f]
         (let [p (.toPath f)
               new-path (.resolve target-path (.relativize source-path p))]
-          (println "copying" (str p) (str new-path))
+          ;(println "copying" (str p) (str new-path))
           (.mkdirs (.toFile new-path))
           (Files/copy p new-path copy-options)))
       source-files)))

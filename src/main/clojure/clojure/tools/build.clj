@@ -7,11 +7,12 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns clojure.tools.build
- (:require
-   [clojure.java.io :as jio]
-   [clojure.tools.deps.alpha :as deps]
-   [clojure.tools.deps.alpha.reader :as reader]
-   [clojure.tools.deps.alpha.util.dir :as dir]))
+  (:require
+    [clojure.java.io :as jio]
+    [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps.alpha.reader :as reader]
+    [clojure.tools.deps.alpha.util.dir :as dir]
+    [clojure.tools.build.file :as file]))
 
 (defn resolve-alias
   [basis key]
@@ -24,10 +25,26 @@
   (let [task (if (qualified-symbol? task-sym)
                task-sym
                (symbol "clojure.tools.build.tasks" (str task-sym)))
-        task-fn (requiring-resolve task)]
+        task-fn (resolve task)]
     (if task-fn
       task-fn
       (throw (ex-info (str "Unknown task: " task-sym) {})))))
+
+(defn- load-basis
+  [project-deps]
+  (let [{:keys [install-edn user-edn project-edn]} (reader/find-edn-maps)
+        project (if project-deps
+                  (reader/slurp-deps project-deps)
+                  project-edn)
+        edns [install-edn user-edn project]
+        hash-file (jio/file ".cpcache" "build" (str (hash edns) ".basis"))]
+    (if (.exists hash-file)
+      (reader/slurp-deps hash-file)
+      (let [master-edn (deps/merge-edns edns)
+            basis (deps/calc-basis master-edn)]
+        (.mkdirs (jio/file ".cpcache/build"))
+        (spit hash-file basis)
+        basis))))
 
 (defn build
   "Execute build:
@@ -35,22 +52,27 @@
      Load build params - either a map or an alias
      Run tasks - task may have an arg map or alias, which is merged into the build params"
   [{:keys [project-deps params tasks]}]
-  (let [{:keys [install-edn user-edn project-edn]} (reader/find-edn-maps)
-        project (if project-deps
-                  (reader/slurp-deps project-deps)
-                  project-edn)
-        ordered-edns (remove nil? [install-edn user-edn project])
-        master-edn (deps/merge-edns ordered-edns)
-        basis (deps/calc-basis master-edn)
+  (let [;{:keys [install-edn user-edn project-edn]} (reader/find-edn-maps)
+        ;project (if project-deps
+        ;          (reader/slurp-deps project-deps)
+        ;          project-edn)
+        ;ordered-edns (remove nil? [install-edn user-edn project])
+        ;master-edn (deps/merge-edns ordered-edns)
+        ;basis (deps/calc-basis master-edn)
+        basis (load-basis project-deps)
         default-params (resolve-alias basis params)
         from-dir (if project-deps (.getParentFile (jio/file project-deps)) (jio/file "."))]
+    (require 'clojure.tools.build.tasks)
     (dir/with-dir from-dir
       (reduce
         (fn [flow [task-sym args]]
-          (let [task-fn (resolve-task task-sym)
-                _ (println "\nRunning task" (name task-sym))
+          (let [begin (System/currentTimeMillis)
+                task-fn (resolve-task task-sym)
+                _ (println "Running task" task-sym)
                 arg-data (merge default-params (resolve-alias basis args) flow)
-                res (task-fn basis arg-data)]
+                res (task-fn basis arg-data)
+                end (System/currentTimeMillis)]
+            (println "...completed in" (- end begin) "ms")
             (if-let [err (:error res)]
               (throw (ex-info err {:task task-sym, :arg-data arg-data}))
               (merge flow res))))

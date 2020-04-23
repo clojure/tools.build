@@ -119,8 +119,8 @@
         attrs (Files/readAttributes (.toPath file) BasicFileAttributes ^"[Ljava.nio.file.LinkOption;" (into-array LinkOption []))
         path (if (and dir (not (.endsWith path "/"))) (str path "/") path)
         entry (doto (JarEntry. path)
-                (.setSize (.size attrs))
-                (.setLastAccessTime (.lastAccessTime attrs))
+                ;(.setSize (.size attrs))
+                ;(.setLastAccessTime (.lastAccessTime attrs))
                 (.setLastModifiedTime (.lastModifiedTime attrs)))]
     (.putNextEntry output-stream entry)
     (when-not dir
