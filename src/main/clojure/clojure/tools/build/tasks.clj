@@ -181,6 +181,7 @@
               (jio/make-parents out-file)
               (when-not (.isDirectory entry)
                 (when (.exists out-file)
+                  ;; TODO - run a merge process
                   (println "CONFLICT: " (.getName entry)))
                 (let [output (BufferedOutputStream. (FileOutputStream. out-file))]
                   (loop []
@@ -189,7 +190,8 @@
                         (do
                           (.write output buffer 0 size)
                           (recur))
-                        (.close output))))))
+                        (.close output))))
+                  (Files/setLastModifiedTime (.toPath out-file) (.getLastModifiedTime entry))))
               (recur))))))
     (file/copy lib-file out-dir)))
 
