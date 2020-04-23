@@ -19,6 +19,16 @@
     (-> basis :aliases key)
     key))
 
+(defn- resolve-task
+  [task-sym]
+  (let [task (if (qualified-symbol? task-sym)
+               task-sym
+               (symbol "clojure.tools.build.tasks" (str task-sym)))
+        task-fn (requiring-resolve task)]
+    (if task-fn
+      task-fn
+      (throw (ex-info (str "Unknown task: " task-sym) {})))))
+
 (defn build
   "Execute build:
      Load basis using project-deps (default=./deps.edn)
@@ -37,16 +47,12 @@
     (dir/with-dir from-dir
       (reduce
         (fn [flow [task-sym args]]
-          (let [resolved-task (if (qualified-symbol? task-sym)
-                                task-sym
-                                (symbol "clojure.tools.build.tasks" (str task-sym)))
-                _ (println "\nRunning task" (name resolved-task))
-                task-fn (requiring-resolve resolved-task)
+          (let [task-fn (resolve-task task-sym)
+                _ (println "\nRunning task" (name task-sym))
                 arg-data (merge default-params (resolve-alias basis args) flow)
-                ;_ (clojure.pprint/pprint arg-data)
                 res (task-fn basis arg-data)]
             (if-let [err (:error res)]
-              (throw (ex-info err {:task resolved-task, :arg-data arg-data}))
+              (throw (ex-info err {:task task-sym, :arg-data arg-data}))
               (merge flow res))))
         nil
         tasks))
