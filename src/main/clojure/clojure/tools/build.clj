@@ -68,13 +68,14 @@
         (fn [flow [task-sym args]]
           (let [begin (System/currentTimeMillis)
                 task-fn (resolve-task task-sym)
-                _ (println "Running task" task-sym)
                 arg-data (merge default-params (resolve-alias basis args) flow)
                 res (task-fn basis arg-data)
                 end (System/currentTimeMillis)]
-            (println "...completed in" (- end begin) "ms")
+            (println "Ran" task-sym "in" (- end begin) "ms")
             (if-let [err (:error res)]
-              (throw (ex-info err {:task task-sym, :arg-data arg-data}))
+              (do
+                (println "Error in" task-sym)
+                (throw (ex-info err {:task task-sym, :arg-data arg-data})))
               (merge flow res))))
         nil
         tasks))
