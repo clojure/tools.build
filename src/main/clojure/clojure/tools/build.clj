@@ -22,10 +22,9 @@
 
 (defn- resolve-task
   [task-sym]
-  (let [task (if (qualified-symbol? task-sym)
-               task-sym
-               (symbol "clojure.tools.build.tasks" (str task-sym)))
-        task-fn (resolve task)]
+  (let [task-fn (if (qualified-symbol? task-sym)
+                  (requiring-resolve task-sym)
+                  (resolve (symbol "clojure.tools.build.tasks" (str task-sym))))]
     (if task-fn
       task-fn
       (throw (ex-info (str "Unknown task: " task-sym) {})))))
