@@ -125,6 +125,19 @@
                :build/version "0.1.0"
                :build/main-class clojure.tools.build.demo}})
 
+  ;; compiled clojure lib jar w/metadata elided
+  (build
+    '{:tasks [[clean] [compile-clj] [include-resources] [jar]]
+      :params {:build/target-dir "target4lib"
+               :build/class-dir "target4lib/classes"
+               :build/clj-paths :clj-paths ; ["src"]
+               :build/filter-nses [clojure.tools.build]
+               :build/compiler-opts {:elide-meta [:doc :file :line]}
+               :build/resources :resource-paths ; ["resources"]
+               :build/src-pom "pom.xml"
+               :build/lib org.clojure/tools.build
+               :build/version "0.1.0"}})
+
   ;; compiled clojure app jar
   (build
     '{:tasks [[clean] [compile-clj] [include-resources] [jar]]
