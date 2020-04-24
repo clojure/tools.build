@@ -70,7 +70,40 @@
           (Files/copy p new-path copy-options)))
       source-files)))
 
+(defn copy-filtered
+  "Copy files from src dir to target dir, when they match a prefix path"
+  [^File src-dir ^File target-dir prefixes]
+  (when (.exists src-dir)
+    (let [root (.toPath src-dir)
+          target (.toPath target-dir)]
+      (loop [queue (conj (clojure.lang.PersistentQueue/EMPTY) src-dir)]
+        (let [^File file (peek queue)]
+          (when file
+            (let [path (.toPath file)
+                  relative (.relativize root path)]
+              ;(println "consider" (.toString file) "match" (some #(str/starts-with? (.toString relative) %) prefixes) "dir" (Files/isDirectory path (into-array LinkOption [LinkOption/NOFOLLOW_LINKS])))
+              (cond
+                ;; match, copy this file/dir and stop recursing
+                (some #(str/starts-with? (.toString relative) %) prefixes)
+                (let [end-path (.resolve target relative)]
+                  ;(.mkdirs (.toFile end-path))
+                  (copy file (.toFile end-path))
+                  (recur (pop queue)))
+
+                ;; no match, but continue looking in this directory if it could match later
+                (and
+                  (Files/isDirectory path (into-array LinkOption [LinkOption/NOFOLLOW_LINKS]))
+                  (some #(str/starts-with? % (.toString relative)) prefixes))
+                (recur (into (pop queue)
+                         (with-open [entries (Files/newDirectoryStream path)]
+                           (mapv #(.toFile ^Path %) entries))))
+
+                ;; work the queue
+                :else
+                (recur (pop queue))))))))))
+
 (defn ensure-dir
+  "Ensure dir exists by making all parent directories and return it"
   ^File [dir]
   (let [d (jio/file dir)]
     (if (.exists d)
