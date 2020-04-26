@@ -23,6 +23,7 @@
     [java.nio.file Path Paths Files LinkOption]
     [java.nio.file.attribute BasicFileAttributes]
     [java.util.jar Manifest Attributes$Name JarOutputStream JarEntry JarInputStream JarFile]
+    [java.util.zip ZipOutputStream ZipEntry]
     [javax.tools ToolProvider DiagnosticListener]))
 
 (set! *warn-on-reflection* true)
@@ -62,8 +63,8 @@
         exit (process/exec args)]
     (if (zero? exit)
       (if (seq filter-nses)
-        (file/copy-filtered compile-dir class-dir-file (map ns->path filter-nses))
-        (file/copy compile-dir class-dir-file))
+        (file/copy-contents compile-dir class-dir-file (map ns->path filter-nses))
+        (file/copy-contents compile-dir class-dir-file))
       {:error "Clojure compilation failed"})))
 
 ;; javac
@@ -117,16 +118,16 @@
   (let [classes (jio/file class-dir)
         dirs (build/resolve-alias basis resources)]
     (doseq [src-dir dirs]
-      (file/copy (jio/file src-dir) classes))))
+      (file/copy-contents (jio/file src-dir) classes))))
 
 ;; jar
 
-(defn- add-jar-entry
-  [^JarOutputStream output-stream ^String path ^File file]
+(defn- add-zip-entry
+  [^ZipOutputStream output-stream ^String path ^File file]
   (let [dir (.isDirectory file)
         attrs (Files/readAttributes (.toPath file) BasicFileAttributes ^"[Ljava.nio.file.LinkOption;" (into-array LinkOption []))
         path (if (and dir (not (.endsWith path "/"))) (str path "/") path)
-        entry (doto (JarEntry. path)
+        entry (doto (ZipEntry. path)
                 ;(.setSize (.size attrs))
                 ;(.setLastAccessTime (.lastAccessTime attrs))
                 (.setLastModifiedTime (.lastModifiedTime attrs)))]
@@ -137,17 +138,17 @@
 
     (.closeEntry output-stream)))
 
-(defn- copy-to-jar
-  ([^JarOutputStream jos ^File root]
-    (copy-to-jar jos root root))
-  ([^JarOutputStream jos ^File root ^File path]
+(defn- copy-to-zip
+  ([^ZipOutputStream jos ^File root]
+    (copy-to-zip jos root root))
+  ([^ZipOutputStream jos ^File root ^File path]
    (let [root-path (.toPath root)
          files (file/collect-files root :dirs true)]
      (run! (fn [^File f]
              (let [rel-path (.toString (.relativize root-path (.toPath f)))]
                (when-not (= rel-path "")
                  ;(println "  Adding" rel-path)
-                 (add-jar-entry jos rel-path f))))
+                 (add-zip-entry jos rel-path f))))
        files))))
 
 (defn- fill-manifest!
@@ -173,7 +174,7 @@
            "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
           main-class (assoc "Main-Class" (str main-class))))
       (with-open [jos (JarOutputStream. (FileOutputStream. jar-file) manifest)]
-        (copy-to-jar jos class-dir)))))
+        (copy-to-zip jos class-dir)))))
 
 ;; uberjar
 
@@ -201,7 +202,7 @@
                         (.close output))))
                   (Files/setLastModifiedTime (.toPath out-file) (.getLastModifiedTime entry))))
               (recur))))))
-    (file/copy lib-file out-dir)))
+    (file/copy-contents lib-file out-dir)))
 
 (defn uber
   [{:keys [libs] :as basis} {:build/keys [target-dir class-dir lib version main-class] :as params}]
@@ -220,4 +221,20 @@
          "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
         main-class (assoc "Main-Class" (str main-class))))
     (with-open [jos (JarOutputStream. (FileOutputStream. uber-file) manifest)]
-      (copy-to-jar jos uber-dir))))
+      (copy-to-zip jos uber-dir))))
+
+;; zip
+
+(defn zip
+  [basis {:build/keys [target-dir zip-paths zip-name] :as params}]
+  (let [zip-file (jio/file target-dir zip-name)
+        zip-dir (file/ensure-dir (jio/file target-dir "zip"))]
+    (doseq [p zip-paths]
+      (println "copy" p (.toString (jio/file zip-dir p)))
+      (let [p-file (jio/file p)]
+        (when (.exists p-file)
+          (if (.isDirectory p-file)
+            (file/copy-contents p-file (jio/file zip-dir p))
+            (file/copy-file p-file (jio/file zip-dir (.getName p-file)))))))
+    (with-open [zos (ZipOutputStream. (FileOutputStream. zip-file))]
+      (copy-to-zip zos zip-dir))))

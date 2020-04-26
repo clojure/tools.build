@@ -105,7 +105,7 @@
     '{:tasks [[clean] [clojure.tools.build.extra/git-version] [sync-pom] [include-resources] [jar]]
       :params {:build/target-dir "target2"
                :build/class-dir "target2/classes"
-               :build/resources :resource-paths
+               :build/resources :clj-paths
                :build/src-pom "pom.xml"
                :git-version/template "0.8.%s"
                :git-version/version> :flow/version
@@ -171,7 +171,7 @@
                :build/lib my/lib1
                :build/version "1.2.3"}})
 
-  ;; compiled lib
+  ;; compiled lib w/classifier
   (build
     '{:tasks [[clean] [clojure.tools.build.extra/git-version] [sync-pom] [compile-clj] [jar]]
       :params {:build/target-dir "target6"
@@ -182,6 +182,14 @@
                :git-version/template "0.8.%s"
                :git-version/version> :flow/version
                :build/version :flow/version
-               :build/clj-paths :clj-paths}})
+               :build/clj-paths :clj-paths
+               :build/filter-nses [clojure.tools.build]}})
+
+  ;; zip
+  (build
+    '{:tasks [[clean] [zip]]
+      :params {:build/target-dir "target-zip"
+               :build/zip-paths ["java" "README.md"]
+               :build/zip-name "my.zip"}})
 
   )

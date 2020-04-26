@@ -52,55 +52,56 @@
   copy-options
   (into-array CopyOption [StandardCopyOption/COPY_ATTRIBUTES StandardCopyOption/REPLACE_EXISTING]))
 
-(defn copy
-  "Recursively copy files from source to target, retaining timestamps"
-  [^File source ^File target]
-  (let [source-path (.toPath source)
-        target-path (.toPath target)
-        source-files (collect-files source)]
-    ;(println "source" (str source-path))
-    ;(println "target" (str target-path))
-    ;(println "source-files" (map str source-files))
-    (run!
-      (fn [^File f]
-        (let [p (.toPath f)
-              new-path (.resolve target-path (.relativize source-path p))]
-          ;(println "copying" (str p) (str new-path))
-          (.mkdirs (.toFile new-path))
-          (Files/copy p new-path copy-options)))
-      source-files)))
+(defn copy-file
+  "Copy file from src to target, retaining file attributes"
+  [^File src-file ^File target-file]
+  (.mkdirs target-file)
+  (Files/copy (.toPath src-file) (.toPath target-file) copy-options))
 
-(defn copy-filtered
-  "Copy files from src dir to target dir, when they match a prefix path"
-  [^File src-dir ^File target-dir prefixes]
-  (when (.exists src-dir)
-    (let [root (.toPath src-dir)
-          target (.toPath target-dir)]
-      (loop [queue (conj (clojure.lang.PersistentQueue/EMPTY) src-dir)]
-        (let [^File file (peek queue)]
-          (when file
-            (let [path (.toPath file)
-                  relative (.relativize root path)]
-              ;(println "consider" (.toString file) "match" (some #(str/starts-with? (.toString relative) %) prefixes) "dir" (Files/isDirectory path (into-array LinkOption [LinkOption/NOFOLLOW_LINKS])))
-              (cond
-                ;; match, copy this file/dir and stop recursing
-                (some #(str/starts-with? (.toString relative) %) prefixes)
-                (let [end-path (.resolve target relative)]
-                  ;(.mkdirs (.toFile end-path))
-                  (copy file (.toFile end-path))
-                  (recur (pop queue)))
+(defn copy-contents
+  "Copy files in src dir to target dir, optionally filtering by prefix paths"
+  ([^File src-dir ^File target-dir]
+   (let [source-path (.toPath src-dir)
+         target-path (.toPath target-dir)
+         source-files (collect-files src-dir)]
+     ;(println "source" (str source-path))
+     ;(println "target" (str target-path))
+     ;(println "source-files" (map str source-files))
+     (run!
+       (fn [^File f]
+         (let [p (.toPath f)
+               new-path (.resolve target-path (.relativize source-path p))]
+           ;(println "copying" (str p) (str new-path))
+           (copy-file f (.toFile new-path))))
+       source-files)))
+  ([^File src-dir ^File target-dir prefixes]
+   (when (.exists src-dir)
+     (let [root (.toPath src-dir)
+           target (.toPath target-dir)]
+       (loop [queue (conj (clojure.lang.PersistentQueue/EMPTY) src-dir)]
+         (let [^File file (peek queue)]
+           (when file
+             (let [path (.toPath file)
+                   relative (.relativize root path)]
+               ;(println "consider" (.toString file) "match" (some #(str/starts-with? (.toString relative) %) prefixes) "dir" (Files/isDirectory path (into-array LinkOption [LinkOption/NOFOLLOW_LINKS])))
+               (cond
+                 ;; match, copy this file/dir
+                 (some #(str/starts-with? (.toString relative) %) prefixes)
+                 (let [end-path (.resolve target relative)]
+                   (copy-contents file (.toFile end-path))
+                   (recur (pop queue)))
 
-                ;; no match, but continue looking in this directory if it could match later
-                (and
-                  (Files/isDirectory path (into-array LinkOption [LinkOption/NOFOLLOW_LINKS]))
-                  (some #(str/starts-with? % (.toString relative)) prefixes))
-                (recur (into (pop queue)
-                         (with-open [entries (Files/newDirectoryStream path)]
-                           (mapv #(.toFile ^Path %) entries))))
+                 ;; no match, but continue looking in this directory if it could match later
+                 (and
+                   (Files/isDirectory path (into-array LinkOption [LinkOption/NOFOLLOW_LINKS]))
+                   (some #(str/starts-with? % (.toString relative)) prefixes))
+                 (recur (into (pop queue)
+                          (with-open [entries (Files/newDirectoryStream path)]
+                            (mapv #(.toFile ^Path %) entries))))
 
-                ;; work the queue
-                :else
-                (recur (pop queue))))))))))
+                 ;; work the queue
+                 :else
+                 (recur (pop queue)))))))))))
 
 (defn ensure-dir
   "Ensure dir exists by making all parent directories and return it"
