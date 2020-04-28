@@ -8,13 +8,12 @@
 
 (ns clojure.tools.build.extra
   (:require
-    [clojure.string :as str]
     [clojure.tools.build.process :as process]))
 
 (defn git-version
   [basis {version-template :git-version/template
           flow-key :git-version/version>}]
-  (let [git-version (str/trim (process/invoke ["git" "rev-list" "HEAD" "--count"]))
+  (let [git-version (process/invoke ["git" "rev-list" "HEAD" "--count"])
         version (format version-template git-version)]
     {flow-key version}))
 

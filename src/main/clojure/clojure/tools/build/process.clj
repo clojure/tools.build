@@ -1,4 +1,6 @@
 (ns clojure.tools.build.process
+  (:require
+    [clojure.string :as str])
   (:import
     [java.lang ProcessBuilder ProcessBuilder$Redirect]
     [java.io File]
@@ -26,7 +28,7 @@
                        (.redirectError ProcessBuilder$Redirect/INHERIT))
         proc (.start proc-builder)]
     (.waitFor proc)
-    (slurp f)))
+    (-> f slurp str/trim)))
 
 (comment
   (invoke ["ls" "-l"])

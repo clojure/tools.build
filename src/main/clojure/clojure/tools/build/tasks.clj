@@ -28,6 +28,12 @@
 
 (set! *warn-on-reflection* true)
 
+(defn resolve-flow
+  [params val]
+  (if (and (keyword? val) (= (namespace val) "flow"))
+    (get params val val)
+    val))
+
 ;; clean
 
 (defn clean
@@ -92,9 +98,7 @@
   [basis {:build/keys [src-pom lib version class-dir] :or {src-pom "pom.xml"} :as params}]
   (let [group-id (or (namespace lib) (name lib))
         artifact-id (name lib)
-        version (if (keyword? version)
-                  (or (get params version) (build/resolve-alias basis version))
-                  version)
+        version (resolve-flow params version)
         pom-dir (file/ensure-dir
                   (jio/file class-dir "META-INF" "maven" group-id artifact-id))]
     (pom/sync-pom
@@ -160,9 +164,7 @@
 
 (defn jar
   [basis {:build/keys [lib version classifier main-class target-dir class-dir] :as params}]
-  (let [version (if (keyword? version)
-                  (or (get params version) (build/resolve-alias basis version))
-                  version)
+  (let [version (resolve-flow params version)
         jar-name (str (name lib) "-" version (if classifier (str "-" classifier) "") ".jar")
         jar-file (jio/file target-dir jar-name)
         class-dir (jio/file class-dir)]
@@ -206,9 +208,7 @@
 
 (defn uber
   [{:keys [libs] :as basis} {:build/keys [target-dir class-dir lib version main-class] :as params}]
-  (let [version (if (keyword? version)
-                  (or (get params version) (build/resolve-alias basis version))
-                  version)
+  (let [version (resolve-flow params version)
         uber-dir (file/ensure-dir (jio/file target-dir "uber"))
         manifest (Manifest.)
         lib-paths (conj (->> libs vals (mapcat :paths) (map #(jio/file %))) (jio/file class-dir))
@@ -244,7 +244,7 @@
 
 (defn zip
   [basis {:build/keys [target-dir zip-paths zip-name] :as params}]
-  (let [zip-file (jio/file target-dir zip-name)
+  (let [zip-file (jio/file target-dir (resolve-flow params zip-name))
         zip-dir (file/ensure-dir (jio/file target-dir "zip"))
         zip-path (.toPath zip-dir)]
     (doseq [[root globs] zip-paths]
@@ -258,3 +258,20 @@
               (file/copy-file (.toFile path) (.toFile zip-relative)))))))
     (with-open [zos (ZipOutputStream. (FileOutputStream. zip-file))]
       (copy-to-zip zos zip-dir))))
+
+;; process
+
+;; TODO: set directory, env vars, out/err handling
+(defn process
+  [basis {:build/keys [command out>] :as params}]
+  (let [resolved-command (map #(resolve-flow params %) command)
+        out (process/invoke resolved-command)]
+    (when out>
+      {out> out})))
+
+;; format-str
+
+(defn format-str
+  [basis {:build/keys [template args out>] :as params}]
+  (let [resolved-args (map #(resolve-flow params %) args)]
+    {out> (apply format template resolved-args)}))

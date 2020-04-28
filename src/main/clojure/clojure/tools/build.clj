@@ -193,4 +193,16 @@
                                  "java" ["**/*.java"]}
                :build/zip-name "java-source.zip"}})
 
+  ;; process / format
+  (build
+    '{:tasks [[clean]
+              [process {:build/command ["git" "rev-list" "HEAD" "--count"]
+                        :build/out> :flow/rev}]
+              [format-str {:build/template "example-%s.zip"
+                           :build/args [:flow/rev]
+                           :build/out> :flow/zip-name}]
+              [zip {:build/zip-paths {"." ["README.md"]}
+                    :build/zip-name :flow/zip-name}]]
+      :params {:build/target-dir "target-process"}})
+
   )
