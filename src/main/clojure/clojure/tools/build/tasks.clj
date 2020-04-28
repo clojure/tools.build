@@ -20,7 +20,7 @@
     [clojure.tools.namespace.find :as find])
   (:import
     [java.io File FileOutputStream FileInputStream BufferedInputStream BufferedOutputStream]
-    [java.nio.file Path Paths Files LinkOption]
+    [java.nio.file Path Paths Files LinkOption FileSystems FileVisitor FileVisitResult]
     [java.nio.file.attribute BasicFileAttributes]
     [java.util.jar Manifest Attributes$Name JarOutputStream JarEntry JarInputStream JarFile]
     [java.util.zip ZipOutputStream ZipEntry]
@@ -225,16 +225,36 @@
 
 ;; zip
 
+(defn- match-paths
+  "Match glob to paths under root and return a collection of Path objects"
+  [^File root glob]
+  (let [root-path (.toPath root)
+        matcher (.getPathMatcher (FileSystems/getDefault) (str "glob:" glob))
+        paths (volatile! [])
+        visitor (reify FileVisitor
+                  (visitFile [_ path attrs]
+                    (when (.matches matcher (.relativize root-path ^Path path))
+                      (vswap! paths conj path))
+                    FileVisitResult/CONTINUE)
+                  (visitFileFailed [_ path ex] FileVisitResult/CONTINUE)
+                  (preVisitDirectory [_ _ _] FileVisitResult/CONTINUE)
+                  (postVisitDirectory [_ _ _] FileVisitResult/CONTINUE))]
+    (Files/walkFileTree root-path visitor)
+    @paths))
+
 (defn zip
   [basis {:build/keys [target-dir zip-paths zip-name] :as params}]
   (let [zip-file (jio/file target-dir zip-name)
-        zip-dir (file/ensure-dir (jio/file target-dir "zip"))]
-    (doseq [p zip-paths]
-      (println "copy" p (.toString (jio/file zip-dir p)))
-      (let [p-file (jio/file p)]
-        (when (.exists p-file)
-          (if (.isDirectory p-file)
-            (file/copy-contents p-file (jio/file zip-dir p))
-            (file/copy-file p-file (jio/file zip-dir (.getName p-file)))))))
+        zip-dir (file/ensure-dir (jio/file target-dir "zip"))
+        zip-path (.toPath zip-dir)]
+    (doseq [[root globs] zip-paths]
+      (doseq [glob globs]
+        (let [root-file (jio/file root)
+              root-path (.toPath root-file)
+              matching (match-paths root-file glob)]
+          (doseq [^Path path matching]
+            (let [relative (.relativize root-path path)
+                  zip-relative (.resolve zip-path relative)]
+              (file/copy-file (.toFile path) (.toFile zip-relative)))))))
     (with-open [zos (ZipOutputStream. (FileOutputStream. zip-file))]
       (copy-to-zip zos zip-dir))))

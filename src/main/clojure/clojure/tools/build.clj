@@ -189,7 +189,8 @@
   (build
     '{:tasks [[clean] [zip]]
       :params {:build/target-dir "target-zip"
-               :build/zip-paths ["java" "README.md"]
-               :build/zip-name "my.zip"}})
+               :build/zip-paths {"." ["README.md"]
+                                 "java" ["**/*.java"]}
+               :build/zip-name "java-source.zip"}})
 
   )
