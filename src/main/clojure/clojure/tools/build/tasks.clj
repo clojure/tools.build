@@ -310,7 +310,7 @@
         session (mvn/make-session system (or local-repo mvn/default-local-repo))
         jar-artifact (.setFile (DefaultArtifact. group artifact classifier "jar" version) jar-file)
         artifacts (cond-> [jar-artifact]
-                    (.exists pom) (conj (.setFile (DefaultArtifact. group artifact classifier "pom" version) pom)))
+                    (and pom (.exists pom)) (conj (.setFile (DefaultArtifact. group artifact classifier "pom" version) pom)))
         install-request (.setArtifacts (InstallRequest.) artifacts)]
     (.install system session install-request)
     nil))
