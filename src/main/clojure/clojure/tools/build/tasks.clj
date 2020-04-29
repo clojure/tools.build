@@ -299,7 +299,7 @@
 ;; install
 
 (defn install
-  [{:mvn/keys [local-repo]} {:build/keys [target-dir class-dir lib version classifier] :flow/keys [pom-file] :as params}]
+  [{:mvn/keys [local-repo]} {:build/keys [target-dir lib version classifier] :flow/keys [pom-file] :as params}]
   (let [version (resolve-flow params version)
         group (namespace lib)
         artifact (name lib)
