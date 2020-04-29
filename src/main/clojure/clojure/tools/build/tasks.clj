@@ -10,7 +10,6 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.pprint :as pprint]
-    [clojure.set :as set]
     [clojure.string :as str]
     [clojure.tools.deps.alpha.gen.pom :as pom]
     [clojure.tools.build :as build]
@@ -20,7 +19,7 @@
     [clojure.tools.namespace.find :as find])
   (:import
     [java.io File FileOutputStream FileInputStream BufferedInputStream BufferedOutputStream]
-    [java.nio.file Path Paths Files LinkOption FileSystems FileVisitor FileVisitResult]
+    [java.nio.file Path Files LinkOption FileSystems FileVisitor FileVisitResult]
     [java.nio.file.attribute BasicFileAttributes]
     [java.util.jar Manifest Attributes$Name JarOutputStream JarEntry JarInputStream JarFile]
     [java.util.zip ZipOutputStream ZipEntry]
@@ -30,7 +29,7 @@
 
 (defn resolve-flow
   [params val]
-  (if (and (keyword? val) (= (namespace val) "flow"))
+  (if (keyword? val)
     (get params val val)
     val))
 
@@ -115,14 +114,56 @@
          (format "groupId=%s" group-id)
          (format "artifactId=%s" artifact-id)]))))
 
-;; include-resources
+;; copy
 
-(defn include-resources
-  [basis {:build/keys [resources class-dir]}]
-  (let [classes (jio/file class-dir)
-        dirs (build/resolve-alias basis resources)]
-    (doseq [src-dir dirs]
-      (file/copy-contents (jio/file src-dir) classes))))
+;; copy spec:
+;;    :from (coll of dirs), default = ["."]
+;;    ;include (glob), default = "**"
+;;    :replace (map of replacements) - performed while copying
+
+(defn- match-paths
+  "Match glob to paths under root and return a collection of Path objects"
+  [^File root glob]
+  (let [root-path (.toPath root)
+        matcher (.getPathMatcher (FileSystems/getDefault) (str "glob:" glob))
+        paths (volatile! [])
+        visitor (reify FileVisitor
+                  (visitFile [_ path attrs]
+                    (when (.matches matcher (.relativize root-path ^Path path))
+                      (vswap! paths conj path))
+                    FileVisitResult/CONTINUE)
+                  (visitFileFailed [_ path ex] FileVisitResult/CONTINUE)
+                  (preVisitDirectory [_ _ _] FileVisitResult/CONTINUE)
+                  (postVisitDirectory [_ _ _] FileVisitResult/CONTINUE))]
+    (Files/walkFileTree root-path visitor)
+    @paths))
+
+(def ^:private default-copy-spec
+  {:from ["."] :include "**"})
+
+(defn copy
+  [basis {:build/keys [copy-specs copy-to] :or {copy-to :build/class-dir} :as params}]
+  (let [resolved-specs (map #(merge default-copy-spec %) copy-specs)
+        to (->> copy-to (resolve-flow params) (build/resolve-alias basis))
+        to-path (.toPath (file/ensure-dir (jio/file to)))]
+    (doseq [{:keys [from include replace]} resolved-specs]
+      ;(println "\nspec" from include to replace)
+      (let [from (->> from (resolve-flow params) (build/resolve-alias basis))
+            include (resolve-flow params include)
+            replace (reduce-kv #(assoc %1 %2 (resolve-flow params %3)) {} replace)]
+        (doseq [from-dir from]
+          (let [from-file (jio/file from-dir)
+                paths (match-paths from-file include)]
+            (doseq [^Path path paths]
+              (let [path-file (.toFile path)
+                    target-file (.toFile (.resolve to-path (.relativize (.toPath from-file) path)))]
+                ;(println "copying" (.toString path-file) (.toString target-file) (boolean (not (empty? replace))))
+                (if (empty? replace)
+                  (file/copy-file path-file target-file)
+                  (let [contents (slurp path-file)
+                        replaced (reduce (fn [s [find replace]] (str/replace s find replace))
+                                   contents replace)]
+                    (spit target-file replaced)))))))))))
 
 ;; jar
 
@@ -193,7 +234,8 @@
               (when-not (.isDirectory entry)
                 (when (.exists out-file)
                   ;; TODO - run a merge process
-                  (println "CONFLICT: " (.getName entry)))
+                  ;(println "CONFLICT: " (.getName entry))
+                  )
                 (let [output (BufferedOutputStream. (FileOutputStream. out-file))]
                   (loop []
                     (let [size (.read jis buffer)]
@@ -225,37 +267,11 @@
 
 ;; zip
 
-(defn- match-paths
-  "Match glob to paths under root and return a collection of Path objects"
-  [^File root glob]
-  (let [root-path (.toPath root)
-        matcher (.getPathMatcher (FileSystems/getDefault) (str "glob:" glob))
-        paths (volatile! [])
-        visitor (reify FileVisitor
-                  (visitFile [_ path attrs]
-                    (when (.matches matcher (.relativize root-path ^Path path))
-                      (vswap! paths conj path))
-                    FileVisitResult/CONTINUE)
-                  (visitFileFailed [_ path ex] FileVisitResult/CONTINUE)
-                  (preVisitDirectory [_ _ _] FileVisitResult/CONTINUE)
-                  (postVisitDirectory [_ _ _] FileVisitResult/CONTINUE))]
-    (Files/walkFileTree root-path visitor)
-    @paths))
-
 (defn zip
-  [basis {:build/keys [target-dir zip-paths zip-name] :as params}]
-  (let [zip-file (jio/file target-dir (resolve-flow params zip-name))
-        zip-dir (file/ensure-dir (jio/file target-dir "zip"))
+  [basis {:build/keys [zip-dir target-dir zip-name] :as params}]
+  (let [zip-dir (file/ensure-dir (jio/file (resolve-flow params zip-dir)))
+        zip-file (jio/file target-dir (resolve-flow params zip-name))
         zip-path (.toPath zip-dir)]
-    (doseq [[root globs] zip-paths]
-      (doseq [glob globs]
-        (let [root-file (jio/file root)
-              root-path (.toPath root-file)
-              matching (match-paths root-file glob)]
-          (doseq [^Path path matching]
-            (let [relative (.relativize root-path path)
-                  zip-relative (.resolve zip-path relative)]
-              (file/copy-file (.toFile path) (.toFile zip-relative)))))))
     (with-open [zos (ZipOutputStream. (FileOutputStream. zip-file))]
       (copy-to-zip zos zip-dir))))
 

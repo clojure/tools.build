@@ -88,24 +88,24 @@
   ;; Given aliases:
   ;; :clj-paths ["src/main/clojure"]
   ;  :java-paths ["java" "src/main/java"]
-  ;  :resource-paths ["resources"]
+  ;  :resource-paths ["src/main/resources"]
 
   ;; clojure source lib
   (build
-    '{:tasks [[clean] [sync-pom] [include-resources] [jar]]
+    '{:tasks [[clean] [sync-pom] [copy] [jar]]
       :params {:build/target-dir "target1"
                :build/class-dir "target1/classes"
-               :build/resources :clj-paths
+               :build/copy-specs [{:from :clj-paths}]
                :build/src-pom "pom.xml"
                :build/lib my/lib1
                :build/version "1.2.3"}})
 
   ;; clojure source lib with git version template
   (build
-    '{:tasks [[clean] [clojure.tools.build.extra/git-version] [sync-pom] [include-resources] [jar]]
+    '{:tasks [[clean] [clojure.tools.build.extra/git-version] [sync-pom] [copy] [jar]]
       :params {:build/target-dir "target2"
                :build/class-dir "target2/classes"
-               :build/resources :clj-paths
+               :build/copy-specs [{:from :clj-paths}]
                :build/src-pom "pom.xml"
                :git-version/template "0.8.%s"
                :git-version/version> :flow/version
@@ -114,12 +114,12 @@
 
   ;; java executable jar (no clojure!)
   (build
-    '{:tasks [[clean] [javac] [sync-pom] [include-resources] [jar]]
+    '{:tasks [[clean] [javac] [sync-pom] [copy] [jar]]
       :params {:build/target-dir "target3"
                :build/class-dir "target3/classes"
-               :build/java-paths :java-paths ; ["java" "src/main/java"]
+               :build/java-paths :java-paths
                :build/javac-opts ["-source" "8" "-target" "8"]
-               :build/resources :resource-paths ; ["resources"]
+               :build/copy-specs [{:from :resource-paths}]
                :build/src-pom "pom.xml"
                :build/lib org.clojure/tools.build
                :build/version "0.1.0"
@@ -127,24 +127,24 @@
 
   ;; compiled clojure lib jar w/metadata elided
   (build
-    '{:tasks [[clean] [compile-clj] [include-resources] [jar]]
+    '{:tasks [[clean] [compile-clj] [copy] [jar]]
       :params {:build/target-dir "target4lib"
                :build/class-dir "target4lib/classes"
-               :build/clj-paths :clj-paths ; ["src"]
+               :build/clj-paths :clj-paths
                :build/filter-nses [clojure.tools.build]
                :build/compiler-opts {:elide-meta [:doc :file :line]}
-               :build/resources :resource-paths ; ["resources"]
+               :build/copy-specs [{:from :resource-paths}]
                :build/src-pom "pom.xml"
                :build/lib org.clojure/tools.build
                :build/version "0.1.0"}})
 
   ;; compiled clojure app jar
   (build
-    '{:tasks [[clean] [compile-clj] [include-resources] [jar]]
+    '{:tasks [[clean] [compile-clj] [copy] [jar]]
       :params {:build/target-dir "target4"
                :build/class-dir "target4/classes"
-               :build/clj-paths :clj-paths ; ["src"]
-               :build/resources :resource-paths ; ["resources"]
+               :build/clj-paths :clj-paths
+               :build/copy-specs [{:from :resource-paths}]
                :build/src-pom "pom.xml"
                :build/lib org.clojure/tools.build
                :build/version "0.1.0"
@@ -152,10 +152,11 @@
 
   ;; uber compiled jar
   (build
-    '{:tasks [[clean] [sync-pom] [compile-clj] [uber]]
+    '{:tasks [[clean] [sync-pom] [compile-clj] [copy] [uber]]
       :params {:build/target-dir "target5"
                :build/class-dir "target5/classes"
                :build/clj-paths :clj-paths
+               :build/copy-specs [{:from :resource-paths}]
                :build/src-pom "pom.xml"
                :build/lib my/lib1
                :build/version "1.2.3"}})
@@ -163,10 +164,10 @@
   ;; uber src jar
   (build
     '{:project-deps "uber-demo/deps.edn"
-      :tasks [[clean] [sync-pom] [include-resources] [uber]]
+      :tasks [[clean] [sync-pom] [copy] [uber]]
       :params {:build/target-dir "uber-demo/target"
                :build/class-dir "uber-demo/target/classes"
-               :build/resources ["uber-demo/src"]
+               :build/copy-specs [{:from ["uber-demo/src"]}]
                :build/src-pom "uber-demo/pom.xml"
                :build/lib my/lib1
                :build/version "1.2.3"}})
@@ -187,10 +188,12 @@
 
   ;; zip
   (build
-    '{:tasks [[clean] [zip]]
+    '{:tasks [[clean] [copy] [zip]]
       :params {:build/target-dir "target-zip"
-               :build/zip-paths {"." ["README.md"]
-                                 "java" ["**/*.java"]}
+               :build/zip-dir "target-zip/zip"
+               :build/copy-to :build/zip-dir
+               :build/copy-specs [{:include "README.md"}
+                                  {:from :java-paths :include "**/*.java"}]
                :build/zip-name "java-source.zip"}})
 
   ;; process / format
@@ -201,8 +204,12 @@
               [format-str {:build/template "example-%s.zip"
                            :build/args [:flow/rev]
                            :build/out> :flow/zip-name}]
-              [zip {:build/zip-paths {"." ["README.md"]}
-                    :build/zip-name :flow/zip-name}]]
-      :params {:build/target-dir "target-process"}})
+              [copy {:build/copy-to :build/zip-dir
+                     :build/copy-specs [{:include "README.md"
+                                         :replace {"VERSION" :flow/rev
+                                                   "FOO" "hi there"}}]}]
+              [zip {:build/zip-name :flow/zip-name}]]
+      :params {:build/target-dir "target-process"
+               :build/zip-dir "target-process/zip"}})
 
   )
