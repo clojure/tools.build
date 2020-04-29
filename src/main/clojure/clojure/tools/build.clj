@@ -92,7 +92,7 @@
 
   ;; clojure source lib
   (build
-    '{:tasks [[clean] [sync-pom] [copy] [jar]]
+    '{:tasks [[clean] [sync-pom] [copy] [jar] [install]]
       :params {:build/target-dir "target1"
                :build/class-dir "target1/classes"
                :build/copy-specs [{:from :clj-paths}]

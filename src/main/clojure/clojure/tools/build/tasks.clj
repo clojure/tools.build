@@ -16,6 +16,7 @@
     [clojure.tools.build.file :as file]
     [clojure.tools.build.process :as process]
     [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps.alpha.util.maven :as mvn]
     [clojure.tools.namespace.find :as find])
   (:import
     [java.io File FileOutputStream FileInputStream BufferedInputStream BufferedOutputStream]
@@ -23,7 +24,9 @@
     [java.nio.file.attribute BasicFileAttributes]
     [java.util.jar Manifest Attributes$Name JarOutputStream JarEntry JarInputStream JarFile]
     [java.util.zip ZipOutputStream ZipEntry]
-    [javax.tools ToolProvider DiagnosticListener]))
+    [javax.tools ToolProvider DiagnosticListener]
+    [org.eclipse.aether.artifact DefaultArtifact]
+    [org.eclipse.aether.installation InstallRequest InstallResult]))
 
 (set! *warn-on-reflection* true)
 
@@ -112,7 +115,8 @@
          (format "# %tc" (java.util.Date.))
          (format "version=%s" version)
          (format "groupId=%s" group-id)
-         (format "artifactId=%s" artifact-id)]))))
+         (format "artifactId=%s" artifact-id)]))
+    {:flow/pom-file (.getPath (jio/file pom-dir "pom.xml"))}))
 
 ;; copy
 
@@ -291,3 +295,22 @@
   [basis {:build/keys [template args out>] :as params}]
   (let [resolved-args (map #(resolve-flow params %) args)]
     {out> (apply format template resolved-args)}))
+
+;; install
+
+(defn install
+  [{:mvn/keys [local-repo]} {:build/keys [target-dir class-dir lib version classifier] :flow/keys [pom-file] :as params}]
+  (let [version (resolve-flow params version)
+        group (namespace lib)
+        artifact (name lib)
+        jar-name (str artifact "-" version (if classifier (str "-" classifier) "") ".jar")
+        jar-file (jio/file target-dir jar-name)
+        pom (jio/file pom-file)
+        system (mvn/make-system)
+        session (mvn/make-session system (or local-repo mvn/default-local-repo))
+        jar-artifact (.setFile (DefaultArtifact. group artifact classifier "jar" version) jar-file)
+        artifacts (cond-> [jar-artifact]
+                    (.exists pom) (conj (.setFile (DefaultArtifact. group artifact classifier "pom" version) pom)))
+        install-request (.setArtifacts (InstallRequest.) artifacts)]
+    (.install system session install-request)
+    nil))
