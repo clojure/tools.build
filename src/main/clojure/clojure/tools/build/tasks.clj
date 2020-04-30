@@ -8,6 +8,7 @@
 
 (ns clojure.tools.build.tasks
   (:require
+    [clojure.edn :as edn]
     [clojure.java.io :as jio]
     [clojure.pprint :as pprint]
     [clojure.string :as str]
@@ -19,7 +20,9 @@
     [clojure.tools.deps.alpha.util.maven :as mvn]
     [clojure.tools.namespace.find :as find])
   (:import
-    [java.io File FileOutputStream FileInputStream BufferedInputStream BufferedOutputStream]
+    [java.io File FileOutputStream FileInputStream BufferedInputStream BufferedOutputStream
+             InputStream OutputStream ByteArrayOutputStream]
+    [java.nio.charset StandardCharsets]
     [java.nio.file Path Files LinkOption FileSystems FileVisitor FileVisitResult]
     [java.nio.file.attribute BasicFileAttributes]
     [java.util.jar Manifest Attributes$Name JarOutputStream JarEntry JarInputStream JarFile]
@@ -225,6 +228,31 @@
 
 ;; uberjar
 
+(def ^:private uber-exclusions
+  [#"project.clj"
+   #"META-INF/.*\.(?:SF|RSA|DSA)"])
+
+(defn- exclude-from-uber?
+  [^String path]
+  (loop [[re & res] uber-exclusions]
+    (if re
+      (if (re-matches re path)
+        true
+        (recur res))
+      false)))
+
+(defn- copy-stream!
+  "Copy input stream to output stream using buffer.
+  Caller is responsible for passing buffered streams and closing streams."
+  [^InputStream is ^OutputStream os ^bytes buffer]
+  (loop []
+    (let [size (.read is buffer)]
+      (if (pos? size)
+        (do
+          (.write os buffer 0 size)
+          (recur))
+        (.close os)))))
+
 (defn- explode
   [^File lib-file out-dir]
   (if (str/ends-with? (.getPath lib-file) ".jar")
@@ -235,20 +263,23 @@
             ;(println "entry:" (.getName entry) (.isDirectory entry))
             (let [out-file (jio/file out-dir (.getName entry))]
               (jio/make-parents out-file)
-              (when-not (.isDirectory entry)
-                (when (.exists out-file)
-                  ;; TODO - run a merge process
-                  ;(println "CONFLICT: " (.getName entry))
-                  )
-                (let [output (BufferedOutputStream. (FileOutputStream. out-file))]
-                  (loop []
-                    (let [size (.read jis buffer)]
-                      (if (pos? size)
-                        (do
-                          (.write output buffer 0 size)
-                          (recur))
-                        (.close output))))
-                  (Files/setLastModifiedTime (.toPath out-file) (.getLastModifiedTime entry))))
+              (when-not (or (.isDirectory entry) (exclude-from-uber? (.getName entry)))
+                (if (.exists out-file)
+                  ;; conflicting file, resolve
+                  (cond
+                    (#{"data_readers.clj" "data_readers.cljc"} (.getName out-file))
+                    (let [existing-readers (edn/read-string (slurp out-file))
+                          baos (ByteArrayOutputStream. 1024)
+                          _ (copy-stream! jis baos buffer)
+                          append-readers (edn/read-string (.toString baos StandardCharsets/UTF_8))
+                          new-readers (merge existing-readers append-readers)]
+                      (spit out-file (with-out-str (pprint/pprint new-readers))))
+
+                    :else
+                    (println "CONFLICT: " (.getName entry)))
+                  (with-open [output (BufferedOutputStream. (FileOutputStream. out-file))]
+                    (copy-stream! jis output buffer)
+                    (Files/setLastModifiedTime (.toPath out-file) (.getLastModifiedTime entry)))))
               (recur))))))
     (file/copy-contents lib-file out-dir)))
 

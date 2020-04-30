@@ -212,4 +212,15 @@
       :params {:build/target-dir "target-process"
                :build/zip-dir "target-process/zip"}})
 
+  ;; merge data readers
+  (let [basis (deps/calc-basis '{:deps {spyscope/spyscope {:mvn/version "0.1.6"}
+                                        com.ladderlife/cellophane {:mvn/version "0.3.5"}}
+                                 :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+                                             "clojars" {:url "https://repo.clojars.org/"}}})]
+    ((requiring-resolve 'clojure.tools.build.tasks/clean) basis '{:build/target-dir "target-merge"})
+    ((requiring-resolve 'clojure.tools.build.tasks/uber) basis
+      '{:build/target-dir "target-merge"
+        :build/class-dir "target-merge/classes"
+        :build/lib test/merge
+        :build/version "1.2.3"}))
   )
