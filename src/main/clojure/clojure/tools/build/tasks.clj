@@ -296,7 +296,8 @@
         {"Manifest-Version" "1.0"
          "Created-By" "org.clojure/tools.build"
          "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
-        main-class (assoc "Main-Class" (str main-class))))
+        main-class (assoc "Main-Class" (str main-class))
+        (.exists (jio/file uber-dir "META-INF" "versions")) (assoc "Multi-Release" "true")))
     (with-open [jos (JarOutputStream. (FileOutputStream. uber-file) manifest)]
       (copy-to-zip jos uber-dir))))
 
