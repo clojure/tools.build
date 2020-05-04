@@ -18,7 +18,8 @@
     [clojure.tools.build.process :as process]
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.util.maven :as mvn]
-    [clojure.tools.namespace.find :as find])
+    [clojure.tools.namespace.find :as find]
+    [clojure.set :as set])
   (:import
     [java.io File FileOutputStream FileInputStream BufferedInputStream BufferedOutputStream
              InputStream OutputStream ByteArrayOutputStream]
@@ -159,6 +160,7 @@
             include (resolve-flow params include)
             replace (reduce-kv #(assoc %1 %2 (resolve-flow params %3)) {} replace)]
         (doseq [from-dir from]
+          ;(println "from-dir" from-dir)
           (let [from-file (jio/file from-dir)
                 paths (match-paths from-file include)]
             (doseq [^Path path paths]
@@ -283,12 +285,32 @@
               (recur))))))
     (file/copy-contents lib-file out-dir)))
 
+(defn remove-optional
+  "Remove optional libs and their transitive dependencies from the lib tree.
+  Only remove transitive if all dependents are optional."
+  [libs]
+  (let [by-opt (group-by (fn [[lib coord]] (boolean (:optional coord))) libs)
+        optional (apply conj {} (get by-opt true))]
+    (if (seq optional)
+      (loop [req (get by-opt false)
+             opt optional]
+        (let [under-opts (group-by (fn [[lib {:keys [dependents]}]]
+                                     (boolean
+                                       (and (seq dependents)
+                                         (set/subset? (set dependents) (set (keys opt))))))
+                           req)
+              trans-opt (get under-opts true)]
+          (if (seq trans-opt)
+            (recur (get under-opts false) (into opt trans-opt))
+            (apply conj {} req))))
+      libs)))
+
 (defn uber
   [{:keys [libs] :as basis} {:build/keys [target-dir class-dir lib version main-class] :as params}]
   (let [version (resolve-flow params version)
         uber-dir (file/ensure-dir (jio/file target-dir "uber"))
         manifest (Manifest.)
-        lib-paths (conj (->> libs vals (mapcat :paths) (map #(jio/file %))) (jio/file class-dir))
+        lib-paths (conj (->> libs remove-optional vals (mapcat :paths) (map #(jio/file %))) (jio/file class-dir))
         uber-file (jio/file target-dir (str (name lib) "-" version "-standalone.jar"))]
     (run! #(explode % uber-dir) lib-paths)
     (fill-manifest! manifest
