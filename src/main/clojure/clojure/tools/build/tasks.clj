@@ -23,7 +23,6 @@
   (:import
     [java.io File FileOutputStream FileInputStream BufferedInputStream BufferedOutputStream
              InputStream OutputStream ByteArrayOutputStream]
-    [java.nio.charset StandardCharsets]
     [java.nio.file Path Files LinkOption FileSystems FileVisitor FileVisitResult]
     [java.nio.file.attribute BasicFileAttributes]
     [java.util.jar Manifest Attributes$Name JarOutputStream JarEntry JarInputStream JarFile]
@@ -272,7 +271,7 @@
                     (let [existing-readers (edn/read-string (slurp out-file))
                           baos (ByteArrayOutputStream. 1024)
                           _ (copy-stream! jis baos buffer)
-                          append-readers (edn/read-string (.toString baos StandardCharsets/UTF_8))
+                          append-readers (edn/read-string (.toString baos "UTF-8"))
                           new-readers (merge existing-readers append-readers)]
                       (spit out-file (with-out-str (pprint/pprint new-readers))))
 
