@@ -10,13 +10,41 @@ A library for building artifacts in Clojure projects.
 
 # Usage as a deps tool
 
-Likely to change...
-
-Define the initial build parameters 
-
-Add tools.build in as an alias in your ~/.clojure/deps.edn so it's available in any project:
+Add to your deps.edn and add as a tool:
 
 ```clojure
+{...
+ {:aliases
+  {:build
+   {:deps {org.clojure/tools.build {:git/url "git@github.com:cognitect-labs/tools.build.git"
+                                    :sha "5a0b814b6fc4e6d8fa03b9e64d93aef68f4f92a8"}}
+    :main-opts ["build/make.clj"]}}}}
+```
+
+Example build script `(build/make.clj`):
+
+```clojure
+(require '[clojure.tools.build :as build])
+
+(build/build
+  '{:params
+    {:build/target-dir "target"
+     :build/class-dir "target/classes"
+     :build/clj-paths ["src"]
+     :build/copy-specs [{:from ["resources"]}]
+     :build/src-pom "pom.xml"
+     :build/lib your.org/lib
+     :git-version/template "0.1.%s"
+     :git-version/version> :flow/version
+     :build/version :flow/version}
+    :tasks [[clean]
+            [clojure.tools.build.extra/git-version]
+            [compile-clj]
+            [copy]
+            [sync-pom]
+            [jar]
+            [install]]})
+
 ```
 
 Run it in your current project:
