@@ -39,7 +39,6 @@ Example build script `(build/make.clj`):
      :build/version :flow/version}
     :tasks [[clean]
             [clojure.tools.build.extra/git-version]
-            [compile-clj]
             [copy]
             [sync-pom]
             [jar]
