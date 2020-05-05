@@ -1,14 +1,15 @@
-{:paths [:clj-paths :resource-dirs "src/main/clojure"]
+{:paths ["src/main/clojure" "src/main/resources"]
 
  :deps
  {org.clojure/clojure {:mvn/version "1.10.1"}
-  org.clojure/tools.deps.alpha {:mvn/version "0.8.678-SNAPSHOT"}
+  org.clojure/tools.deps.alpha {:git/url "https://github.com/clojure/tools.deps.alpha.git" :sha "bfc8e665da4b04c06a8bba41591dfa97896629fa"}
+  ;org.clojure/tools.deps.alpha {:mvn/version "0.8.678-SNAPSHOT"}
   org.clojure/tools.namespace {:mvn/version "1.0.0"}}
 
  :aliases
  {:clj-paths ["src/main/clojure"]
-  :java-paths ["java" "src/main/java"]
-  :resource-paths ["resources"]
+  :java-paths ["src/main/java"]
+  :resource-paths ["src/main/resources"]
 
 ;  :build
 ;  {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
