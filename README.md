@@ -17,7 +17,7 @@ Add to your deps.edn and add as a tool:
  {:aliases
   {:build
    {:deps {org.clojure/tools.build {:git/url "git@github.com:cognitect-labs/tools.build.git"
-                                    :sha "5a0b814b6fc4e6d8fa03b9e64d93aef68f4f92a8"}}
+                                    :sha "2a2f3d21b9063fd32a65797b59b4ff6fe2ad84cc"}}
     :main-opts ["build/make.clj"]}}}}
 ```
 
