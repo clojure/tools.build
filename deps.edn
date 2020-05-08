@@ -8,7 +8,7 @@
 
  :aliases
  {:clj-paths ["src/main/clojure"]
-  :java-paths ["src/main/java"]
+  :java-paths ["java"]
   :resource-paths ["src/main/resources"]
 
 ;  :build

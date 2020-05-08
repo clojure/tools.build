@@ -94,7 +94,7 @@
   (build
     '{:tasks [[clean] [sync-pom] [copy] [jar] [install]]
       :params {:build/target-dir "target1"
-               :build/class-dir "target1/classes"
+               :build/class-dir "classes"
                :build/copy-specs [{:from :clj-paths}]
                :build/src-pom "pom.xml"
                :build/lib my/lib1
@@ -104,7 +104,7 @@
   (build
     '{:tasks [[clean] [clojure.tools.build.extra/git-version] [sync-pom] [copy] [jar]]
       :params {:build/target-dir "target2"
-               :build/class-dir "target2/classes"
+               :build/class-dir "classes"
                :build/copy-specs [{:from :clj-paths}]
                :build/src-pom "pom.xml"
                :git-version/template "0.8.%s"
@@ -114,12 +114,11 @@
 
   ;; java executable jar (no clojure!)
   (build
-    '{:tasks [[clean] [javac] [sync-pom] [copy] [jar]]
+    '{:tasks [[clean] [javac] [sync-pom] [jar]]
       :params {:build/target-dir "target3"
-               :build/class-dir "target3/classes"
+               :build/class-dir "classes"
                :build/java-paths :java-paths
                :build/javac-opts ["-source" "8" "-target" "8"]
-               :build/copy-specs [{:from :resource-paths}]
                :build/src-pom "pom.xml"
                :build/lib org.clojure/tools.build
                :build/version "0.1.0"
@@ -129,7 +128,7 @@
   (build
     '{:tasks [[clean] [compile-clj] [copy] [jar]]
       :params {:build/target-dir "target4lib"
-               :build/class-dir "target4lib/classes"
+               :build/class-dir "classes"
                :build/clj-paths :clj-paths
                :build/filter-nses [clojure.tools.build]
                :build/compiler-opts {:elide-meta [:doc :file :line]}
@@ -142,7 +141,7 @@
   (build
     '{:tasks [[clean] [compile-clj] [copy] [jar]]
       :params {:build/target-dir "target4"
-               :build/class-dir "target4/classes"
+               :build/class-dir "classes"
                :build/clj-paths :clj-paths
                :build/copy-specs [{:from :resource-paths}]
                :build/src-pom "pom.xml"
@@ -154,21 +153,10 @@
   (build
     '{:tasks [[clean] [sync-pom] [compile-clj] [copy] [uber]]
       :params {:build/target-dir "target5"
-               :build/class-dir "target5/classes"
+               :build/class-dir "classes"
                :build/clj-paths :clj-paths
                :build/copy-specs [{:from :resource-paths}]
                :build/src-pom "pom.xml"
-               :build/lib my/lib1
-               :build/version "1.2.3"}})
-
-  ;; uber src jar
-  (build
-    '{:project-deps "uber-demo/deps.edn"
-      :tasks [[clean] [sync-pom] [copy] [uber]]
-      :params {:build/target-dir "uber-demo/target"
-               :build/class-dir "uber-demo/target/classes"
-               :build/copy-specs [{:from ["uber-demo/src"]}]
-               :build/src-pom "uber-demo/pom.xml"
                :build/lib my/lib1
                :build/version "1.2.3"}})
 
@@ -176,7 +164,7 @@
   (build
     '{:tasks [[clean] [clojure.tools.build.extra/git-version] [sync-pom] [compile-clj] [jar]]
       :params {:build/target-dir "target6"
-               :build/class-dir "target6/classes"
+               :build/class-dir "classes"
                :build/src-pom "pom.xml"
                :build/lib org.clojure/tools.build
                :build/classifier "aot"
@@ -190,7 +178,7 @@
   (build
     '{:tasks [[clean] [copy] [zip]]
       :params {:build/target-dir "target-zip"
-               :build/zip-dir "target-zip/zip"
+               :build/zip-dir "zip"
                :build/copy-to :build/zip-dir
                :build/copy-specs [{:include "README.md"}
                                   {:from :java-paths :include "**/*.java"}]
@@ -210,7 +198,7 @@
                                                    "FOO" "hi there"}}]}]
               [zip {:build/zip-name :flow/zip-name}]]
       :params {:build/target-dir "target-process"
-               :build/zip-dir "target-process/zip"}})
+               :build/zip-dir "zip"}})
 
   ;; merge data readers
   (let [basis (deps/calc-basis '{:deps {spyscope/spyscope {:mvn/version "0.1.6"}
@@ -220,7 +208,7 @@
     ((requiring-resolve 'clojure.tools.build.tasks/clean) basis '{:build/target-dir "target-merge"})
     ((requiring-resolve 'clojure.tools.build.tasks/uber) basis
       '{:build/target-dir "target-merge"
-        :build/class-dir "target-merge/classes"
+        :build/class-dir "classes"
         :build/lib test/merge
         :build/version "1.2.3"}))
   )

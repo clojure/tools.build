@@ -62,7 +62,7 @@
 
 (defn compile-clj
   [{:keys [classpath] :as basis} {:build/keys [clj-paths target-dir class-dir compiler-opts ns-compile filter-nses]}]
-  (let [class-dir-file (file/ensure-dir (jio/file class-dir))
+  (let [class-dir-file (file/ensure-dir (jio/file target-dir class-dir))
         srcs (deps/resolve-path-ref clj-paths basis)
         nses (or ns-compile
                (mapcat #(find/find-namespaces-in-dir (jio/file %) find/clj) srcs))
@@ -80,15 +80,15 @@
 ;; javac
 
 (defn javac
-  [{:keys [libs] :as basis} {:build/keys [class-dir java-paths javac-opts]}]
+  [{:keys [libs] :as basis} {:build/keys [target-dir class-dir java-paths javac-opts]}]
   (let [java-paths' (build/resolve-alias basis java-paths)]
     (when (seq java-paths')
-      (let [class-dir (file/ensure-dir (jio/file class-dir))
+      (let [class-dir-file (file/ensure-dir (jio/file target-dir class-dir))
             compiler (ToolProvider/getSystemJavaCompiler)
             listener (reify DiagnosticListener (report [_ diag] (println (str diag))))
             file-mgr (.getStandardFileManager compiler listener nil nil)
             classpath (str/join File/pathSeparator (mapcat :paths (vals libs)))
-            options (concat ["-classpath" classpath "-d" (.getPath class-dir)] javac-opts)
+            options (concat ["-classpath" classpath "-d" (.getPath class-dir-file)] javac-opts)
             java-files (mapcat #(file/collect-files (jio/file %) :collect (file/suffixes ".java")) java-paths')
             file-objs (.getJavaFileObjectsFromFiles file-mgr java-files)
             task (.getTask compiler nil file-mgr listener options nil file-objs)
@@ -99,12 +99,12 @@
 ;; pom
 
 (defn sync-pom
-  [basis {:build/keys [src-pom lib version class-dir] :or {src-pom "pom.xml"} :as params}]
+  [basis {:build/keys [src-pom lib version target-dir class-dir] :or {src-pom "pom.xml"} :as params}]
   (let [group-id (or (namespace lib) (name lib))
         artifact-id (name lib)
         version (resolve-flow params version)
         pom-dir (file/ensure-dir
-                  (jio/file class-dir "META-INF" "maven" group-id artifact-id))]
+                  (jio/file target-dir class-dir "META-INF" "maven" group-id artifact-id))]
     (pom/sync-pom
       {:basis basis
        :params {:src-pom src-pom
@@ -148,10 +148,11 @@
   {:from ["."] :include "**"})
 
 (defn copy
-  [basis {:build/keys [copy-specs copy-to] :or {copy-to :build/class-dir} :as params}]
+  [basis {:build/keys [target-dir copy-specs copy-to]
+          :or {copy-to :build/class-dir} :as params}]
   (let [resolved-specs (map #(merge default-copy-spec %) copy-specs)
         to (->> copy-to (resolve-flow params) (build/resolve-alias basis))
-        to-path (.toPath (file/ensure-dir (jio/file to)))]
+        to-path (.toPath (file/ensure-dir (jio/file target-dir to)))]
     (doseq [{:keys [from include replace]} resolved-specs]
       ;(println "\nspec" from include to replace)
       (let [from (->> from (resolve-flow params) (build/resolve-alias basis))
@@ -215,7 +216,7 @@
   (let [version (resolve-flow params version)
         jar-name (str (name lib) "-" version (if classifier (str "-" classifier) "") ".jar")
         jar-file (jio/file target-dir jar-name)
-        class-dir (jio/file class-dir)]
+        class-dir-file (jio/file target-dir class-dir)]
     (let [manifest (Manifest.)]
       (fill-manifest! manifest
         (cond->
@@ -224,7 +225,7 @@
            "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
           main-class (assoc "Main-Class" (str main-class))))
       (with-open [jos (JarOutputStream. (FileOutputStream. jar-file) manifest)]
-        (copy-to-zip jos class-dir)))))
+        (copy-to-zip jos class-dir-file)))))
 
 ;; uberjar
 
@@ -308,7 +309,7 @@
   (let [version (resolve-flow params version)
         uber-dir (file/ensure-dir (jio/file target-dir "uber"))
         manifest (Manifest.)
-        lib-paths (conj (->> libs remove-optional vals (mapcat :paths) (map #(jio/file %))) (jio/file class-dir))
+        lib-paths (conj (->> libs remove-optional vals (mapcat :paths) (map #(jio/file %))) (jio/file target-dir class-dir))
         uber-file (jio/file target-dir (str (name lib) "-" version "-standalone.jar"))]
     (run! #(explode % uber-dir) lib-paths)
     (fill-manifest! manifest
@@ -324,12 +325,12 @@
 ;; zip
 
 (defn zip
-  [basis {:build/keys [zip-dir target-dir zip-name] :as params}]
-  (let [zip-dir (file/ensure-dir (jio/file (resolve-flow params zip-dir)))
+  [basis {:build/keys [target-dir zip-dir zip-name] :as params}]
+  (let [zip-dir-file (file/ensure-dir (jio/file target-dir (resolve-flow params zip-dir)))
         zip-file (jio/file target-dir (resolve-flow params zip-name))
-        zip-path (.toPath zip-dir)]
+        zip-path (.toPath zip-dir-file)]
     (with-open [zos (ZipOutputStream. (FileOutputStream. zip-file))]
-      (copy-to-zip zos zip-dir))))
+      (copy-to-zip zos zip-dir-file))))
 
 ;; process
 
