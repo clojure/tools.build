@@ -61,11 +61,12 @@
   (str/replace (clojure.lang.Compiler/munge (str ns-sym)) \. \/))
 
 (defn compile-clj
-  [{:keys [classpath] :as basis} {:build/keys [clj-paths target-dir class-dir compiler-opts ns-compile filter-nses]}]
+  [{:keys [classpath] :as basis}
+   {:build/keys [project-dir clj-paths target-dir class-dir compiler-opts ns-compile filter-nses]}]
   (let [class-dir-file (file/ensure-dir (jio/file target-dir class-dir))
         srcs (deps/resolve-path-ref clj-paths basis)
         nses (or ns-compile
-               (mapcat #(find/find-namespaces-in-dir (jio/file %) find/clj) srcs))
+               (mapcat #(find/find-namespaces-in-dir (jio/file project-dir %) find/clj) srcs))
         compile-dir (file/ensure-dir (jio/file target-dir "compile-clj"))
         compile-script (write-compile-script target-dir compile-dir nses compiler-opts)
         cp-str (-> classpath keys (conj compile-dir) deps/join-classpath)
@@ -80,7 +81,7 @@
 ;; javac
 
 (defn javac
-  [{:keys [libs] :as basis} {:build/keys [target-dir class-dir java-paths javac-opts]}]
+  [{:keys [libs] :as basis} {:build/keys [project-dir target-dir class-dir java-paths javac-opts]}]
   (let [java-paths' (build/resolve-alias basis java-paths)]
     (when (seq java-paths')
       (let [class-dir-file (file/ensure-dir (jio/file target-dir class-dir))
@@ -89,7 +90,7 @@
             file-mgr (.getStandardFileManager compiler listener nil nil)
             classpath (str/join File/pathSeparator (mapcat :paths (vals libs)))
             options (concat ["-classpath" classpath "-d" (.getPath class-dir-file)] javac-opts)
-            java-files (mapcat #(file/collect-files (jio/file %) :collect (file/suffixes ".java")) java-paths')
+            java-files (mapcat #(file/collect-files (jio/file project-dir %) :collect (file/suffixes ".java")) java-paths')
             file-objs (.getJavaFileObjectsFromFiles file-mgr java-files)
             task (.getTask compiler nil file-mgr listener options nil file-objs)
             success (.call task)]
@@ -99,7 +100,8 @@
 ;; pom
 
 (defn sync-pom
-  [basis {:build/keys [src-pom lib version target-dir class-dir] :or {src-pom "pom.xml"} :as params}]
+  [basis {:build/keys [project-dir src-pom lib version target-dir class-dir]
+          :or {src-pom "pom.xml"} :as params}]
   (let [group-id (or (namespace lib) (name lib))
         artifact-id (name lib)
         version (resolve-flow params version)
@@ -107,7 +109,7 @@
                   (jio/file target-dir class-dir "META-INF" "maven" group-id artifact-id))]
     (pom/sync-pom
       {:basis basis
-       :params {:src-pom src-pom
+       :params {:src-pom (.getPath (jio/file project-dir src-pom))
                 :target-dir pom-dir
                 :lib lib
                 :version version}})
@@ -148,7 +150,7 @@
   {:from ["."] :include "**"})
 
 (defn copy
-  [basis {:build/keys [target-dir copy-specs copy-to]
+  [basis {:build/keys [project-dir target-dir copy-specs copy-to]
           :or {copy-to :build/class-dir} :as params}]
   (let [resolved-specs (map #(merge default-copy-spec %) copy-specs)
         to (->> copy-to (resolve-flow params) (build/resolve-alias basis))
@@ -160,7 +162,7 @@
             replace (reduce-kv #(assoc %1 %2 (resolve-flow params %3)) {} replace)]
         (doseq [from-dir from]
           ;(println "from-dir" from-dir)
-          (let [from-file (jio/file from-dir)
+          (let [from-file (jio/file project-dir from-dir)
                 paths (match-paths from-file include)]
             (doseq [^Path path paths]
               (let [path-file (.toFile path)
