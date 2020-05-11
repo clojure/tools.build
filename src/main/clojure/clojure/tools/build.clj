@@ -31,19 +31,13 @@
 
 (defn- load-basis
   [project-deps]
-  (let [{:keys [install-edn user-edn project-edn]} (reader/find-edn-maps)
+  (let [{:keys [install-edn project-edn]} (reader/find-edn-maps)
         project (if project-deps
                   (reader/slurp-deps project-deps)
                   project-edn)
-        edns [install-edn user-edn project]
-        hash-file (jio/file ".cpcache" "build" (str (hash edns) ".basis"))]
-    (if (.exists hash-file)
-      (reader/slurp-deps hash-file)
-      (let [master-edn (deps/merge-edns edns)
-            basis (deps/calc-basis master-edn)]
-        (.mkdirs (jio/file ".cpcache/build"))
-        (spit hash-file basis)
-        basis))))
+        edns [install-edn project]
+        master-edn (deps/merge-edns edns)]
+    (deps/calc-basis master-edn)))
 
 (defn build
   "Execute build:
@@ -51,14 +45,7 @@
      Load build params - either a map or an alias
      Run tasks - task may have an arg map or alias, which is merged into the build params"
   [{:keys [project-deps params tasks]}]
-  (let [;{:keys [install-edn user-edn project-edn]} (reader/find-edn-maps)
-        ;project (if project-deps
-        ;          (reader/slurp-deps project-deps)
-        ;          project-edn)
-        ;ordered-edns (remove nil? [install-edn user-edn project])
-        ;master-edn (deps/merge-edns ordered-edns)
-        ;basis (deps/calc-basis master-edn)
-        basis (load-basis project-deps)
+  (let [basis (load-basis project-deps)
         from-dir (if project-deps (.getParentFile (jio/file project-deps)) (jio/file "."))
         default-params (assoc (resolve-alias basis params) :build/project-dir (.getAbsolutePath from-dir))]
     (require 'clojure.tools.build.tasks)
