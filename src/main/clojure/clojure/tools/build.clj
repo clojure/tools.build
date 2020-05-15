@@ -14,11 +14,20 @@
     [clojure.tools.deps.alpha.util.dir :as dir]
     [clojure.tools.build.file :as file]))
 
-(defn resolve-alias
-  [basis key]
-  (if (keyword? key)
-    (-> basis :aliases key)
-    key))
+(defn resolve-param
+  "Look up key in params. If result is a keyword, look up result in basis :aliases,
+  else return param val"
+  [basis params key]
+  (loop [k key]
+    (let [v (get params k)]
+      (cond
+        (keyword? v) (recur v)
+        (nil? v) (get-in basis [:aliases k])
+        :else v))))
+
+(defn maybe-resolve-param
+  [basis params possible-key]
+  (or (resolve-param basis params possible-key) possible-key))
 
 (defn- resolve-task
   [task-sym]
@@ -47,13 +56,15 @@
   [{:keys [project-deps params tasks]}]
   (let [basis (load-basis project-deps)
         from-dir (if project-deps (.getParentFile (jio/file project-deps)) (jio/file "."))
-        default-params (assoc (resolve-alias basis params) :build/project-dir (.getAbsolutePath from-dir))]
+        params (if (keyword? params) (get-in basis [:aliases params]) params)
+        default-params (assoc params :build/project-dir (.getAbsolutePath from-dir))]
     (require 'clojure.tools.build.tasks)
     (reduce
       (fn [flow [task-sym args]]
         (let [begin (System/currentTimeMillis)
               task-fn (resolve-task task-sym)
-              arg-data (merge default-params (resolve-alias basis args) flow)
+              args (if (keyword? args) (get-in basis [:aliases args]) args)
+              arg-data (merge default-params args flow)
               res (task-fn basis arg-data)
               end (System/currentTimeMillis)]
           (println "Ran" task-sym "in" (- end begin) "ms")
@@ -67,10 +78,6 @@
     (println "Done!")))
 
 (comment
-  (require
-    '[clojure.tools.build.tasks :refer :all]
-    '[clojure.tools.build.extra :refer :all])
-
   ;; Given aliases:
   ;; :clj-paths ["src/main/clojure"]
   ;  :java-paths ["java" "src/main/java"]
