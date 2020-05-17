@@ -15,8 +15,9 @@
     [clojure.tools.build.file :as file]))
 
 (defn resolve-param
-  "Look up key in params. If result is a keyword, look up result in basis :aliases,
-  else return param val"
+  "Resolve task param, flow param, or alias. First tries to resolve key
+  as param or flow, repeatedly while finding keywords. Next tries to resolve
+  alias if still a keyword. Returns nil if not resolved."
   [basis params key]
   (loop [k key]
     (let [v (get params k)]
@@ -26,6 +27,7 @@
         :else v))))
 
 (defn maybe-resolve-param
+  "Resolve task param but if not found, return possible-key instead"
   [basis params possible-key]
   (or (resolve-param basis params possible-key) possible-key))
 
