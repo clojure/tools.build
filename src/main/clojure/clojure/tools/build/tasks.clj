@@ -46,7 +46,8 @@
   (let [script-file (jio/file target-dir (str (.getName compile-dir) ".clj"))
         script `(binding [~'*compile-path* ~(str compile-dir)
                           ~'*compiler-options* ~compiler-opts]
-                  ~@(map (fn [n] `(~'compile '~n)) nses))]
+                  ~@(map (fn [n] `(~'compile '~n)) nses)
+                  (System/exit 0))]
     (spit script-file (with-out-str (pprint/pprint script)))
     script-file))
 
