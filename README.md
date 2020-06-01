@@ -19,8 +19,8 @@ Add to your deps.edn and add as a tool:
   {:deps {org.clojure/tools.build {:git/url "git@github.com:cognitect-labs/tools.build.git"
                                    :sha "<SHA>"}
           org.clojure/tools.deps.alpha {:git/url "https://github.com/clojure/tools.deps.alpha.git"
-                                        :sha "<SHA>"}}
-          org.slf4j/slf4j-nop {:mvn/version "1.7.25"}
+                                        :sha "<SHA>"}
+          org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
    :run-fn clojure.tools.build/build
    :run-args {:tasks [[clean] [copy] [sync-pom] [jar]]
               :params {:build/target-dir "target"
@@ -28,8 +28,7 @@ Add to your deps.edn and add as a tool:
                        :build/copy-specs [{:from :clj-paths}]
                        :build/src-pom "pom.xml"
                        :build/lib my/lib1
-                       :build/version "1.2.3"}}}
-  }}
+                       :build/version "1.2.3"}}}}}
 ```
 
 You can find the latest shas for these projects with:
