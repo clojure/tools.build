@@ -16,7 +16,7 @@ Add to your deps.edn and add as a tool:
 {...
  :aliases
  {:build
-  {:deps {org.clojure/tools.build {:git/url "git ls-remote https://github.com/clojure/tools.build.git refs/heads/master"
+  {:deps {org.clojure/tools.build {:git/url "git@github.com:cognitect-labs/tools.build.git"
                                    :sha "<SHA>"}
           org.clojure/tools.deps.alpha {:git/url "https://github.com/clojure/tools.deps.alpha.git"
                                         :sha "<SHA>"}}
