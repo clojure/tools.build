@@ -15,15 +15,7 @@ Add to your deps.edn and add as a tool:
 ```clojure
 {...
  :aliases
- {:build-params
-  {:build/target-dir "target1"
-   :build/class-dir "classes"
-   :build/lib cheshire/cheshire
-   :build/version "5.10.1-SNAPSHOT"
-   :build/copy-specs [{:from ["src"] :include "**.clj"}]
-   :build/java-paths ["src/java"]}
-
-  :build
+ {:build
   {:deps {org.clojure/tools.build {:git/url "git ls-remote https://github.com/clojure/tools.build.git refs/heads/master"
                                    :sha "<SHA>"}
           org.clojure/tools.deps.alpha {:git/url "https://github.com/clojure/tools.deps.alpha.git"
@@ -31,8 +23,13 @@ Add to your deps.edn and add as a tool:
           org.slf4j/slf4j-nop {:mvn/version "1.7.25"}
    :run-fn clojure.tools.build/build
    :run-args {:tasks [[clean] [javac] [copy] [sync-pom] [jar]]
-              :params :build-params}}
-}}
+              :params {:build/target-dir "target"
+                       :build/class-dir "classes"
+                       :build/copy-specs [{:from :clj-paths}]
+                       :build/src-pom "pom.xml"
+                       :build/lib my/lib1
+                       :build/version "1.2.3"}}}
+  }}
 ```
 
 You can find the latest shas for these projects with:
@@ -41,10 +38,16 @@ You can find the latest shas for these projects with:
     git ls-remote https://github.com/clojure/tools.deps.alpha.git refs/heads/calc-basis
 
 
-Run it in your current project:
+Run it: 
 
 ```
 clj -A:build -X:build
+```
+
+Override a parameter like version:
+
+```
+clj -A:build -X:build :params:build/version "\"2.2.2\""
 ```
 
 # Release Information
