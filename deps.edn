@@ -2,16 +2,40 @@
 
  :deps
  {org.clojure/clojure {:mvn/version "1.10.1"}
-  org.clojure/tools.deps.alpha {:git/url "https://github.com/clojure/tools.deps.alpha.git" :sha "bfc8e665da4b04c06a8bba41591dfa97896629fa"}
+  org.clojure/tools.deps.alpha {:local/root "../tools.deps.alpha"}
+  ;org.clojure/tools.deps.alpha {:git/url "https://github.com/clojure/tools.deps.alpha.git" :sha "6bd58578605212ce2ffec4ad666492d76ff8ef65"}
   ;org.clojure/tools.deps.alpha {:mvn/version "0.8.678-SNAPSHOT"}
-  org.clojure/tools.namespace {:mvn/version "1.0.0"}}
+  org.clojure/tools.namespace {:mvn/version "1.0.0"}
+
+  ;; speculative s3 deployment task
+  com.cognitect.aws/api {:mvn/version "0.8.408"}
+  com.cognitect.aws/endpoints {:mvn/version "1.1.11.705"}
+  com.cognitect.aws/s3 {:mvn/version "784.2.593.0"}
+  }
 
  :aliases
  {:clj-paths ["src/main/clojure"]
   :java-paths ["java"]
   :resource-paths ["src/main/resources"]
 
-;  :build
-;  {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
-;   :main-opts ["-e" "(require,'[clojure.tools.build,:refer,:all],'[clojure.tools.build.tasks,:refer,:all])(->,(build-info),clean,sync-pom,jar,end)"]}
- }}
+  :dev
+  {:extra-paths ["classes"]}
+
+  :build-without-run
+  {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
+   :main-opts ["-m" "clojure.tools.deps.alpha.run" "-Xclojure.tools.build/build" ":build"]}
+
+  :build
+  {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
+   :run-fn clojure.tools.build/build
+   :run-args :build-params}
+
+  :build-params
+  {:tasks [[clean] [sync-pom] [copy] [jar] [install]]
+   :params {:build/target-dir "target1"
+            :build/class-dir "classes"
+            :build/copy-specs [{:from :clj-paths}]
+            :build/src-pom "pom.xml"
+            :build/lib my/lib1
+            :build/version "1.2.3"}}
+  }}
