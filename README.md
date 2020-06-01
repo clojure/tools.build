@@ -22,7 +22,7 @@ Add to your deps.edn and add as a tool:
                                         :sha "<SHA>"}}
           org.slf4j/slf4j-nop {:mvn/version "1.7.25"}
    :run-fn clojure.tools.build/build
-   :run-args {:tasks [[clean] [javac] [copy] [sync-pom] [jar]]
+   :run-args {:tasks [[clean] [copy] [sync-pom] [jar]]
               :params {:build/target-dir "target"
                        :build/class-dir "classes"
                        :build/copy-specs [{:from :clj-paths}]
