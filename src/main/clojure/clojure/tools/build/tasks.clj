@@ -159,23 +159,26 @@
         to-path (.toPath (file/ensure-dir (jio/file target-dir to)))]
     (doseq [{:keys [from include replace]} resolved-specs]
       ;(println "\nspec" from include to replace)
-      (let [from (build/maybe-resolve-param basis params from)
-            include (build/maybe-resolve-param basis params include)
+      (let [resolved-from (build/maybe-resolve-param basis params from)
+            from (map #(build/maybe-resolve-param basis params %) (if (coll? resolved-from) resolved-from [resolved-from]))
+            resolved-include (build/maybe-resolve-param basis params include)
+            include (map #(build/maybe-resolve-param basis params %) (if (coll? resolved-include) resolved-include [resolved-include]))
             replace (reduce-kv #(assoc %1 %2 (build/maybe-resolve-param basis params %3)) {} replace)]
         (doseq [from-dir from]
           ;(println "from-dir" from-dir)
-          (let [from-file (jio/file project-dir from-dir)
-                paths (match-paths from-file include)]
-            (doseq [^Path path paths]
-              (let [path-file (.toFile path)
-                    target-file (.toFile (.resolve to-path (.relativize (.toPath from-file) path)))]
-                ;(println "copying" (.toString path-file) (.toString target-file) (boolean (not (empty? replace))))
-                (if (empty? replace)
-                  (file/copy-file path-file target-file)
-                  (let [contents (slurp path-file)
-                        replaced (reduce (fn [s [find replace]] (str/replace s find replace))
-                                   contents replace)]
-                    (spit target-file replaced)))))))))))
+          (let [from-file (jio/file project-dir from-dir)]
+            (doseq [include-one include]
+              (let [paths (match-paths from-file include-one)]
+                (doseq [^Path path paths]
+                  (let [path-file (.toFile path)
+                        target-file (.toFile (.resolve to-path (.relativize (.toPath from-file) path)))]
+                    ;(println "copying" (.toString path-file) (.toString target-file) (boolean (not (empty? replace))))
+                    (if (empty? replace)
+                      (file/copy-file path-file target-file)
+                      (let [contents (slurp path-file)
+                            replaced (reduce (fn [s [find replace]] (str/replace s find replace))
+                                       contents replace)]
+                        (spit target-file replaced)))))))))))))
 
 ;; jar
 
