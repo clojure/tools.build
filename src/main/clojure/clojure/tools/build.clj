@@ -10,7 +10,6 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.tools.deps.alpha :as deps]
-    [clojure.tools.deps.alpha.reader :as reader]
     [clojure.tools.deps.alpha.util.dir :as dir]
     [clojure.tools.build.file :as file]))
 
@@ -42,11 +41,11 @@
 
 (defn- load-basis
   [project-deps]
-  (let [{:keys [install-edn project-edn]} (reader/find-edn-maps)
+  (let [{:keys [root-edn project-edn]} (deps/find-edn-maps)
         project (if project-deps
-                  (reader/slurp-deps project-deps)
+                  (deps/slurp-deps project-deps)
                   project-edn)
-        edns [install-edn project]
+        edns [root-edn project]
         master-edn (deps/merge-edns edns)]
     (deps/calc-basis master-edn)))
 
