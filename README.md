@@ -70,7 +70,7 @@ Many parameters are shared across multiple tasks - this is important both to red
 | Directory parameter | Description |
 | ------------------- | ----------- |
 | `:build/project-dir` | The project directory, which contains `deps.edn` and serves as the root for many other directories |
-| `:build/target-dir` | The target directory, which contains all build output, by default will be `<project-dir>/target` |
+| `:build/target-dir` | The target directory, which contains all build output, either absolute or relative `:build/project-dir`. Usually "target". |
 | `:build/class-dir` | The classes directory, which is the default output for compilation tasks and resources and the default directory to use when creating a jar file. Intepreted relative to `:build/target-dir`, typically `"classes"`. |
 | `:build/clj-paths` | Coll of directories that are Clojure source roots, resolved relative to `:build/project-dir`. Used primarily by `clj-compile` task. |
 | `:build/java-paths` | Coll of directories that are Java source roots, resolved relative to `:build/project-dir` |
