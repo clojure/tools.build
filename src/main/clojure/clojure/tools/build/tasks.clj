@@ -68,7 +68,7 @@
                (mapcat #(find/find-namespaces-in-dir (jio/file project-dir %) find/clj) srcs))
         compile-dir (file/ensure-dir (jio/file target-dir "compile-clj"))
         compile-script (write-compile-script target-dir compile-dir nses compiler-opts)
-        cp-str (-> classpath keys (conj compile-dir class-dir) deps/join-classpath)
+        cp-str (-> classpath keys (conj compile-dir (.getPath class-dir-file)) deps/join-classpath)
         args ["java" "-cp" cp-str "clojure.main" (.getCanonicalPath compile-script)]
         exit (process/exec args)]
     (if (zero? exit)
