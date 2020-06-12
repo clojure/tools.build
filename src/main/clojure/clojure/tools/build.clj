@@ -69,11 +69,7 @@
               res (task-fn basis arg-data)
               end (System/currentTimeMillis)]
           (println "Ran" task-sym "in" (- end begin) "ms")
-          (if-let [err (:error res)]
-            (do
-              (println "Error in" task-sym)
-              (throw (ex-info err {:task task-sym, :arg-data arg-data})))
-            (merge flow res))))
+          (reduce-kv (fn [f k v] (if (= "flow" (namespace k)) (assoc f k v) f)) flow res)))
       nil
       tasks)
     (println "Done!")))

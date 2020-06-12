@@ -75,7 +75,7 @@
       (if (seq filter-nses)
         (file/copy-contents compile-dir class-dir-file (map ns->path filter-nses))
         (file/copy-contents compile-dir class-dir-file))
-      {:error "Clojure compilation failed"})))
+      (throw (ex-info "Clojure compilation failed" {})))))
 
 ;; javac
 
@@ -96,7 +96,7 @@
             task (.getTask compiler nil file-mgr listener options nil file-objs)
             success (.call task)]
         (when-not success
-          {:error "Java compilation failed"})))))
+          (throw (ex-info "Java compilation failed" {})))))))
 
 ;; pom
 
