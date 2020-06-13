@@ -12,7 +12,7 @@
     [clojure.java.io :as jio]
     [clojure.pprint :as pprint]
     [clojure.string :as str]
-    [clojure.tools.deps.alpha.gen.pom :as pom]
+    [clojure.tools.build.tasks.pom :as pom]
     [clojure.tools.build :as build]
     [clojure.tools.build.file :as file]
     [clojure.tools.build.process :as process]
