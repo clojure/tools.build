@@ -11,7 +11,9 @@
     [clojure.java.io :as jio]
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.util.dir :as dir]
-    [clojure.tools.build.file :as file]))
+    [clojure.tools.build.file :as file])
+  (:import
+    [java.io File]))
 
 (defn resolve-param
   "Resolve task param, flow param, or alias. First tries to resolve key
@@ -40,7 +42,7 @@
       (throw (ex-info (str "Unknown task: " task-sym) {})))))
 
 (defn- load-basis
-  [project-deps]
+  [^File project-deps]
   (let [{:keys [root-edn project-edn]} (deps/find-edn-maps)
         project (if project-deps
                   (deps/slurp-deps project-deps)
@@ -54,11 +56,12 @@
      Load basis using project-deps (default=./deps.edn)
      Load build params - either a map or an alias
      Run tasks - task may have an arg map or alias, which is merged into the build params"
-  [{:keys [project-deps params tasks]}]
-  (let [basis (load-basis project-deps)
-        from-dir (if project-deps (.getParentFile (jio/file project-deps)) (jio/file "."))
+  [{:keys [project-dir params tasks]}]
+  (let [project-dir-file (jio/file (or project-dir "."))
+        project-deps-file (jio/file project-dir-file "deps.edn")
+        basis (load-basis project-deps-file)
         params (if (keyword? params) (get-in basis [:aliases params]) params)
-        default-params (assoc params :build/project-dir (.getAbsolutePath from-dir))]
+        default-params (assoc params :build/project-dir (.getAbsolutePath project-dir-file))]
     (require 'clojure.tools.build.tasks)
     (reduce
       (fn [flow [task-sym args]]
