@@ -33,11 +33,45 @@
 
 (set! *warn-on-reflection* true)
 
+;; dirs - sets up maven style default params
+
+;; :flow/group-id
+;; :flow/artifact-id
+;; :flow/work-dir "target"
+;; :flow/class-dir "target/classes"
+;; :flow/jar-file "target/$ARTIFACT-[$CLASSIFIER-]$VERSION.jar"
+;; :flow/pom-dir "target/classes/META-INF/$GROUP/$ARTIFACT
+;; :flow/pom-file "target/classes/META-INF/$GROUP/$ARTIFACT/pom.xml
+;; :flow/pom-properties-file "target/classes/META-INF/$GROUP/$ARTIFACT/pom.properties"
+;; :flow/uber-file "target/classes/$ARTIFACT-[$CLASSIFIER]-$VERSION-standalone.jar"
+
+(defn dirs
+  [basis params]
+  (let [lib (build/resolve-param basis params :build/lib)
+        group-id (namespace lib)
+        artifact-id (name lib)
+        classifier (build/resolve-param basis params :build/classifier)
+        version (build/resolve-param basis params :build/version)
+        class-dir (jio/file "target" "classes")
+        pom-dir (jio/file class-dir "META-INF" "maven" group-id artifact-id)
+        jar-base (str artifact-id "-" version (if classifier (str "-" classifier) ""))
+        jar-file (jio/file "target" (str jar-base ".jar"))
+        uber-jar-file (jio/file "target" (str jar-base "-standalone.jar"))]
+    {:build/group-id group-id
+     :build/artifact-id artifact-id
+     :build/target-dir "target"
+     :build/class-dir (.getPath class-dir)
+     :build/pom-dir (.getPath pom-dir)
+     :build/jar-file (.getPath jar-file)
+     :build/uber-file (.getPath uber-jar-file)}))
+
 ;; clean
 
 (defn clean
-  [_basis {:build/keys [target-dir]}]
-  (file/delete target-dir))
+  [basis {:build/keys [output-dir] :as params}]
+  (let [target-dir (build/resolve-param basis params :build/target-dir)
+        target-dir-file (jio/file output-dir target-dir)]
+    (file/delete target-dir-file)))
 
 ;; compile-clj
 
@@ -56,40 +90,39 @@
   (str/replace (clojure.lang.Compiler/munge (str ns-sym)) \. \/))
 
 (defn compile-clj
-  [{:keys [classpath] :as basis} {:build/keys [project-dir target-dir] :as params}]
+  [{:keys [classpath] :as basis} {:build/keys [project-dir output-dir] :as params}]
   (let [clj-paths (build/resolve-param basis params :build/clj-paths)
-        class-dir (build/resolve-param basis params :build/class-dir)
+        target-dir (file/ensure-dir (jio/file output-dir (build/resolve-param basis params :build/target-dir)))
+        class-dir (file/ensure-dir (jio/file output-dir (build/resolve-param basis params :build/class-dir)))
         compiler-opts (build/resolve-param basis params :build/compiler-opts)
         ns-compile (build/resolve-param basis params :build/ns-compile)
         filter-nses (build/resolve-param basis params :build/filter-nses)
-        class-dir-file (file/ensure-dir (jio/file target-dir class-dir))
         srcs (map #(build/maybe-resolve-param basis params %) clj-paths)
         nses (or ns-compile
                (mapcat #(find/find-namespaces-in-dir (jio/file project-dir %) find/clj) srcs))
         compile-dir (file/ensure-dir (jio/file target-dir "compile-clj"))
         compile-script (write-compile-script target-dir compile-dir nses compiler-opts)
-        cp-str (-> classpath keys (conj compile-dir (.getPath class-dir-file)) deps/join-classpath)
+        cp-str (-> classpath keys (conj compile-dir (.getPath class-dir)) deps/join-classpath)
         args ["java" "-cp" cp-str "clojure.main" (.getCanonicalPath compile-script)]
         exit (process/exec args)]
     (if (zero? exit)
       (if (seq filter-nses)
-        (file/copy-contents compile-dir class-dir-file (map ns->path filter-nses))
-        (file/copy-contents compile-dir class-dir-file))
+        (file/copy-contents compile-dir class-dir (map ns->path filter-nses))
+        (file/copy-contents compile-dir class-dir))
       (throw (ex-info "Clojure compilation failed" {})))))
 
 ;; javac
 
 (defn javac
-  [{:keys [libs] :as basis} {:build/keys [project-dir target-dir] :as params}]
+  [{:keys [libs] :as basis} {:build/keys [project-dir output-dir] :as params}]
   (let [java-paths (build/resolve-param basis params :build/java-paths)]
     (when (seq java-paths)
       (let [javac-opts (build/resolve-param basis params :build/javac-opts)
-            class-dir (build/resolve-param basis params :build/class-dir)
-            class-dir-file (file/ensure-dir (jio/file target-dir class-dir))
+            class-dir (file/ensure-dir (jio/file output-dir (build/resolve-param basis params :build/class-dir)))
             compiler (ToolProvider/getSystemJavaCompiler)
             listener (reify DiagnosticListener (report [_ diag] (println (str diag))))
             file-mgr (.getStandardFileManager compiler listener nil nil)
-            class-dir-path (.getPath class-dir-file)
+            class-dir-path (.getPath class-dir)
             classpath (str/join File/pathSeparator (conj (mapcat :paths (vals libs)) class-dir-path))
             options (concat ["-classpath" classpath "-d" class-dir-path] javac-opts)
             java-files (mapcat #(file/collect-files (jio/file project-dir %) :collect (file/suffixes ".java")) java-paths)
@@ -102,14 +135,13 @@
 ;; pom
 
 (defn sync-pom
-  [basis {:build/keys [project-dir target-dir] :as params}]
-  (let [class-dir (build/resolve-param basis params :build/class-dir)
-        src-pom (or (build/resolve-param basis params :build/src-pom) "pom.xml")
-        version (build/resolve-param basis params :build/version)
+  [basis {:build/keys [project-dir output-dir] :as params}]
+  (let [src-pom (or (build/resolve-param basis params :build/src-pom) "pom.xml")
+        pom-dir (file/ensure-dir (jio/file output-dir (build/resolve-param basis params :build/pom-dir)))
+        group-id (build/resolve-param basis params :build/group-id)
+        artifact-id (build/resolve-param basis params :build/artifact-id)
         lib (build/resolve-param basis params :build/lib)
-        group-id (or (namespace lib) (name lib))
-        artifact-id (name lib)
-        pom-dir (file/ensure-dir (jio/file target-dir class-dir "META-INF" "maven" group-id artifact-id))]
+        version (build/resolve-param basis params :build/version)]
     (pom/sync-pom
       {:basis basis
        :params {:src-pom (.getPath (jio/file project-dir src-pom))
@@ -122,8 +154,7 @@
          (format "# %tc" (java.util.Date.))
          (format "version=%s" version)
          (format "groupId=%s" group-id)
-         (format "artifactId=%s" artifact-id)]))
-    {:flow/pom-file (.getPath (jio/file pom-dir "pom.xml"))}))
+         (format "artifactId=%s" artifact-id)]))))
 
 ;; copy
 
@@ -153,11 +184,11 @@
   {:from ["."] :include "**"})
 
 (defn copy
-  [basis {:build/keys [project-dir target-dir copy-to] :as params}]
+  [basis {:build/keys [project-dir output-dir] :as params}]
   (let [copy-specs (build/resolve-param basis params :build/copy-specs)
         resolved-specs (map #(merge default-copy-spec %) copy-specs)
-        to (build/resolve-param basis params (if copy-to :build/copy-to :build/class-dir))
-        to-path (.toPath (file/ensure-dir (jio/file target-dir to)))]
+        to (build/resolve-param basis params :build/copy-to :build/class-dir)
+        to-path (.toPath (file/ensure-dir (jio/file output-dir to)))]
     (doseq [{:keys [from include replace]} resolved-specs]
       ;(println "\nspec" from include to replace)
       (let [resolved-from (build/maybe-resolve-param basis params from)
@@ -220,15 +251,11 @@
         (.put attrs (Attributes$Name. ^String name) value)) props)))
 
 (defn jar
-  [basis {:build/keys [target-dir] :as params}]
-  (let [lib (build/resolve-param basis params :build/lib)
-        classifier (build/resolve-param basis params :build/classifier)
-        main-class (build/resolve-param basis params :build/main-class)
+  [basis {:build/keys [output-dir] :as params}]
+  (let [main-class (build/resolve-param basis params :build/main-class)
         class-dir (build/resolve-param basis params :build/class-dir)
-        version (build/resolve-param basis params :build/version)
-        jar-name (str (name lib) "-" version (if classifier (str "-" classifier) "") ".jar")
-        jar-file (jio/file target-dir jar-name)
-        class-dir-file (jio/file target-dir class-dir)]
+        jar-file (jio/file output-dir (build/resolve-param basis params :build/jar-file))
+        class-dir-file (file/ensure-dir (jio/file output-dir class-dir))]
     (let [manifest (Manifest.)]
       (fill-manifest! manifest
         (cond->
@@ -317,15 +344,15 @@
       libs)))
 
 (defn uber
-  [{:keys [libs] :as basis} {:build/keys [target-dir] :as params}]
-  (let [class-dir (build/resolve-param basis params :build/class-dir)
+  [{:keys [libs] :as basis} {:build/keys [output-dir target-dir] :as params}]
+  (let [class-dir (jio/file output-dir (build/resolve-param basis params :build/class-dir))
         lib (build/resolve-param basis params :build/lib)
         main-class (build/resolve-param basis params :build/main-class)
         version (build/resolve-param basis params :build/version)
-        uber-dir (file/ensure-dir (jio/file target-dir "uber"))
+        uber-dir (file/ensure-dir (jio/file output-dir target-dir "uber"))
+        uber-file (jio/file output-dir (build/resolve-param basis params :build/uber-file))
         manifest (Manifest.)
-        lib-paths (conj (->> libs remove-optional vals (mapcat :paths) (map #(jio/file %))) (jio/file target-dir class-dir))
-        uber-file (jio/file target-dir (str (name lib) "-" version "-standalone.jar"))]
+        lib-paths (conj (->> libs remove-optional vals (mapcat :paths) (map #(jio/file %))) class-dir)]
     (run! #(explode % uber-dir) lib-paths)
     (fill-manifest! manifest
       (cond->
@@ -340,12 +367,13 @@
 ;; zip
 
 (defn zip
-  [basis {:build/keys [target-dir] :as params}]
+  [basis {:build/keys [output-dir] :as params}]
   (let [zip-dir (build/resolve-param basis params :build/zip-dir)
         zip-name (build/resolve-param basis params :build/zip-name)
-        zip-dir-file (file/ensure-dir (jio/file target-dir zip-dir))
-        zip-file (jio/file target-dir zip-name)
+        zip-dir-file (file/ensure-dir (jio/file output-dir zip-dir))
+        zip-file (jio/file output-dir zip-name)
         zip-path (.toPath zip-dir-file)]
+    (println "Zipping from" (.getPath zip-dir-file) "to" (.getPath zip-file))
     (with-open [zos (ZipOutputStream. (FileOutputStream. zip-file))]
       (copy-to-zip zos zip-dir-file))))
 
@@ -372,22 +400,19 @@
 ;; install
 
 (defn install
-  [{:mvn/keys [local-repo] :as basis}
-   {:build/keys [target-dir] :as params}]
-  (let [lib (build/resolve-param basis params :build/lib)
+  [{:mvn/keys [local-repo] :as basis} {:build/keys [output-dir] :as params}]
+  (let [group-id (build/resolve-param basis params :build/group-id)
+        artifact-id (build/resolve-param basis params :build/artifact-id)
         classifier (build/resolve-param basis params :build/classifier)
         version (build/resolve-param basis params :build/version)
-        pom-file (build/resolve-param basis params :flow/pom-file)
-        group (namespace lib)
-        artifact (name lib)
-        jar-name (str artifact "-" version (if classifier (str "-" classifier) "") ".jar")
-        jar-file (jio/file target-dir jar-name)
-        pom (jio/file pom-file)
+        pom-dir (build/resolve-param basis params :build/pom-dir)
+        jar-file (jio/file output-dir (build/resolve-param basis params :build/jar-file))
+        pom (jio/file pom-dir "pom.xml")
         system (mvn/make-system)
         session (mvn/make-session system (or local-repo mvn/default-local-repo))
-        jar-artifact (.setFile (DefaultArtifact. group artifact classifier "jar" version) jar-file)
+        jar-artifact (.setFile (DefaultArtifact. group-id artifact-id classifier "jar" version) jar-file)
         artifacts (cond-> [jar-artifact]
-                    (and pom (.exists pom)) (conj (.setFile (DefaultArtifact. group artifact classifier "pom" version) pom)))
+                    (and pom-dir (.exists pom)) (conj (.setFile (DefaultArtifact. group-id artifact-id classifier "pom" version) pom)))
         install-request (.setArtifacts (InstallRequest.) artifacts)]
     (.install system session install-request)
     nil))

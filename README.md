@@ -26,6 +26,7 @@ Executes a project build consisting of tasks using shared parameters.
 
   :project-dir (optional) - path to project root, should include deps.edn file (default = current directory),
                             used to form the project basis
+  :output-dir (optional) - path to output root (default = current directory)
   :tasks (required) - coll of task steps in the form [task-sym task-params]
                       task-sym (required) - unqualified for built-in tasks, otherwise qualified
                       task-params (optional) - map of parameters overriding shared params
@@ -69,7 +70,8 @@ Many parameters are shared across multiple tasks - this is important both to red
 
 | Directory parameter | Description |
 | ------------------- | ----------- |
-| `:build/project-dir` | The project directory, which contains `deps.edn` and serves as the root for all input directories |
+| `:build/project-dir` | The project directory, which contains `deps.edn` and serves as the root for all input directories, defaults to current directory |
+| `:build/output-dir` | The output directory, root for all output, defaults to current directory |
 | `:build/target-dir` | The target directory, which contains all build output, either absolute or relative `:build/project-dir`. Usually "target". |
 | `:build/class-dir` | The classes directory, which is the default output for compilation tasks and resources and the default directory to use when creating a jar file. Intepreted relative to `:build/target-dir`, typically `"classes"`. |
 | `:build/clj-paths` | Coll of directories that are Clojure source roots, resolved relative to `:build/project-dir`. Used primarily by `clj-compile` task. |

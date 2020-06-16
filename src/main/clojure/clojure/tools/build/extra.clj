@@ -14,11 +14,10 @@
 (defn git-version
   [basis params]
   (let [version-template (build/resolve-param basis params :git-version/template)
-        flow-key (:git-version/version> params)
         git-version (process/invoke ["git" "rev-list" "HEAD" "--count"])
         version (format version-template git-version)]
-    {flow-key version}))
+    {:build/version version}))
 
 (comment
-  (git-version nil #:git-version{:template "0.1.%s" :version> :flow/version})
+  (git-version nil #:git-version{:template "0.1.%s"})
   )
