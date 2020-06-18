@@ -6,18 +6,13 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.build.extra
+(ns clojure.tools.build.tasks.format-str
   (:require
-    [clojure.tools.build.task.api :as tapi]
-    [clojure.tools.build.task.process :as process]))
+    [clojure.tools.build.task.api :as tapi]))
 
-(defn git-version
-  [basis params]
-  (let [version-template (tapi/resolve-param basis params :git-version/template)
-        git-version (process/invoke ["git" "rev-list" "HEAD" "--count"])
-        version (format version-template git-version)]
-    {:build/version version}))
-
-(comment
-  (git-version nil #:git-version{:template "0.1.%s"})
-  )
+(defn format-str
+  [basis {:build/keys [out>] :as params}]
+  (let [template (tapi/resolve-param basis params :build/template)
+        args (tapi/resolve-param basis params :build/args)
+        resolved-args (map #(tapi/maybe-resolve-param basis params %) args)]
+    {out> (apply format template resolved-args)}))

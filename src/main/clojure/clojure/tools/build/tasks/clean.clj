@@ -6,18 +6,14 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.build.extra
+(ns clojure.tools.build.tasks.clean
   (:require
+    [clojure.java.io :as jio]
     [clojure.tools.build.task.api :as tapi]
-    [clojure.tools.build.task.process :as process]))
+    [clojure.tools.build.task.file :as file]))
 
-(defn git-version
-  [basis params]
-  (let [version-template (tapi/resolve-param basis params :git-version/template)
-        git-version (process/invoke ["git" "rev-list" "HEAD" "--count"])
-        version (format version-template git-version)]
-    {:build/version version}))
-
-(comment
-  (git-version nil #:git-version{:template "0.1.%s"})
-  )
+(defn clean
+  [basis {:build/keys [output-dir] :as params}]
+  (let [target-dir (tapi/resolve-param basis params :build/target-dir)
+        target-dir-file (jio/file output-dir target-dir)]
+    (file/delete target-dir-file)))

@@ -14,7 +14,7 @@
             [clojure.zip :as zip]
             [clojure.tools.deps.alpha.util.maven :as maven]
             [clojure.tools.deps.alpha.util.io :refer [printerrln]]
-            [clojure.tools.build :as build])
+            [clojure.tools.build.task.api :as tapi])
   (:import [java.io File Reader]
            [clojure.data.xml.node Element]))
 
@@ -162,7 +162,7 @@
   ([{:keys [basis params]}]
    (let [{:keys [deps paths :mvn/repos]} basis
          {:keys [target-dir src-pom lib version] :or {src-pom "pom.xml"}} params
-         resolved-paths (flatten (map #(build/maybe-resolve-param basis params %) paths))
+         resolved-paths (flatten (map #(tapi/maybe-resolve-param basis params %) paths))
          repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
          pom-file (jio/file src-pom)
          pom (if (.exists pom-file)

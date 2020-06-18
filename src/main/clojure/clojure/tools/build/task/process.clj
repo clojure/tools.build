@@ -1,4 +1,4 @@
-(ns clojure.tools.build.process
+(ns clojure.tools.build.task.process
   (:require
     [clojure.string :as str])
   (:import

@@ -11,37 +11,19 @@
     [clojure.java.io :as jio]
     [clojure.pprint :as pprint]
     [clojure.tools.deps.alpha :as deps]
-    [clojure.tools.deps.alpha.util.dir :as dir]
-    [clojure.tools.build.file :as file])
+    [clojure.tools.deps.alpha.util.dir :as dir])
   (:import
     [java.io File]))
-
-(defn resolve-param
-  "Resolve task param, flow param, or alias. First tries to resolve key
-  as param or flow, repeatedly while finding keywords. Next tries to resolve
-  alias if still a keyword. Returns nil if not resolved."
-  ([basis params key default-key]
-    (if (contains? params key)
-      (resolve-param basis params key)
-      (resolve-param basis params default-key)))
-  ([basis params key]
-   (loop [k key]
-     (let [v (get params k)]
-       (cond
-         (keyword? v) (recur v)
-         (nil? v) (get-in basis [:aliases k])
-         :else v)))))
-
-(defn maybe-resolve-param
-  "Resolve task param but if not found, return possible-key instead"
-  [basis params possible-key]
-  (or (resolve-param basis params possible-key) possible-key))
 
 (defn- resolve-task
   [task-sym]
   (let [task-fn (if (qualified-symbol? task-sym)
                   (requiring-resolve task-sym)
-                  (resolve (symbol "clojure.tools.build.tasks" (str task-sym))))]
+                  (let [tname (str task-sym)
+                        tns (str "clojure.tools.build.tasks." tname)
+                        tsym (symbol tns tname)]
+                    (require (symbol tns))
+                    (resolve tsym)))]
     (if task-fn
       task-fn
       (throw (ex-info (str "Unknown task: " task-sym) {})))))
@@ -84,7 +66,6 @@
                          :build/output-dir (.getCanonicalPath output-dir-file))]
     (log verbose "Build params:")
     (log-map verbose default-params)
-    (require 'clojure.tools.build.tasks)
     (reduce
       (fn [flow [task-sym args]]
         (log verbose)
@@ -209,8 +190,8 @@
                                         com.ladderlife/cellophane {:mvn/version "0.3.5"}}
                                  :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
                                              "clojars" {:url "https://repo.clojars.org/"}}})]
-    ((requiring-resolve 'clojure.tools.build.tasks/clean) basis '{:build/target-dir "out-merge/target"})
-    ((requiring-resolve 'clojure.tools.build.tasks/uber) basis
+    ((requiring-resolve 'clojure.tools.build.tasks.clean/clean) basis '{:build/target-dir "out-merge/target"})
+    ((requiring-resolve 'clojure.tools.build.tasks.uber/uber) basis
       '{:build/output-dir "out-merge"
         :build/target-dir "target"
         :build/class-dir "target/classes"
