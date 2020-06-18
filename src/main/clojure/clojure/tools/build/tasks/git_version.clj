@@ -6,7 +6,7 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.build.extra
+(ns clojure.tools.build.tasks.git-version
   (:require
     [clojure.tools.build.task.api :as tapi]
     [clojure.tools.build.task.process :as process]))
@@ -17,7 +17,3 @@
         git-version (process/invoke ["git" "rev-list" "HEAD" "--count"])
         version (format version-template git-version)]
     {:build/version version}))
-
-(comment
-  (git-version nil #:git-version{:template "0.1.%s"})
-  )

@@ -100,7 +100,7 @@
   ;; clojure source lib with git version template
   (build
     '{:output-dir "out-lib-git"
-      :tasks [[clojure.tools.build.extra/git-version] [dirs] [clean] [sync-pom] [copy] [jar]]
+      :tasks [[git-version] [dirs] [clean] [sync-pom] [copy] [jar]]
       :params {:git-version/template "0.8.%s"
                :build/lib my/lib2
                :build/copy-specs [{:from :clj-paths}]}})
@@ -149,7 +149,7 @@
   ;; compiled lib w/classifier
   (build
     '{:output-dir "out-classifier"
-      :tasks [[clojure.tools.build.extra/git-version] [dirs] [clean] [sync-pom] [compile-clj] [jar]]
+      :tasks [[git-version] [dirs] [clean] [sync-pom] [compile-clj] [jar]]
       :params {:build/lib org.clojure/tools.build
                :build/classifier "aot"
                :git-version/template "0.8.%s"
