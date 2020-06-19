@@ -6,3 +6,4 @@ target/
 .lein*
 project.clj
 out*
+test-out

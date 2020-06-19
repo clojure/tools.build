@@ -117,8 +117,18 @@
             (if (seq more-tags)
               (recur more-tags child (zip/down child))
               (zip/edit child (constantly replace-node)))
-            (recur tags parent (zip/right child)))
-          (zip/append-child parent replace-node))))))
+            (if-let [next-sibling (zip/right child)]
+              (recur tags parent next-sibling)
+              (if (seq more-tags)
+                (let [new-parent (zip/append-child parent (xml/sexp-as-element tag))
+                      new-child (zip/rightmost (zip/down new-parent))]
+                  (recur more-tags new-child (zip/down new-child)))
+                (zip/append-child parent replace-node))))
+          (if (seq more-tags)
+            (let [new-parent (zip/append-child parent (xml/sexp-as-element tag))
+                  new-child (zip/rightmost (zip/down new-parent))]
+              (recur more-tags new-child (zip/down new-child)))
+            (zip/append-child parent replace-node)))))))
 
 (defn- replace-deps
   [pom deps]
