@@ -95,6 +95,18 @@
       :tasks [[dirs] [clean] [sync-pom] [copy] [jar] [install]]
       :params {:build/lib my/lib1
                :build/version "1.2.3"
+               :build/clj-paths :clj-paths
+               :build/copy-specs [{:from :clj-paths}]}})
+
+  ;; clojure source lib, no pom
+  (build
+    '{:output-dir "out-lib-pom"
+      :tasks [[dirs] [clean] [sync-pom] [copy] [jar] [install]]
+      :params {:build/lib my/lib1
+               :build/version "1.2.3"
+               :build/src-pom "no.xml"
+               :build/clj-paths ["src/main/clojure"]
+               :build/resource-paths ["src/main/resources" "src/main/extra"]
                :build/copy-specs [{:from :clj-paths}]}})
 
   ;; clojure source lib with git version template
