@@ -209,7 +209,7 @@ Example:
         :build/class-dir "classes"
         :build/java-paths :java-paths
         :build/javac-opts ["-source" "8" "-target" "8"]}]
-|===
+----
 
 === sync-pom task
 
