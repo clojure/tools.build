@@ -20,13 +20,13 @@ Builds are themselves programs and tools.build is a library for writing builds i
 * Build - a build invocation loads a project basis and runs an ordered series of build tasks to create one or more artifacts
 * Task - a build step, invoked with the basis, and a combination of shared parameters, task parameters, and flow parameters. Tasks may produce side effects (often writing to disk) and return new flow parameters that can be used by later tasks.
 * Shared parameter - attribute provided to all tasks (ignored if not used by a task)
-* Task parameter - attribute provided only to a single task, will oveerride any shared parameter
+* Task parameter - attribute provided only to a single task, will override any shared parameter
 * Project directory - the directory containing deps.edn and all other project source files
-* Target directory - the output directory, typically `<project-dir>/target`
+* Output directory - the output directory, defaults to the same as `<project-dir>`
 
 == tools.build API
 
-The primary function for executing a build is: `clojure.tools.build/build`
+The primary function for executing a build is:
 
 [source,clojure]
 ----
@@ -63,8 +63,8 @@ All parameters should be qualified. Namespace of `build` is reserved.
 | `:build/target-dir` | The target directory, designed to write new outputs or as a working area. Interpreted relative to `:build/output-dir`.
 | `:build/class-dir` | The classes directory, which is the default output for compilation tasks and resources and the default directory to use when creating a jar file. Intepreted relative to `:build/output-dir`, such as `"target/classes"`.
 | `:build/pom-dir` | The pom directory is where the pom.xml and pom.properties are created, following Maven coventions for jar construction. Interpreted relative to `:build/output-dir`.
-| `:build/clj-paths` | Coll of directories that are Clojure source roots, resolved relative to `:build/project-dir`. Used primarily by `clj-compile` task.
-| `:build/java-paths` | Coll of directories that are Java source roots, resolved relative to `:build/project-dir`. Used primarily by `javac` task.
+| `:build/clj-paths` | Coll of directories that are Clojure source roots, resolved relative to `:build/project-dir`. See `clj-compile` task.
+| `:build/java-paths` | Coll of directories that are Java source roots, resolved relative to `:build/project-dir`. See `javac` task.
 |===
 
 The `dirs` task can be used to initialize most of these according to common Maven conventions.
@@ -116,11 +116,11 @@ Constructs and returns a set of default directories and other Maven-convention b
 [options="header", role="table"]
 |===
 | Output param | Description
-| `:build/target-dir` | "target" - target dir for making outputs and intermediate products
-| `:build/class-dir` | "target/classes" - building jar structure (compiled outputs, resources)
-| `:build/pom-dir` | "target/classes/META-INF/maven/group-id/artifact-id" - Maven place to put pom
-| `:build/jar-file` | "target/artifact-id-[classifier-]version.jar" - jar artifact
-| `:build/uber-file` | "target/artifact-id-[classifier-]version-standalone.jar" - uberjar artifact
+| `:build/target-dir` | `"target"` - target dir for making outputs and intermediate products
+| `:build/class-dir` | `"target/classes"` - building jar structure (compiled outputs, resources)
+| `:build/pom-dir` | `"target/classes/META-INF/maven/group-id/artifact-id"` - Maven place to put pom
+| `:build/jar-file` | `"target/artifact-id-[classifier-]version.jar"` - jar artifact
+| `:build/uber-file` | `"target/artifact-id-[classifier-]version-standalone.jar"` - uberjar artifact
 |===
 
 === clean task
