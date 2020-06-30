@@ -51,15 +51,15 @@ clojure.tools.build/build
 
 == Shared directories and params
 
-Many parameters are shared across multiple tasks - this is important both to reduce the number of parameters to set and to allow tasks to work together. Important directories for the built-in tasks:
+Many parameters are shared across multiple tasks - this is important both to reduce the number of parameters to set and to allow tasks to work together. All parameters should be qualified. Namespace of `build` is reserved.
 
-All parameters should be qualified. Namespace of `build` is reserved.
+Important directory parameters shared across the built-in tasks:
 
 [options="header", role="table"]
 |===
 | Directory parameter | Description
-| `:build/project-dir` | The project directory, which contains `deps.edn` and serves as the root for all input directories, defaults to current directory
-| `:build/output-dir` | The output directory, root for all output, defaults to current directory
+| `:build/project-dir` | The project directory specified in the build, should contain `deps.edn` and serve as the root for all input directories, defaults to current directory.
+| `:build/output-dir` | The output directory, root for all output, defaults to project directory.
 | `:build/target-dir` | The target directory, designed to write new outputs or as a working area. Interpreted relative to `:build/output-dir`.
 | `:build/class-dir` | The classes directory, which is the default output for compilation tasks and resources and the default directory to use when creating a jar file. Intepreted relative to `:build/output-dir`, such as `"target/classes"`.
 | `:build/pom-dir` | The pom directory is where the pom.xml and pom.properties are created, following Maven coventions for jar construction. Interpreted relative to `:build/output-dir`.
