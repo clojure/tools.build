@@ -49,13 +49,24 @@
      (binding [*print-namespace-maps* false]
        (pprint/pprint ~m))))
 
+(clojure.repl/doc build)
 (defn build
-  "Execute build:
-     Load basis from project-dir (default = current directory)
-     Load build params - either a map or an alias
-     Run tasks - task may have an arg map or alias, which is merged into the build params
-     Output is relative to output-dir (default = current directory)"
-  [{:keys [project-dir output-dir params tasks verbose]}]
+  "Executes a project build consisting of tasks using shared parameters.
+
+    :project-dir (optional) - path to project root, should include deps.edn file (default = current directory),
+                              used to form the project basis
+    :output-dir (optional) - path to output root (default = project-dir)
+    :tasks (required) - coll of task steps in the form [task-sym task-params]
+                        task-sym (required) - unqualified for built-in tasks, otherwise should resolve to a var
+                        task-params (optional) - map of parameters overriding shared params
+    :params (optional) - shared params passed to all tasks or an alias referring to them
+
+   Build steps:
+     Load basis from project-dir
+     Load build params from either a map or an alias
+     Run tasks, each task is passed the basis and a merge of build params and task-specific params
+     Output files and dirs relative to output-dir"
+  [{:keys [project-dir output-dir tasks params verbose]}]
   (let [project-dir-file (jio/file (or project-dir "."))
         project-deps-file (jio/file project-dir-file "deps.edn")
         basis (load-basis project-deps-file)

@@ -8,7 +8,11 @@ ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 
 toc:[]
 
-A library for building artifacts in Clojure projects.
+== Rationale
+
+The tools.deps library and Clojure CLI tools provide support for building classpaths with dependencies, including source-based dependencies (local- and git-based). However, some libraries require build steps for compilation, resource file transformation, or artifact building.
+
+Builds are themselves programs and tools.build is a library for writing builds in terms of tasks driven by data in the deps.edn file. Many common built-in tasks are provided but the system is also open for extension and combination with other tools as needed. For the common case, support is available for invoking builds from the command line with the Clojure CLI tools.
 
 == Terms
 
@@ -26,36 +30,59 @@ The primary function for executing a build is: `clojure.tools.build/build`
 
 [source,clojure]
 ----
-(clojure.tools.build/build [{:keys [project-dir tasks params]}])
+clojure.tools.build/build
+([{:keys [project-dir output-dir tasks params verbose]}])
+  Executes a project build consisting of tasks using shared parameters.
 
-Executes a project build consisting of tasks using shared parameters.
+    :project-dir (optional) - path to project root, should include deps.edn file (default = current directory),
+                              used to form the project basis
+    :output-dir (optional) - path to output root (default = project-dir)
+    :tasks (required) - coll of task steps in the form [task-sym task-params]
+                        task-sym (required) - unqualified for built-in tasks, otherwise should resolve to a var
+                        task-params (optional) - map of parameters overriding shared params
+    :params (optional) - shared params passed to all tasks or an alias referring to them
 
-  :project-dir (optional) - path to project root, should include deps.edn file (default = current directory),
-                            used to form the project basis
-  :output-dir (optional) - path to output root (default = current directory)
-  :tasks (required) - coll of task steps in the form [task-sym task-params]
-                      task-sym (required) - unqualified for built-in tasks, otherwise qualified
-                      task-params (optional) - map of parameters overriding shared params
-  :params (optional) - shared params passed to all tasks
+   Build steps:
+     Load basis from project-dir
+     Load build params from either a map or an alias
+     Run tasks, each task is passed the basis and a merge of build params and task-specific params
+     Output files and dirs relative to output-dir
 ----
+
+== Shared directories and params
+
+Many parameters are shared across multiple tasks - this is important both to reduce the number of parameters to set and to allow tasks to work together. Important directories for the built-in tasks:
 
 All parameters should be qualified. Namespace of `build` is reserved.
 
-Tasks are functions that take the following form:
+[options="header", role="table"]
+|===
+| Directory parameter | Description
+| `:build/project-dir` | The project directory, which contains `deps.edn` and serves as the root for all input directories, defaults to current directory
+| `:build/output-dir` | The output directory, root for all output, defaults to current directory
+| `:build/target-dir` | The target directory, designed to write new outputs or as a working area. Interpreted relative to `:build/output-dir`.
+| `:build/class-dir` | The classes directory, which is the default output for compilation tasks and resources and the default directory to use when creating a jar file. Intepreted relative to `:build/output-dir`, such as `"target/classes"`.
+| `:build/pom-dir` | The pom directory is where the pom.xml and pom.properties are created, following Maven coventions for jar construction. Interpreted relative to `:build/output-dir`.
+| `:build/clj-paths` | Coll of directories that are Clojure source roots, resolved relative to `:build/project-dir`. Used primarily by `clj-compile` task.
+| `:build/java-paths` | Coll of directories that are Java source roots, resolved relative to `:build/project-dir`. Used primarily by `javac` task.
+|===
 
-[source,clojure]
-----
-(defn a-task [basis params])
+The `dirs` task can be used to initialize most of these according to common Maven conventions.
 
-  basis - the basis created by build params
-  params - a merged map consisting of shared params and task params
-----
+Additionally, there are some project-oriented parameters that are shared across tasks:
 
-Tasks may return a map containing new params to be passed to subsequent tasks.
+[options="header", role="table"]
+|===
+| Shared parameter | Description
+| `:build/lib` | Qualified symbol defining this projects lib name (in Maven terms `groupId/artifactId`)
+| `:build/classifier` | String specifying the library classifier
+| `:build/version` | String representing this project's version number
+| `:build/main-class` | Symbol for the Clojure namespace with a -main or Java main class
+|===
 
-== Built-in tasks and parameters
+== Built-in tasks
 
-The following built-in tasks are provided (these may be specified unqualified in `:tasks`):
+The following built-in tasks are provided (these may all be specified unqualified):
 
 [options="header", role="table"]
 |===
@@ -72,33 +99,6 @@ The following built-in tasks are provided (these may be specified unqualified in
 | `process` | Execute an external process
 | `format-str` | Format a string template with param replacement
 | `install` | Install the created jar to local Maven cache
-|===
-
-=== Shared directories and params
-
-Many parameters are shared across multiple tasks - this is important both to reduce the number of parameters to set and to allow tasks to work together. Important directories for the built-in tasks:
-
-[options="header", role="table"]
-|===
-| Directory parameter | Description
-| `:build/project-dir` | The project directory, which contains `deps.edn` and serves as the root for all input directories, defaults to current directory
-| `:build/output-dir` | The output directory, root for all output, defaults to current directory
-| `:build/target-dir` | The target directory, designed to write new outputs or as a working area. Interpreted relative to `:build/output-dir`.
-| `:build/class-dir` | The classes directory, which is the default output for compilation tasks and resources and the default directory to use when creating a jar file. Intepreted relative to `:build/output-dir`, such as `"target/classes"`.
-| `:build/pom-dir` | The pom directory is where the pom.xml and pom.properties are created, following Maven coventions for jar construction. Interpreted relative to `:build/output-dir`.
-| `:build/clj-paths` | Coll of directories that are Clojure source roots, resolved relative to `:build/project-dir`. Used primarily by `clj-compile` task.
-| `:build/java-paths` | Coll of directories that are Java source roots, resolved relative to `:build/project-dir`. Used primarily by `javac` task.
-|===
-
-Additionally, there are some project-oriented parameters that are shared across tasks:
-
-[options="header", role="table"]
-|===
-| Shared parameter | Description
-| `:build/lib` | Qualified symbol defining this projects lib name (in Maven terms `groupId/artifactId`)
-| `:build/classifier` | String specifying the library classifier
-| `:build/version` | String representing this project's version number
-| `:build/main-class` | Symbol for the Clojure namespace with a -main or Java main class
 |===
 
 === dirs task
@@ -436,3 +436,19 @@ Override a parameter like version:
 ----
 clj -A:build -X:build :params:build/version "\"2.2.2\""
 ----
+
+== Creating new tasks
+
+Tasks are functions that take the following form:
+
+[source,clojure]
+----
+(defn a-task [basis params])
+
+  basis - the basis created by build params
+  params - a merged map consisting of shared params and task params
+----
+
+Tasks may return a map containing new params to be passed to subsequent tasks.
+
+
