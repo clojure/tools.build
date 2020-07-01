@@ -8,6 +8,12 @@ ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 
 toc:[]
 
+== Rationale
+
+The tools.deps library and Clojure CLI tools provide support for building classpaths with dependencies, including source-based dependencies (local- and git-based). However, some libraries require build steps for compilation, resource file transformation, or artifact building.
+
+Builds are themselves programs and tools.build is a library for writing builds in terms of tasks driven by data in the deps.edn file. Many common built-in tasks are provided but the system is also open for extension and combination with other tools as needed. For the common case, support is available for invoking builds from the command line with the Clojure CLI tools.
+
 == Getting started
 
 tools.build is a library for writing Clojure build programs. It depends on tools.deps and the Clojure tools. These related pages may be of use for background:
@@ -15,7 +21,7 @@ tools.build is a library for writing Clojure build programs. It depends on tools
 * https://clojure.org/guides/getting_started[Getting Started guide] - for installing the Clojure tools
 * https://clojure.org/guides/deps_and_cli[Deps and CLI guide] - using the Clojure tools
 * https://clojure.org/reference/deps_and_cli[Deps and CLI reference] - more detailed reference info about the Clojure tools
-* <<xref#reference,tools.build reference]
+* <<xref#reference,tools.build reference>>
 
 == Using tools.build as a Clojure tool
 
