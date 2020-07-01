@@ -6,7 +6,7 @@ Alex Miller
 
 ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 
-toc:[]
+toc::[]
 
 == Terms
 

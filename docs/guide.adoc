@@ -6,7 +6,7 @@ Alex Miller
 
 ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 
-toc:[]
+toc::[]
 
 == Rationale
 
@@ -56,7 +56,7 @@ In this example, there are four tasks, all likely to exist in a build that compi
 * `copy` - copies clojure source files from the project directory to the jar assembly directory
 * `jar` - creates a jar from the jar assembly directory and writes it to the target directory
 
-image::build-example.png
+image::build-example.png[]
 
 
 == Writing a build program
