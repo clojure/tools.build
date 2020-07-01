@@ -39,7 +39,8 @@ The easiest way to define params and tasks is as data in a deps.edn alias. For e
   {:tasks [[dirs] [clean] [copy] [jar]]
    :params
    {:build/lib myorg/mylib
-    :build/version "1.2.3"}}}}
+    :build/version "1.2.3"
+    :build/copy-specs [{:from "src"}]}}}}
 ----
 
 The `:build` alias is not special, it can be named anything and there may be multiple build build definitions in the aliases.
@@ -55,10 +56,8 @@ In this example, there are four tasks, all likely to exist in a build that compi
 * `copy` - copies clojure source files from the project directory to the jar assembly directory
 * `jar` - creates a jar from the jar assembly directory and writes it to the target directory
 
+image::build-example.png
 
-
-
- 
 
 == Writing a build program
 
