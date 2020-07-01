@@ -25,6 +25,6 @@
          :else v)))))
 
 (defn maybe-resolve-param
-  "Resolve task param but if not found, return possible-key instead"
+  "Like resolve-param, but if not found, return possible-key"
   [basis params possible-key]
   (or (resolve-param basis params possible-key) possible-key))
