@@ -23,11 +23,37 @@ tools.build is a library for writing Clojure build programs. It depends on tools
 * https://clojure.org/reference/deps_and_cli[Deps and CLI reference] - more detailed reference info about the Clojure tools
 * <<xref#reference,tools.build reference>>
 
-== Using tools.build as a Clojure tool
+== Installing tools.build as a Clojure tool
 
-A build is defined in terms of tasks and params. The tasks are executed sequentially and params can be specified either for all tasks or specific tasks. Task-specific parameters override the main parameters.
+Intalling tools.build as an alias in ~/.clojure/deps.edn allows it to be used from any project. Add an alias as follows:
 
-The easiest way to define params and tasks is as data in a deps.edn alias. For example a deps.edn file may look like this:
+[source,clojure]
+----
+{...
+ :aliases
+ {:build
+  {:deps {org.clojure/tools.build {:git/url "git@github.com:cognitect-labs/tools.build.git"
+                                   :sha "<SHA>"}
+          org.clojure/tools.deps.alpha {:git/url "https://github.com/clojure/tools.deps.alpha.git"
+                                        :sha "<SHA>"}
+          org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}}}}
+----
+
+You can find the latest shas for these projects with:
+
+[source,shell]
+----
+git ls-remote git@github.com:cognitect-labs/tools.build.git refs/heads/master
+git ls-remote https://github.com/clojure/tools.deps.alpha.git refs/heads/calc-basis
+----
+
+__Note: this will all be different once public and released.__
+
+== A simple build
+
+A build is defined in terms of tasks and params. The tasks are executed sequentially and params can be specified either for all tasks or specific tasks. Task-specific parameters override the build parameters.
+
+The easiest way to define params and tasks is as data in a deps.edn alias. deps.edn aliases are names for data structures, here data to be conveyed to the build at runtime. A deps.edn file defining config data named `:jar-config`:
 
 [source,clojure]
 ----
@@ -35,7 +61,7 @@ The easiest way to define params and tasks is as data in a deps.edn alias. For e
  :deps {}
 
  :aliases
- {:build
+ {:jar-config
   {:tasks [[dirs] [clean] [copy] [jar]]
    :params
    {:build/lib myorg/mylib
@@ -43,13 +69,13 @@ The easiest way to define params and tasks is as data in a deps.edn alias. For e
     :build/copy-specs [{:from "src"}]}}}}
 ----
 
-The `:build` alias is not special, it can be named anything and there may be multiple build build definitions in the aliases.
+The `:jar-config` alias is not special, it can be named anything and there can be many build definitions in the aliases.
 
-Each task is a vector consisting of a task name and an optional task-specific parameter map. Built-in tasks are unqualified, custom tasks should be qualified and refer to the function implementing the task.
+Each task is a vector consisting of a task name and an optional task-specific parameter map (none here). Built-in tasks are unqualified, custom tasks must be qualified and refer to the function implementing the task.
 
-The parameter map flows through the tasks and tasks may emit new parameters that will be added to the flowing parameters. Generally, tasks should emit parameters that are additive to the build parameter map, not override previous values. Generally any parameter may have a value that is itself the name of another parameter holding the value OR an alias in the deps.edn.
+The params map is passed to the build, which adds some params and flows it through each task. Tasks can return new params to add to the flow. Generally, tasks should emit parameters that add to the build parameter map, rather than override values, although this is allowed. Additionally, each parameter value may be the name of another parameter OR an alias in deps.edn to find the value.
 
-In this example, there are four tasks, all likely to exist in a build that compiles a library jar. The tasks work as follows:
+In this example, there are four tasks that work together to create a basic Clojure source jar. The tasks work as follows:
 
 * `dirs` - uses `:build/output-dir`, `:build/lib`, `:build/version` etc to initialize many output directories and files which are emitted to the build parameters
 * `clean` - removes the target directory (this is one of the directories defined by `dirs`)
@@ -58,6 +84,77 @@ In this example, there are four tasks, all likely to exist in a build that compi
 
 image::build-example.png[]
 
+== Running the build
 
-== Writing a build program
+The final missing piece is to execute the build using the config. The `clj -X` switch is used to execute a function that takes a map, whose data can be pulled from a deps.edn alias. This can be used at the command line as:
 
+[source,shell]
+----
+clj -A:build -Xclojure.tools.build/build :jar-config
+----
+
+Or we can embed this in a deps.edn alias as well:
+
+[source,clojure]
+----
+{:paths ["src"]
+ :deps {}
+
+ :aliases
+ {:jar-config
+  {:tasks [[dirs] [clean] [copy] [jar]]
+   :params
+   {:build/lib myorg/mylib
+    :build/version "1.2.3"
+    :build/copy-specs [{:from "src"}]}}
+
+  :jar
+  {:run-fn clojure.tools.build/build
+   :run-args :jar-config}}}
+----
+
+The simpler command is then:
+
+[source,shell]
+----
+clj -A:build -X:jar
+----
+
+== Overriding params at the command line
+
+The `-X` switch also provides the abillity to override params at the command line, for example to specify a new version to replace the value at the nested path `[:params :build/version]`:
+
+[source,shell]
+----
+clj -A:build -X:jar :params:build/version '"1.3.0"'
+----
+
+== Using aliases in params
+
+As mentioned above, param values can be alias names in deps.edn. Rather than declare `"src"` twice in :paths and the copy task specs, create an alias defining the Clojure source paths and modify deps.edn as follows:
+
+[source,clojure]
+----
+{:paths [:clj-paths]
+ :deps {}
+
+ :aliases
+ {:clj-paths ["src"]
+  :jar-config
+  {:tasks [[dirs] [clean] [copy] [jar]]
+   :params
+   {:build/lib myorg/mylib
+    :build/version "1.2.3"
+    :build/copy-specs [{:from :clj-paths}]}}
+  :jar
+  {:run-fn clojure.tools.build/build
+   :run-args :jar-config}}}
+----
+
+This build is functionally equivalent and it may be useful to use `:clj-paths` elsewhere.
+
+== Build customization
+
+Quite a bit of customization can be done simply with the built-in tasks, including param overrides on a per-task basis. Beyond that, custom tasks can be provided and added to the build classpath. Refer to them by their qualified name in the task list and they will be automatically loaded.
+
+And finally, builds may grow complex enough that they need to be combined with code, either before or after the build. To do so, write a program that uses tools.build as a library and set up to run it from deps.edn. All of these approaches can use data from deps.edn aliases so builds can grow in complexity over time while still using the same set of tasks and params.
