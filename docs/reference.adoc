@@ -137,7 +137,7 @@ Removes the target dir recursively.
 
 [options="header", role="table"]
 |===
-| Parameter | Required? | Descriptio
+| Parameter | Required? | Description
 | `:build/project-dir` | yes | Project dir
 | `:build/output-dir` | yes | Output dir
 | `:build/target-dir` | yes | Target dir, relative to `:build/output-dir`
