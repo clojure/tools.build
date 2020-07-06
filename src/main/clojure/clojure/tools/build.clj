@@ -49,7 +49,6 @@
      (binding [*print-namespace-maps* false]
        (pprint/pprint ~m))))
 
-(clojure.repl/doc build)
 (defn build
   "Executes a project build consisting of tasks using shared parameters.
 
