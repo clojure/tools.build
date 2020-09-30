@@ -425,7 +425,7 @@ Override a parameter, like `:version`:
 
 [source]
 ----
-clj -X:build '[:params :build/version]' "\"2.2.2\""
+clj -X:build '[:params :build/version]' '"2.2.2"'
 ----
 
 == Creating new tasks
