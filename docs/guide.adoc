@@ -84,14 +84,9 @@ image::build-example.png[]
 
 == Running the build
 
-The final missing piece is to execute the build using the config. The `clj -X` switch is used to execute a function that takes a map, whose data can be pulled from a deps.edn alias. This can be used at the command line as:
+The final missing piece is to execute the build using the config. The `clj -X` switch is used to execute a function that takes a map, whose data can be pulled from a deps.edn alias. 
 
-[source,shell]
-----
-clj -A:build -Xclojure.tools.build/build :jar-config
-----
-
-Or we can embed this in a deps.edn alias as well:
+The deps.edn will contains the config and the jar build:
 
 [source,clojure]
 ----
@@ -123,7 +118,7 @@ The `-X` switch also provides the abillity to override params at the command lin
 
 [source,shell]
 ----
-clj -X:build:jar :params:build/version '"1.3.0"'
+clj -X:build:jar '[:params :build/version]' '"1.3.0"'
 ----
 
 == Using aliases in params
