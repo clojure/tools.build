@@ -10,10 +10,14 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.pprint :as pprint]
+    [clojure.string :as str]
     [clojure.tools.deps.alpha :as deps]
-    [clojure.tools.deps.alpha.util.dir :as dir])
+    [clojure.tools.deps.alpha.util.dir :as dir]
+    [clojure.tools.build.task.specs]
+    [clojure.spec.alpha :as s])
   (:import
-    [java.io File]))
+    [java.io File]
+    [clojure.lang ExceptionInfo]))
 
 (defn- resolve-task
   [task-sym]
@@ -49,6 +53,29 @@
      (binding [*print-namespace-maps* false]
        (pprint/pprint ~m))))
 
+(defn- check-args
+  [task-sym arg-data]
+  (loop [[[arg val] & more-args] arg-data
+         errs []]
+    (if arg
+      (cond
+        ;; alias, skip
+        (keyword? val) (recur more-args errs)
+
+        ;; validate to spec
+        (and (s/get-spec arg) (not (s/valid? arg val)))
+        (recur more-args (conj errs {:arg arg :val val :explain (s/explain-str arg val)}))
+
+        ;; no spec
+        :else (recur more-args errs))
+      (when (seq errs)
+        (throw (ex-info (str/join (System/lineSeparator)
+                          (cons (str "Invalid args running task `" task-sym "`:")
+                            (map (fn [{:keys [arg val]}]
+                                   (str "  " arg ": got " (pr-str val) ", expected: " (pr-str (s/describe arg))))
+                              errs)))
+                 arg-data))))))
+
 (defn build
   "Executes a project build consisting of tasks using shared parameters.
 
@@ -73,25 +100,30 @@
         output-dir-file (if output-dir (jio/file output-dir) project-dir-file)
         default-params (assoc params
                          :build/project-dir (.getCanonicalPath project-dir-file)
-                         :build/output-dir (.getCanonicalPath output-dir-file))]
+                         :build/output-dir (.getCanonicalPath output-dir-file))
+        arg-spec (s/keys)]
     (log verbose "Build params:")
     (log-map verbose default-params)
-    (reduce
-      (fn [flow [task-sym args]]
-        (log verbose)
-        (log verbose "Running" task-sym)
-        (let [begin (System/currentTimeMillis)
-              task-fn (resolve-task task-sym)
-              args (if (keyword? args) (get-in basis [:aliases args]) args)
-              arg-data (merge flow args)
-              _ (log-map verbose arg-data)
-              res (task-fn basis arg-data)
-              end (System/currentTimeMillis)]
-          (println "Ran" task-sym "in" (- end begin) "ms")
-          (merge flow res)))
-      default-params
-      tasks)
-    (println "Done!")))
+    (try
+      (reduce
+        (fn [flow [task-sym args]]
+          (log verbose)
+          (log verbose "Running" task-sym)
+          (let [begin (System/currentTimeMillis)
+                task-fn (resolve-task task-sym)
+                args (if (keyword? args) (get-in basis [:aliases args]) args)
+                arg-data (merge flow args)
+                _ (log-map verbose arg-data)
+                _ (check-args task-sym arg-data)
+                res (task-fn basis arg-data)
+                end (System/currentTimeMillis)]
+            (println "Ran" task-sym "in" (- end begin) "ms")
+            (merge flow res)))
+        default-params
+        tasks)
+      (println "Done!")
+      (catch ExceptionInfo e
+        (println (.getMessage e))))))
 
 (comment
   ;; Given aliases:
