@@ -26,4 +26,4 @@
 (s/def :build.copy/replace (s/map-of string? (s/or :alias keyword? :text string?)))
 (s/def :build/copy-spec (s/keys :opt-un [:build.copy/from :build.copy/include :build.copy/replace]))
 (s/def :build/copy-specs (s/coll-of :build/copy-spec))
-(s/def :build/copy-to (s/coll-of :build/copy-spec))
+(s/def :build/copy-to string?)
