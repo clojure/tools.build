@@ -8,11 +8,17 @@ ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 
 toc::[]
 
+== Rationale
+
+The tools.deps library and Clojure CLI tools provide support for building classpaths with dependencies, including source-based dependencies (local- and git-based). However, some libraries require build steps for compilation, resource file transformation, or artifact building.
+
+Builds are themselves programs and tools.build is a library for writing builds in terms of tasks driven by data in the deps.edn file. Many common built-in tasks are provided but the system is also open for extension and combination with other tools as needed. For the common case, support is available for invoking builds from the command line with the Clojure CLI tools.
+
 == Terms
 
 * Basis - given a chain of deps.edn files and modifiers to resolve-deps, make-classpath, etc, the tools.deps library will produce a "runtime basis" consisting of the library and classpath execution environment and alias data
 * Build - a build invocation loads a project basis and runs an ordered series of build tasks to create one or more artifacts
-* Task - a build step, invoked with the basis, and a combination of shared parameters, task parameters, and flow parameters. Tasks may produce side effects (often writing to disk) and return new flow parameters that can be used by later tasks.
+* Task - a build step, invoked with the basis, and a combination of shared parameters and task parameters. Tasks may produce side effects (often writing to disk) and return new shared parameters that can be used by later tasks.
 * Shared parameter - attribute provided to all tasks (ignored if not used by a task)
 * Task parameter - attribute provided only to a single task, will override any shared parameter
 * Project directory - the directory containing deps.edn and all other project source files
@@ -336,13 +342,13 @@ Creates zip file of zip-dir's contents in zip-name.
 | `:build/out>` |  | Flow param key with which to return the process output
 |===
 
-Expect the command as specified in command and return the trimmed stdout result in the specified flow param.
+Expect the command as specified in command and return the trimmed stdout result in the specified output param.
 
-Output flow params:
+Output params:
 
 [options="header", role="table"]
 |===
-| Flow param | Description
+| Out param | Description
 | Value of `:build/out>` | Return the trimmed stdout result of executing the command
 |===
 
@@ -356,13 +362,13 @@ Output flow params:
 | `:build/out>` | yes | Flow param key with which to return the process output
 |===
 
-Format the string template with the args and put the result in the out> flow param.
+Format the string template with the args and put the result in the `out>` param.
 
-Output flow params:
+Output params:
 
 [options="header", role="table"]
 |===
-| Flow param | Description
+| Out param | Description
 | Value of `:build/out>` | Return the formatting template
 |===
 
@@ -373,7 +379,7 @@ Output flow params:
 [options="header", role="table"]
 |===
 | Basis key | Description
-| `:mvn/local-repo` | Local repository location (default to ~/.m2/repository)
+| `:mvn/local-repo` | Local repository location (default to `~/.m2/repository`)
 |===
 
 [options="header", role="table"]
@@ -383,7 +389,6 @@ Output flow params:
 | `:build/lib` | yes | Qualified symbol defining this projects lib name (in Maven terms `groupId/artifactId`)
 | `:build/classifier` | | String specifying the library classifier
 | `:build/version` | yes | String representing this project's version number
-| `:flow/pom-dir` | yes | Pom dir containing output pom.xml (see `sync-pom`)
 |===
 
 Installs the jar (created by the `jar` task) into the Maven local repository.
