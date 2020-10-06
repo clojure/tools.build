@@ -53,28 +53,32 @@
      (binding [*print-namespace-maps* false]
        (pprint/pprint ~m))))
 
-(defn- check-args
-  [task-sym arg-data]
-  (loop [[[arg val] & more-args] arg-data
+(defn- check-params
+  [task-sym param-data]
+  (let [unqualified-params (filter #(not (qualified-keyword? %)) (keys param-data))]
+    (if (seq unqualified-params)
+      (throw (ex-info (str "Invalid parameter names, should be qualified keys: " (pr-str unqualified-params)) {}))))
+
+  (loop [[[param val] & more-params] param-data
          errs []]
-    (if arg
+    (if param
       (cond
         ;; alias, skip
-        (keyword? val) (recur more-args errs)
+        (keyword? val) (recur more-params errs)
 
         ;; validate to spec
-        (and (s/get-spec arg) (not (s/valid? arg val)))
-        (recur more-args (conj errs {:arg arg :val val :explain (s/explain-str arg val)}))
+        (and (s/get-spec param) (not (s/valid? param val)))
+        (recur more-params (conj errs {:param param :val val :explain (s/explain-str param val)}))
 
         ;; no spec
-        :else (recur more-args errs))
+        :else (recur more-params errs))
       (when (seq errs)
         (throw (ex-info (str/join (System/lineSeparator)
-                          (cons (str "Invalid args running task `" task-sym "`:")
-                            (map (fn [{:keys [arg val]}]
-                                   (str "  " arg ": got " (pr-str val) ", expected: " (pr-str (s/describe arg))))
+                          (cons (str "Invalid params running task `" task-sym "`:")
+                            (map (fn [{:keys [param val]}]
+                                   (str "  " param ": got " (pr-str val) ", expected: " (pr-str (s/describe param))))
                               errs)))
-                 arg-data))))))
+                 param-data))))))
 
 (defn build
   "Executes a project build consisting of tasks using shared parameters.
@@ -90,7 +94,7 @@
    Build steps:
      Load basis from project-dir
      Load build params from either a map or an alias
-     Run tasks, each task is passed the basis and a merge of build params and task-specific params
+     Run tasks in order, each task is passed the basis and a merge of build params and task-specific params
      Output files and dirs relative to output-dir"
   [{:keys [project-dir output-dir tasks params verbose]}]
   (let [project-dir-file (jio/file (or project-dir "."))
@@ -100,25 +104,24 @@
         output-dir-file (if output-dir (jio/file output-dir) project-dir-file)
         default-params (assoc params
                          :build/project-dir (.getCanonicalPath project-dir-file)
-                         :build/output-dir (.getCanonicalPath output-dir-file))
-        arg-spec (s/keys)]
+                         :build/output-dir (.getCanonicalPath output-dir-file))]
     (log verbose "Build params:")
     (log-map verbose default-params)
     (try
       (reduce
-        (fn [flow [task-sym args]]
+        (fn [run-params [task-sym task-params]]
           (log verbose)
           (log verbose "Running" task-sym)
           (let [begin (System/currentTimeMillis)
                 task-fn (resolve-task task-sym)
-                args (if (keyword? args) (get-in basis [:aliases args]) args)
-                arg-data (merge flow args)
-                _ (log-map verbose arg-data)
-                _ (check-args task-sym arg-data)
-                res (task-fn basis arg-data)
+                task-params (if (keyword? task-params) (get-in basis [:aliases task-params]) task-params)
+                param-data (merge run-params task-params)
+                _ (log-map verbose param-data)
+                _ (check-params task-sym param-data)
+                res (task-fn basis param-data)
                 end (System/currentTimeMillis)]
             (println "Ran" task-sym "in" (- end begin) "ms")
-            (merge flow res)))
+            (merge run-params res)))
         default-params
         tasks)
       (println "Done!")
