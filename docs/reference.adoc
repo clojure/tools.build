@@ -67,7 +67,7 @@ Important directory parameters shared across the built-in tasks:
 | `:build/java-paths` | Coll of directories that are Java source roots, resolved relative to `:build/project-dir`. See `javac` task.
 |===
 
-The `dirs` task can be used to initialize most of these according to common Maven conventions.
+The `dirs` task can be used to return shared parameter values for most of these according to common Maven conventions.
 
 Additionally, there are some project-oriented parameters that are shared across tasks:
 
@@ -80,6 +80,8 @@ Additionally, there are some project-oriented parameters that are shared across 
 | `:build/main-class` | Symbol for the Clojure namespace with a -main or Java main class
 |===
 
+By convention, parameters that end in `>` expect to find a parameter name that will be returned from a task. For example, the process task takes a `:build/out>` param. The process task will return a shared param whose name is the value of `:build/out>`.
+
 == Built-in tasks
 
 The following built-in tasks are provided (these may all be specified unqualified):
@@ -87,14 +89,14 @@ The following built-in tasks are provided (these may all be specified unqualifie
 [options="header", role="table"]
 |===
 | Task | Description
-| `dirs` | Create directory params matching Maven build conventions
-| `clean` | Clean target dir
-| `compile-clj` | Compile Clojure namespaces to classes
-| `sync-pom` | Use base pom.xml and deps.edn to produce an output pom.xml
-| `javac` | Compile Java source to classes
-| `copy` | Copy source and resource files to classes (w/string replacement)
-| `jar` | Create a jar containing classes etc
-| `uber` | Create an uberjar containing the jar and all dependent jars
+| `dirs` | Return directory and file shared params matching Maven build conventions
+| `clean` | Clean `:build/target-dir` 
+| `compile-clj` | Compile Clojure namespaces to `:build/class-dir`
+| `sync-pom` | Emit pom from project deps and optionally a source pom to `:build/pom-dir`
+| `javac` | Compile Java source to `:build/class-dir`
+| `copy` | Copy files from source to output (w/string replacement
+| `jar` | Create a jar of `:build/class-dir` to `:build/jar-file`
+| `uber` | Create an uberjar (the output jar plus dependent jars) to `:build/uber-file`
 | `zip` | Zip output files
 | `process` | Execute an external process
 | `format-str` | Format a string template with param replacement
@@ -111,7 +113,7 @@ The following built-in tasks are provided (these may all be specified unqualifie
 | `:build/classifier` | | String specifying the library classifier
 |===
 
-Constructs and returns a set of default directories and other Maven-convention build params:
+Returns new file and directory parameters using common Maven-conventions:
 
 [options="header", role="table"]
 |===
@@ -131,7 +133,7 @@ Constructs and returns a set of default directories and other Maven-convention b
 | `:build/target-dir` | yes | Target dir, relative to `:build/output-dir`
 |===
 
-Removes the target dir recursively.
+Removes `:build/target-dir` recursively.
 
 === compile-clj task
 
@@ -154,7 +156,7 @@ Removes the target dir recursively.
 | `:build/filter-nses` | | Coll of namespace symbol roots
 |===
 
-The `compile-clj` task compiles either an explicit list of namespaces in `:build/ns-compile` or all namespaces detected in `:build/clj-paths` (one of these is required). Namespaces are compiled with `:build/compiler-opts` if provided and output to intermediate `output-dir/target-dir/compile-clj` then filtered with `:build/filter-nses` (coll of namespace prefix symbols) into `output-dir/class-dir`.
+The `compile-clj` task compiles either an explicit list of namespaces in `:build/ns-compile` (if provided) or all namespaces detected in `:build/clj-paths` (one of these is required). Namespaces are compiled with `:build/compiler-opts` if provided and output to intermediate `output-dir/target-dir/compile-clj` then filtered with `:build/filter-nses` (coll of namespace prefix symbols) into `output-dir/class-dir`.
 
 Compilation occurs in a forked process using the `:classpath` from the computed project basis. Compilation errors will be printed to stderr and will cause build execution to abort.
 
@@ -247,7 +249,7 @@ Each copy spec has the following keys:
 | `:replace` | Map of string replacements to make in this copy, from source text to replacement text (which may also be params)
 |===
 
-The copy task copies all files specified by the copy specs to the `copy-to` directory (by default the classes dir), defaults intended for copying resource files (but other uses possible, typically with per-task overrides). The paths relative to `:from` are retained in the copy.
+The copy task copies all files specified by the copy specs to the `copy-to` directory (by default `:build/class-dir`), defaults intended for copying resource files (but other uses possible, typically with per-task overrides). The paths relative to `:from` are retained in the copy.
 
 Copying Clojure sources for jar inclusion:
 
@@ -339,10 +341,10 @@ Creates zip file of zip-dir's contents in zip-name.
 |===
 | Parameter | Required? | Description
 | `:build/command` | yes | Coll of process params
-| `:build/out>` |  | Flow param key with which to return the process output
+| `:build/out>` |  | Param key in which to return the process output
 |===
 
-Expect the command as specified in command and return the trimmed stdout result in the specified output param.
+Expect the command as specified in command and return the trimmed stdout result in the specified out param.
 
 Output params:
 
@@ -359,7 +361,7 @@ Output params:
 | Parameter | Required? | Description
 | `:build/template` | yes | String template per Java formatter
 | `:build/args` | yes | Coll of args (resolved as params) to feed the template
-| `:build/out>` | yes | Flow param key with which to return the process output
+| `:build/out>` | yes | Param key in which to return the process output
 |===
 
 Format the string template with the args and put the result in the `out>` param.
