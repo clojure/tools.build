@@ -51,7 +51,7 @@ clojure.tools.build/build
 
 == Shared directories and params
 
-Many parameters are shared across multiple tasks - this is important both to reduce the number of parameters to set and to allow tasks to work together. All parameters should be qualified. Namespace of `build` is reserved.
+Many parameters are shared across multiple tasks - this is important both to reduce the number of parameters to set and to allow tasks to work together. All parameters must be qualified. Namespace of `build` is reserved.
 
 Important directory parameters shared across the built-in tasks:
 
