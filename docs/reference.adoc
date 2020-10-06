@@ -137,7 +137,7 @@ Removes the target dir recursively.
 
 [options="header", role="table"]
 |===
-| Basis key | Description
+| Key in basis | Description
 | `:classpath` | Classpath data from basis
 |===
 
@@ -184,7 +184,7 @@ Example compiling specific Clojure namespaces with direct linking and keeping on
 
 [options="header", role="table"]
 |===
-| Basis key | Description
+| Key in basis | Description
 | `:libs` | Lib map data from basis
 |===
 
@@ -296,7 +296,7 @@ Create jar file named `jar-file` in `output-dir` containing contents of `class-d
 
 [options="header", role="table"]
 |===
-| Basis key | Description
+| Key in basis | Description
 | `:libs` | Lib map data from basis
 |===
 
@@ -378,7 +378,7 @@ Output params:
 
 [options="header", role="table"]
 |===
-| Basis key | Description
+| Key in basis | Description
 | `:mvn/local-repo` | Local repository location (default to `~/.m2/repository`)
 |===
 
