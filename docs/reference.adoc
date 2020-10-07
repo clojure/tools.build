@@ -447,6 +447,24 @@ Tasks are functions that take the following form:
   params - a merged map consisting of shared params and task params
 ----
 
-Tasks may return a map containing new params to be passed to subsequent tasks.
+Tasks may return a map containing new params to be passed to subsequent tasks. If there are no params to add, return nil.
 
+=== Parameter validation
+
+To provide validation for your spec parameters, create specs in your task namespace for those parameter values.
+Each attribute will be checked according to its spec (if available) prior to task invocation.
+
+=== Parameter resolution
+
+The parameters passed to a task are a merge of the shared parameters flowing through the task pipeline and the per-task parameters. In general, task params may be the value to use, or the name of another parameter to resolve, or an alias. A
+helper function is provided to aid in resolution:
+
+[source]
+----
+clojure.tools.build.task.api/resolve-param
+([basis params key default-key] [basis params key])
+  Resolve task param, or alias. First tries to resolve key
+  as param, repeatedly while finding keywords. Next tries to 
+  resolve as alias if still a keyword. Returns nil if not resolved.
+----
 

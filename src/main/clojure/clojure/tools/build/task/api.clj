@@ -9,9 +9,9 @@
 (ns clojure.tools.build.task.api)
 
 (defn resolve-param
-  "Resolve task param, flow param, or alias. First tries to resolve key
-  as param or flow, repeatedly while finding keywords. Next tries to resolve
-  alias if still a keyword. Returns nil if not resolved."
+  "Resolve task param or alias. First tries to resolve key
+  as param, repeatedly while finding keywords. Next tries to
+  resolve as alias if still a keyword. Returns nil if not resolved."
   ([basis params key default-key]
    (if (contains? params key)
      (resolve-param basis params key)
