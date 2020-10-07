@@ -464,7 +464,7 @@ helper function is provided to aid in resolution:
 clojure.tools.build.task.api/resolve-param
 ([basis params key default-key] [basis params key])
   Resolve task param, or alias. First tries to resolve key
-  as param, repeatedly while finding keywords. Next tries to 
+  as param, repeatedly while finding keywords. Next tries to
   resolve as alias if still a keyword. Returns nil if not resolved.
 ----
 
