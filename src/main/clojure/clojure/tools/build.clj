@@ -108,22 +108,25 @@
     (log verbose "Build params:")
     (log-map verbose default-params)
     (try
-      (reduce
-        (fn [run-params [task-sym task-params]]
-          (log verbose)
-          (log verbose "Running" task-sym)
-          (let [begin (System/currentTimeMillis)
-                task-fn (resolve-task task-sym)
-                task-params (if (keyword? task-params) (get-in basis [:aliases task-params]) task-params)
-                param-data (merge run-params task-params)
-                _ (log-map verbose param-data)
-                _ (check-params task-sym param-data)
-                res (task-fn basis param-data)
-                end (System/currentTimeMillis)]
-            (println "Ran" task-sym "in" (- end begin) "ms")
-            (merge run-params res)))
-        default-params
-        tasks)
+      (let [final-params
+            (reduce
+              (fn [run-params [task-sym task-params]]
+                (log verbose)
+                (log verbose "Running" task-sym)
+                (let [begin (System/currentTimeMillis)
+                      task-fn (resolve-task task-sym)
+                      task-params (if (keyword? task-params) (get-in basis [:aliases task-params]) task-params)
+                      param-data (merge run-params task-params)
+                      _ (log-map verbose param-data)
+                      _ (check-params task-sym param-data)
+                      res (task-fn basis param-data)
+                      end (System/currentTimeMillis)]
+                  (println "Ran" task-sym "in" (- end begin) "ms")
+                  (merge run-params res)))
+              default-params
+              tasks)]
+        (log verbose "\nFinal params:")
+        (log-map verbose final-params))
       (println "Done!")
       (catch ExceptionInfo e
         (println (.getMessage e))))))
