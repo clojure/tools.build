@@ -5,7 +5,7 @@ A library for building artifacts in Clojure projects.
 
 ## Docs
 
-See [reference](docs/reference.adoc) for docs and usage.
+See [reference](docs/reference.adoc) and [guide](docs/guide.adoc) for docs and usage.
 
 # Release Information
 
