@@ -1,0 +1,67 @@
+= tools.build Cookbook
+Alex Miller
+2020-10-07
+:type: guides
+:toc: macro
+
+ifdef::env-github,env-browser[:outfilesuffix: .adoc]
+
+toc::[]
+
+== Build a Clojure library jar
+
+Clojure libraries are commonly packaged as jars of source and deployed to Maven repositories such as Maven Central or Clojars.
+
+=== Clojure source jar (most common)
+
+This build uses the following tasks:
+
+* `dirs` - sets up typical directory and file names
+* `clean` - cleans the target directory
+* `sync-pom` - emits a pom to be included in the final jar
+* `copy` - copies Clojure source files from the clojure source paths to be included in the jar 
+* `jar` - creates the project jar (will include pom and sources)
+
+[source,clojure]
+----
+;; deps.edn
+{:paths [:clj-paths]
+
+ :deps
+ { ;; your deps
+ }     
+
+ :aliases
+ {:clj-paths ["src"]
+
+  :jar
+  {:exec-args {:tasks [[dirs] [clean] [sync-pom] [copy] [jar] [install]]
+               :params {:build/lib my/lib1
+                        :build/version "1.2.3"
+                        :build/clj-paths :clj-paths
+                        :build/copy-specs [{:from :clj-paths}]}}}}}
+----
+
+Assuming a separate alias (probably in your `~/.clojure/deps.edn`) to invoke the build, you can then execute the build by combining that with the build config in `:jar`:
+
+[source,clojure]
+----
+clj -X:build:jar
+----
+
+=== Portable Clojure source jar (clj, cljs, cljc)
+
+=== Include resources
+
+=== Include resources with string replacement
+
+=== Compile and include Java classes
+
+=== Compute version from git commits
+ 
+== Build an uberjar for an application
+
+=== Source uberjar
+
+=== Compiled uberjar 
+

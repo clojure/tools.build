@@ -119,10 +119,10 @@ Returns new file and directory parameters using common Maven-conventions:
 |===
 | Output param | Description
 | `:build/target-dir` | `"target"` - target dir for making outputs and intermediate products
-| `:build/class-dir` | `"target/classes"` - building jar structure (compiled outputs, resources)
-| `:build/pom-dir` | `"target/classes/META-INF/maven/group-id/artifact-id"` - Maven place to put pom
-| `:build/jar-file` | `"target/artifact-id-[classifier-]version.jar"` - jar artifact
-| `:build/uber-file` | `"target/artifact-id-[classifier-]version-standalone.jar"` - uberjar artifact
+| `:build/class-dir` | `"target/classes"` - building jar structure (compiled outputs, resources), relative to `:build/output-dir`
+| `:build/pom-dir` | `"target/classes/META-INF/maven/group-id/artifact-id"` - Maven place to put pom, relative to `:build/output-dir`
+| `:build/jar-file` | `"target/artifact-id-[classifier-]version.jar"` - jar artifact, relative to `:build/output-dir`
+| `:build/uber-file` | `"target/artifact-id-[classifier-]version-standalone.jar"` - uberjar artifact, relative to `:build/output-dir`
 |===
 
 === clean task
@@ -150,7 +150,7 @@ Removes `:build/target-dir` recursively.
 | `:build/output-dir` | yes | Output dir
 | `:build/target-dir` | yes | Target dir, relative to `:build/output-dir`
 | `:build/class-dir` | yes | Class output dir, relative to `:build/output-dir`
-| `:build/clj-paths` | | Coll of Clojure source roots
+| `:build/clj-paths` | | Coll of Clojure source roots, resolved resolve to `:build/project-dir`
 | `:build/compiler-opts` | | Map of https://clojure.org/reference/compilation#_compiler_options[compiler options]
 | `:build/ns-compile` | | Coll of namespace symbols
 | `:build/filter-nses` | | Coll of namespace symbol roots
