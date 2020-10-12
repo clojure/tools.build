@@ -42,7 +42,7 @@ This build uses the following tasks:
                         :build/copy-specs [{:from :clj-paths}]}}}}}
 ----
 
-Assuming a separate alias (probably in your `~/.clojure/deps.edn`) to invoke the build, you can then execute the build by combining that with the build config in `:jar`:
+Assuming a separate alias (probably in your `~/.clojure/deps.edn`) to invoke tools.build, you can then execute the build by combining that with the build config in `:jar`:
 
 [source,clojure]
 ----

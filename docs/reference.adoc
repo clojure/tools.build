@@ -14,7 +14,9 @@ The tools.deps library and Clojure CLI tools provide support for building classp
 
 Builds are themselves programs and tools.build is a library for writing builds in terms of tasks driven by data in the deps.edn file. Many common built-in tasks are provided but the system is also open for extension and combination with other tools as needed. For the common case, support is available for invoking builds from the command line with the Clojure CLI tools.
 
-== Terms
+== Overview and Terms
+
+image::overview.png[]
 
 * Basis - given a chain of deps.edn files and modifiers to resolve-deps, make-classpath, etc, the tools.deps library will produce a "runtime basis" consisting of the library and classpath execution environment and alias data
 * Build - a build invocation loads a project basis and runs an ordered series of build tasks to create one or more artifacts
