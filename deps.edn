@@ -1,8 +1,8 @@
 {:paths ["src/main/clojure" "src/main/resources"]
 
  :deps
- {org.clojure/clojure {:mvn/version "1.10.1"}
-  org.clojure/tools.deps.alpha {:mvn/version "0.9.799"}
+ {org.clojure/clojure {:mvn/version "1.10.2"}
+  org.clojure/tools.deps.alpha {:mvn/version "0.9.863"}
   ;org.clojure/tools.deps.alpha {:git/url "https://github.com/clojure/tools.deps.alpha.git" :sha "6bd58578605212ce2ffec4ad666492d76ff8ef65"}
   org.clojure/tools.namespace {:mvn/version "1.0.0"}
 
