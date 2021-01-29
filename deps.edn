@@ -5,6 +5,7 @@
   org.clojure/tools.deps.alpha {:mvn/version "0.9.863"}
   ;org.clojure/tools.deps.alpha {:git/url "https://github.com/clojure/tools.deps.alpha.git" :sha "6bd58578605212ce2ffec4ad666492d76ff8ef65"}
   org.clojure/tools.namespace {:mvn/version "1.0.0"}
+  org.slf4j/slf4j-nop {:mvn/version "1.7.25"}
 
   ;; speculative s3 deployment task
   ;com.cognitect.aws/api {:mvn/version "0.8.408"}
@@ -23,8 +24,7 @@
   ;; clj -X:build jar
   ;; clj -X:build uber
   :build
-  {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
-   :extra-paths ["samples"]
+  {:extra-paths ["samples"]
    :ns-default build}
 
   }
