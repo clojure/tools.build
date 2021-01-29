@@ -20,6 +20,8 @@
   :dev
   {:extra-paths ["classes"]}
 
+  ;; clj -X:build jar
+  ;; clj -X:build uber
   :build
   {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
    :extra-paths ["build"]
