@@ -19,7 +19,9 @@
 ;; ==== deps.edn
 ;;  :aliases {:clj-paths ["src/main/clojure"]
 ;;            :resource-paths ["src/main/resources"]
-;;            :build {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
+;;            :build {:replace-deps {org.clojure/tools.build {:mvn/version "x.y.z"}
+;;                                   org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
+;;                    :replace-paths []
 ;;                    :ns-default build
 ;;                    :extra-paths ["samples"]}}
 
