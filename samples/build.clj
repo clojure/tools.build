@@ -2,7 +2,7 @@
   (:require [clojure.tools.build.api :as b]))
 
 ;; Default build properties
-(def defaults
+(def params
   #:build{:lib 'my/lib1
           :version "1.2.3"
           :clj-paths :clj-paths
@@ -31,15 +31,15 @@
 ;; clojure -X:build jar
 (defn jar
   [_]
-  (b/sync-pom defaults)
-  (b/copy defaults)
-  (b/jar defaults))
+  (b/sync-pom params)
+  (b/copy params)
+  (b/jar params))
 
 ;; clojure -X:build uber
 (defn uber
   [_]
   (jar nil)
-  (b/uber defaults))
+  (b/uber params))
 
 
 (comment
