@@ -25,16 +25,5 @@
    :extra-paths ["build"]
    :ns-default build}
 
-  :build-without-run
-  {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
-   :main-opts ["-m" "clojure.tools.deps.alpha.run" "-Xclojure.tools.build/build" ":build"]}
-
-
-  :build-params
-  {:output-dir "out1"
-   :tasks [[dirs] [clean] [sync-pom] [copy] [jar] [install]]
-   :params {:build/copy-specs [{:from :clj-paths}]
-            ;:build/src-pom "pom.xml"
-            :build/lib my/lib1
-            :build/version "1.2.3"}}
-  }}
+  }
+}
