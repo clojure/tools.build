@@ -26,7 +26,7 @@
 ;; clojure -X:build clean
 (defn clean
   [opts]
-  (b/clean (merge defaults opts)))
+  (b/clean #:build{:output-dir "." :target-dir "target"})) ;; TODO: cleanup to single dir
 
 ;; clojure -X:build jar
 (defn jar
