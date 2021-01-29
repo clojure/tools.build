@@ -32,7 +32,7 @@
       task-fn
       (throw (ex-info (str "Unknown task: " task-sym) {})))))
 
-(defn- load-basis
+(defn load-basis
   [^File project-deps]
   (let [{:keys [root-edn project-edn]} (deps/find-edn-maps)
         project (if project-deps
