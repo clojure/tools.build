@@ -20,14 +20,15 @@
   :dev
   {:extra-paths ["classes"]}
 
+  :build
+  {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
+   :extra-paths ["build"]
+   :ns-default build}
+
   :build-without-run
   {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
    :main-opts ["-m" "clojure.tools.deps.alpha.run" "-Xclojure.tools.build/build" ":build"]}
 
-  :build
-  {:replace-deps {org.clojure/tools.build {:mvn/version "0.1.0-SNAPSHOT"}} ;org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
-   :exec-fn clojure.tools.build/build
-   :exec-args :build-params}
 
   :build-params
   {:output-dir "out1"
