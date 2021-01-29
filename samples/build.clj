@@ -1,8 +1,5 @@
 (ns build
-  (:require
-    [clojure.java.io :as jio]
-    [clojure.tools.build :as tbuild]
-    [clojure.tools.build.api :as b]))
+  (:require [clojure.tools.build.api :as b]))
 
 ;; Default build properties
 (def defaults
@@ -19,14 +16,14 @@
           :uber-file "target/lib1-1.2.3-standalone.jar"})
 
 ;; Deps basis
-(def basis (tbuild/load-basis (jio/file "deps.edn")))
+(def basis (b/load-basis))
 
 ;; ==== deps.edn
 ;;  :aliases {:clj-paths ["src/main/clojure"]
 ;;            :resource-paths ["src/main/resources"]
-;;  :build   {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
-;;            :ns-default build
-;;            :extra-paths ["samples"]}}
+;;            :build {:extra-deps {org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
+;;                    :ns-default build
+;;                    :extra-paths ["samples"]}}
 
 ;; clojure -X:build clean
 (defn clean
@@ -46,6 +43,7 @@
   [opts]
   (jar opts)
   (b/uber basis (merge defaults opts)))
+
 
 (comment
   (clean nil)

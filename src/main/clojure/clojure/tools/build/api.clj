@@ -1,4 +1,12 @@
-(ns clojure.tools.build.api)
+(ns clojure.tools.build.api
+  (:require [clojure.tools.deps.alpha :as deps]))
+
+(defn load-basis
+  []
+  (let [{:keys [root-edn project-edn]} (deps/find-edn-maps)
+        edns [root-edn project-edn]
+        master-edn (deps/merge-edns edns)]
+    (deps/calc-basis master-edn)))
 
 (defn clean
   [basis params]
