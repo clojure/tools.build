@@ -10,12 +10,12 @@
     [clojure.tools.build.tasks.uber :as uber]))
 
 (def defaults
-  {:build/lib 'my/lib1
-   :build/version "1.2.3"
-   :build/clj-paths :clj-paths
-   :build/copy-specs [{:from :clj-paths}]
-   :build/project-dir "."
-   :build/output-dir "."})
+  #:build{:lib 'my/lib1
+          :version "1.2.3"
+          :clj-paths :clj-paths
+          :copy-specs [{:from :clj-paths}]
+          :project-dir "."
+          :output-dir "."})
 
 (defn jar
   [opts]
