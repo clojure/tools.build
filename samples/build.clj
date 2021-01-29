@@ -25,23 +25,21 @@
 
 ;; clojure -X:build clean
 (defn clean
-  [opts]
+  [_]
   (b/clean #:build{:output-dir "." :target-dir "target"})) ;; TODO: cleanup to single dir
 
 ;; clojure -X:build jar
 (defn jar
-  [opts]
-  (doto (merge defaults opts)
-    b/sync-pom
-    b/copy
-    b/jar))
+  [_]
+  (b/sync-pom defaults)
+  (b/copy defaults)
+  (b/jar defaults))
 
 ;; clojure -X:build uber
 (defn uber
-  [opts]
-  (doto (merge defaults opts)
-    jar
-    b/uber))
+  [_]
+  (jar nil)
+  (b/uber defaults))
 
 
 (comment
