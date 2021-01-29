@@ -2,11 +2,7 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.tools.build :as tbuild]
-    [clojure.tools.build.tasks.clean :as clean]
-    [clojure.tools.build.tasks.sync-pom :refer [sync-pom]]
-    [clojure.tools.build.tasks.copy :refer [copy]]
-    [clojure.tools.build.tasks.jar :as jar]
-    [clojure.tools.build.tasks.uber :as uber]))
+    [clojure.tools.build.api :as b]))
 
 ;; Default build properties
 (def defaults
@@ -35,21 +31,21 @@
 ;; clojure -X:build clean
 (defn clean
   [opts]
-  (clean/clean basis (merge defaults opts)))
+  (b/clean basis (merge defaults opts)))
 
 ;; clojure -X:build jar
 (defn jar
   [opts]
   (let [params (merge defaults opts)]
-    (sync-pom basis params)
-    (copy basis params)
-    (jar/jar basis params)))
+    (b/sync-pom basis params)
+    (b/copy basis params)
+    (b/jar basis params)))
 
 ;; clojure -X:build uber
 (defn uber
   [opts]
   (jar opts)
-  (uber/uber basis (merge defaults opts)))
+  (b/uber basis (merge defaults opts)))
 
 (comment
   (clean nil)

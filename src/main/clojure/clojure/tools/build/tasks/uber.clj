@@ -72,7 +72,8 @@
                       (spit out-file (with-out-str (pprint/pprint new-readers))))
 
                     :else
-                    (println "CONFLICT: " (.getName entry)))
+                    nil ;; TODO: (println "CONFLICT: " (.getName entry))
+                    )
                   (with-open [output (BufferedOutputStream. (FileOutputStream. out-file))]
                     (copy-stream! jis output buffer)
                     (Files/setLastModifiedTime (.toPath out-file) (.getLastModifiedTime entry)))))
