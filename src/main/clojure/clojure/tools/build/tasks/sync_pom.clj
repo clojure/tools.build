@@ -214,4 +214,5 @@
          (format "# %tc" (java.util.Date.))
          (format "version=%s" version)
          (format "groupId=%s" (namespace lib))
-         (format "artifactId=%s" (name lib))]))))
+         (format "artifactId=%s" (name lib))]))
+    params))

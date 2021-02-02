@@ -23,8 +23,9 @@
         jar-base (str artifact-id "-" version (if classifier (str "-" classifier) ""))
         jar-file (jio/file "target" (str jar-base ".jar"))
         uber-jar-file (jio/file "target" (str jar-base "-standalone.jar"))]
-    {:build/target-dir "target"
-     :build/class-dir (.getPath class-dir)
-     :build/pom-dir (.getPath pom-dir)
-     :build/jar-file (.getPath jar-file)
-     :build/uber-file (.getPath uber-jar-file)}))
+    (merge params
+      {:build/target-dir "target"
+       :build/class-dir (.getPath class-dir)
+       :build/pom-dir (.getPath pom-dir)
+       :build/jar-file (.getPath jar-file)
+       :build/uber-file (.getPath uber-jar-file)})))

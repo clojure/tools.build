@@ -15,4 +15,5 @@
   (let [template (tapi/resolve-param basis params :build/template)
         args (tapi/resolve-param basis params :build/args)
         resolved-args (map #(tapi/maybe-resolve-param basis params %) args)]
-    {out> (apply format template resolved-args)}))
+    (merge params
+      {out> (apply format template resolved-args)})))

@@ -55,4 +55,5 @@
       (if (seq filter-nses)
         (file/copy-contents compile-dir class-dir (map ns->path filter-nses))
         (file/copy-contents compile-dir class-dir))
-      (throw (ex-info "Clojure compilation failed" {})))))
+      (throw (ex-info "Clojure compilation failed" {})))
+    params))

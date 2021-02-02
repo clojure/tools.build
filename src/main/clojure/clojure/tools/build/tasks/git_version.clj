@@ -16,4 +16,5 @@
   (let [version-template (tapi/resolve-param basis params :git-version/template)
         git-version (process/invoke ["git" "rev-list" "HEAD" "--count"])
         version (format version-template git-version)]
-    {:build/version version}))
+    (merge params
+      {:build/version version})))

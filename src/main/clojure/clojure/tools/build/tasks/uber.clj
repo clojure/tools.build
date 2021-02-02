@@ -117,4 +117,5 @@
         main-class (assoc "Main-Class" (str main-class))
         (.exists (jio/file uber-dir "META-INF" "versions")) (assoc "Multi-Release" "true")))
     (with-open [jos (JarOutputStream. (FileOutputStream. uber-file) manifest)]
-      (zip/copy-to-zip jos uber-dir))))
+      (zip/copy-to-zip jos uber-dir))
+    params))

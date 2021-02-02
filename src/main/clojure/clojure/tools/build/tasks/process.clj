@@ -18,5 +18,6 @@
   (let [command (tapi/resolve-param basis params :build/command)
         resolved-command (map #(tapi/maybe-resolve-param basis params %) command)
         out (process/invoke resolved-command)]
-    (when out>
-      {out> out})))
+    (if out>
+      (merge params {out> out})
+      params)))

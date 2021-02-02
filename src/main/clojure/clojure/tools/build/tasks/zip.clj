@@ -27,4 +27,5 @@
         zip-path (.toPath zip-dir-file)]
     (println "Zipping from" (.getPath zip-dir-file) "to" (.getPath zip-file))
     (with-open [zos (ZipOutputStream. (FileOutputStream. zip-file))]
-      (zip/copy-to-zip zos zip-dir-file))))
+      (zip/copy-to-zip zos zip-dir-file))
+    params))

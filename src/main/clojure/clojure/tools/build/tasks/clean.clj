@@ -16,4 +16,5 @@
   [basis {:build/keys [output-dir] :as params}]
   (let [target-dir (tapi/resolve-param basis params :build/target-dir)
         target-dir-file (jio/file output-dir target-dir)]
-    (file/delete target-dir-file)))
+    (file/delete target-dir-file)
+    params))
