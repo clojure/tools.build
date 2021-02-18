@@ -23,7 +23,7 @@ org.clojure/tools.build {:mvn/version "TBD"}
 
 * [GitHub project](https://github.com/clojure/tools.build)
 * [How to contribute](https://clojure.org/community/contributing)
-* [Bug Tracker](https://dev.clojure.org/jira/browse/TDEPS)
+* [Bug Tracker](https://clojure.atlassian.net/browse/TDEPS)
 * [Continuous Integration](https://build.clojure.org/job/tools.build/)
 * [Compatibility Test Matrix](https://build.clojure.org/job/tools.build-test-matrix/)
 
