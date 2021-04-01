@@ -1,5 +1,9 @@
 (ns clojure.tools.build.api
-  (:require [clojure.tools.deps.alpha :as deps]))
+  (:require
+    [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.build.tasks.git-version :as git-version]))
+
+;; Basis
 
 (defn load-basis
   []
@@ -7,6 +11,14 @@
         edns [root-edn project-edn]
         master-edn (deps/merge-edns edns)]
     (deps/calc-basis master-edn)))
+
+;; Helpers
+
+(defn git-version
+  [template]
+  (:build/version (git-version/git-version nil {:git-version/template template})))
+
+;; Tasks
 
 (defn clean
   [params]
@@ -43,3 +55,4 @@
 (defn zip
   [params]
   ((requiring-resolve 'clojure.tools.build.tasks.zip/zip) (:build/basis params) params))
+
