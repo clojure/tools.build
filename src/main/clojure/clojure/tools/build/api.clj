@@ -1,7 +1,7 @@
 (ns clojure.tools.build.api
   (:require
     [clojure.tools.deps.alpha :as deps]
-    [clojure.tools.build.tasks.git-version :as git-version]))
+    [clojure.tools.build.task.process :as process]))
 
 ;; Basis
 
@@ -16,7 +16,10 @@
 
 (defn git-version
   [template]
-  (:build/version (git-version/git-version nil {:git-version/template template})))
+  (let [git-version (process/invoke ["git" "rev-list" "HEAD" "--count"])
+        _ (println "found" git-version)
+        _ (println "template" template)]
+    (format template git-version)))
 
 ;; Tasks
 
