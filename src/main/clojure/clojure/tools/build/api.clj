@@ -16,7 +16,7 @@
 
 (defn git-version
   [template]
-  (let [git-version (process/invoke ["git" "rev-list" "HEAD" "--count"])
+  (let [git-version (process/invoke ["git" "rev-list" "HEAD" "--count"])]
     (format template git-version)))
 
 ;; Tasks
