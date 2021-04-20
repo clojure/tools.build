@@ -43,12 +43,12 @@
 (def ^:private default-copy-spec
   {:from ["."] :include "**"})
 
+;; (copy {:build/compile-dir ...
+;;        :build/copy-specs [{:from ... :include ... :replace ...}]})
 (defn copy
-  [basis {:build/keys [project-dir output-dir] :as params}]
-  (let [copy-specs (tapi/resolve-param basis params :build/copy-specs)
-        resolved-specs (map #(merge default-copy-spec %) copy-specs)
-        to (tapi/resolve-param basis params :build/copy-to :build/class-dir)
-        to-path (.toPath (file/ensure-dir (jio/file output-dir to)))]
+  [{:build/keys [compile-dir copy-specs] :as params}]
+  (let [resolved-specs (map #(merge default-copy-spec %) copy-specs)
+        to-path (.toPath (file/ensure-dir compile-dir))]
     (doseq [{:keys [from include replace]} resolved-specs]
       ;(println "\nspec" from include to replace)
       (let [resolved-from (tapi/maybe-resolve-param basis params from)
