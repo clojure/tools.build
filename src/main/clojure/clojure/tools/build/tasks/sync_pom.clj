@@ -177,8 +177,9 @@
     (first (filter #(instance? Element %) (first roots)))))
 
 (defn sync-pom
-  [{:keys [deps :mvn/repos] :as basis} {:build/keys [project-dir output-dir] :as params}]
-  (let [src-pom (or (tapi/resolve-param basis params :build/src-pom) "pom.xml")
+  [_ {:build/keys [basis project-dir output-dir] :as params}]
+  (let [{:keys [deps :mvn/repos]} basis
+        src-pom (or (tapi/resolve-param basis params :build/src-pom) "pom.xml")
         src-pom-file (jio/file project-dir src-pom)
         lib (tapi/resolve-param basis params :build/lib)
         version (tapi/resolve-param basis params :build/version)
