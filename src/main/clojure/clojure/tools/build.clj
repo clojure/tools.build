@@ -104,7 +104,8 @@
         output-dir-file (if output-dir (jio/file output-dir) project-dir-file)
         default-params (assoc params
                          :build/project-dir (.getCanonicalPath project-dir-file)
-                         :build/output-dir (.getCanonicalPath output-dir-file))]
+                         :build/output-dir (.getCanonicalPath output-dir-file)
+                         :build/basis basis)]
     (log verbose "Build params:")
     (log-map verbose default-params)
     (try
