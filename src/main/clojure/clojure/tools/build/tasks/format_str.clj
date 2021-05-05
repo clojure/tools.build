@@ -11,7 +11,7 @@
     [clojure.tools.build.task.api :as tapi]))
 
 (defn format-str
-  [basis {:build/keys [out>] :as params}]
+  [{:build/keys [basis out>] :as params}]
   (let [template (tapi/resolve-param basis params :build/template)
         args (tapi/resolve-param basis params :build/args)
         resolved-args (map #(tapi/maybe-resolve-param basis params %) args)]

@@ -18,7 +18,7 @@
 (set! *warn-on-reflection* true)
 
 (defn javac
-  [_ {:build/keys [basis project-dir opts compile-dir java-paths output-dir] :as params}]
+  [{:build/keys [basis project-dir opts compile-dir java-paths output-dir] :as params}]
   (let [{:keys [libs]} basis]
     (when (seq java-paths)
       (let [class-dir (file/ensure-dir (jio/file output-dir compile-dir))

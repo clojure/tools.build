@@ -120,7 +120,7 @@
                       param-data (merge run-params task-params)
                       _ (log-map verbose param-data)
                       _ (check-params task-sym param-data)
-                      res (task-fn basis param-data)
+                      res (task-fn param-data)
                       end (System/currentTimeMillis)]
                   (println "Ran" task-sym "in" (- end begin) "ms")
                   (merge run-params res)))
@@ -141,7 +141,7 @@
   ;; clojure source lib
   (build
     '{:output-dir "out-lib"
-      :tasks [[dirs] [clean] [sync-pom] [copy] [jar] [install]]
+      :tasks [[clean] [sync-pom] [copy] [jar] [install]]
       :params {:build/lib my/lib1
                :build/version "1.2.3"
                :build/clj-paths :clj-paths
@@ -150,7 +150,7 @@
   ;; clojure source lib, no pom
   (build
     '{:output-dir "out-lib-pom"
-      :tasks [[dirs] [clean] [sync-pom] [copy] [jar] [install]]
+      :tasks [[clean] [sync-pom] [copy] [jar] [install]]
       :params {:build/lib my/lib1
                :build/version "1.2.3"
                :build/src-pom "no.xml"
@@ -161,7 +161,7 @@
   ;; clojure source lib with git version template
   (build
     '{:output-dir "out-lib-git"
-      :tasks [[git-version] [dirs] [clean] [sync-pom] [copy] [jar]]
+      :tasks [[git-version] [clean] [sync-pom] [copy] [jar]]
       :params {:git-version/template "0.8.%s"
                :build/lib my/lib2
                :build/copy-specs [{:from :clj-paths}]}})
@@ -169,7 +169,7 @@
   ;; java executable jar (no clojure!)
   (build
     '{:output-dir "out-java"
-      :tasks [[dirs] [clean] [javac] [sync-pom] [jar]]
+      :tasks [[clean] [javac] [sync-pom] [jar]]
       :params {:build/java-paths :java-paths
                :build/javac-opts ["-source" "8" "-target" "8"]
                :build/lib org.clojure/tools.build
@@ -179,7 +179,7 @@
   ;; compiled clojure lib jar w/metadata elided
   (build
     '{:output-dir "out-compiled-lib"
-      :tasks [[dirs] [clean] [compile-clj] [copy] [jar]]
+      :tasks [[clean] [compile-clj] [copy] [jar]]
       :params {:build/clj-paths :clj-paths
                :build/filter-nses [clojure.tools.build]
                :build/compiler-opts {:elide-meta [:doc :file :line]}
@@ -190,7 +190,7 @@
   ;; compiled clojure app jar
   (build
     '{:output-dir "out-compiled-app"
-      :tasks [[dirs] [clean] [compile-clj] [copy] [jar]]
+      :tasks [[clean] [compile-clj] [copy] [jar]]
       :params {:build/clj-paths :clj-paths
                :build/copy-specs [{:from :resource-paths}]
                :build/lib org.clojure/tools.build
@@ -200,7 +200,7 @@
   ;; uber compiled jar
   (build
     '{:output-dir "out-compiled-uber"
-      :tasks [[dirs] [clean] [sync-pom] [compile-clj] [copy] [uber]]
+      :tasks [[clean] [sync-pom] [compile-clj] [copy] [uber]]
       :params {:build/clj-paths :clj-paths
                :build/copy-specs [{:from :resource-paths}]
                :build/lib my/lib1
@@ -210,7 +210,7 @@
   ;; compiled lib w/classifier
   (build
     '{:output-dir "out-classifier"
-      :tasks [[git-version] [dirs] [clean] [sync-pom] [compile-clj] [jar]]
+      :tasks [[git-version] [clean] [sync-pom] [compile-clj] [jar]]
       :params {:build/lib org.clojure/tools.build
                :build/classifier "aot"
                :git-version/template "0.8.%s"

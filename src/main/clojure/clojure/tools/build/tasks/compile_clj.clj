@@ -36,7 +36,7 @@
   (str/replace (clojure.lang.Compiler/munge (str ns-sym)) \. \/))
 
 (defn compile-clj
-  [_ {:build/keys [basis project-dir clj-paths opts ns-compile filter-nses class-dir compile-dir output-dir] :as params}]
+  [{:build/keys [basis project-dir clj-paths opts ns-compile filter-nses class-dir compile-dir output-dir] :as params}]
   (let [{:keys [classpath]} basis
         target-dir (file/ensure-dir compile-dir)
         class-dir (file/ensure-dir (jio/file output-dir target-dir class-dir))

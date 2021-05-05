@@ -53,7 +53,7 @@
 
 (deftest test-new-pom
   (let [out-dir (build-project '{:project-dir "test-data/p1"
-                                 :tasks [[dirs] [clean] [sync-pom]]
+                                 :tasks [[clean {:build/dir "target"}] [sync-pom]]
                                  :params {:build/lib test/p1
                                           :build/version "1.2.3"
                                           :build/clj-paths :clj-paths
@@ -81,7 +81,7 @@
 
 (deftest test-update-existing-pom
   (let [out-dir (build-project '{:project-dir "test-data/p2"
-                                 :tasks [[dirs] [clean] [sync-pom]]
+                                 :tasks [[clean {:build/dir "target"}] [sync-pom]]
                                  :params {:build/lib test/p2
                                           :build/version "1.2.3"
                                           :build/clj-paths :clj-paths
@@ -111,7 +111,7 @@
 ;; check that optional deps are marked optional
 (deftest test-optional
   (let [out-dir (build-project '{:project-dir "test-data/p3"
-                                 :tasks [[dirs] [clean] [sync-pom]]
+                                 :tasks [[clean {:build/dir "target"}] [sync-pom]]
                                  :params {:build/lib test/p3
                                           :build/version "1.2.3"}})
         pom-dir (jio/file out-dir "target" "classes" "META-INF" "maven" "test" "p3")

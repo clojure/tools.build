@@ -19,7 +19,7 @@
 (set! *warn-on-reflection* true)
 
 (defn zip
-  [basis {:build/keys [output-dir] :as params}]
+  [{:build/keys [output-dir] :as params}]
   (let [zip-dir (tapi/resolve-param basis params :build/zip-dir)
         zip-name (tapi/resolve-param basis params :build/zip-name)
         zip-dir-file (file/ensure-dir (jio/file output-dir zip-dir))

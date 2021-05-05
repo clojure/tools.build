@@ -14,7 +14,7 @@
 ;; FUTURE: set directory, env vars, out/err handling
 
 (defn process
-  [basis {:build/keys [out>] :as params}]
+  [{:build/keys [basis out>] :as params}]
   (let [command (tapi/resolve-param basis params :build/command)
         resolved-command (map #(tapi/maybe-resolve-param basis params %) command)
         out (process/invoke resolved-command)]

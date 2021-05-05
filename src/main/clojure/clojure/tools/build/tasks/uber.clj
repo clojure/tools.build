@@ -101,7 +101,7 @@
       libs)))
 
 (defn uber
-  [_ {:build/keys [basis compile-dir output-dir target-dir jar-file main] :as params}]
+  [{:build/keys [basis compile-dir output-dir target-dir jar-file main] :as params}]
   (let [{:keys [libs]} basis
         compile-dir (jio/file output-dir compile-dir)
         jar-file (jio/file output-dir jar-file)

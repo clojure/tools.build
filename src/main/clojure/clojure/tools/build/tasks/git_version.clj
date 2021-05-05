@@ -12,7 +12,7 @@
     [clojure.tools.build.task.process :as process]))
 
 (defn git-version
-  [basis params]
+  [{:build/keys [basis] :as params}]
   (let [version-template (tapi/resolve-param basis params :git-version/template)
         git-version (process/invoke ["git" "rev-list" "HEAD" "--count"])
         version (format version-template git-version)]

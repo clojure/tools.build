@@ -21,6 +21,25 @@
   (:import [java.io File Reader]
            [clojure.data.xml.node Element]))
 
+(defn- dirs
+  [basis params]
+  (let [lib (tapi/resolve-param basis params :build/lib)
+        group-id (namespace lib)
+        artifact-id (name lib)
+        classifier (tapi/resolve-param basis params :build/classifier)
+        version (tapi/resolve-param basis params :build/version)
+        class-dir (jio/file "target" "classes")
+        pom-dir (jio/file class-dir "META-INF" "maven" group-id artifact-id)
+        jar-base (str artifact-id "-" version (if classifier (str "-" classifier) ""))
+        jar-file (jio/file "target" (str jar-base ".jar"))
+        uber-jar-file (jio/file "target" (str jar-base "-standalone.jar"))]
+    (merge params
+      {:build/target-dir "target"
+       :build/class-dir (.getPath class-dir)
+       :build/pom-dir (.getPath pom-dir)
+       :build/jar-file (.getPath jar-file)
+       :build/uber-file (.getPath uber-jar-file)})))
+
 (xml/alias-uri 'pom "http://maven.apache.org/POM/4.0.0")
 
 (defn- to-dep
@@ -177,8 +196,10 @@
     (first (filter #(instance? Element %) (first roots)))))
 
 (defn sync-pom
-  [_ {:build/keys [basis project-dir output-dir] :as params}]
-  (let [{:keys [deps :mvn/repos]} basis
+  [params]
+  (let [params (dirs (:build/basis params) params)  ;; WiP
+        {:build/keys [basis project-dir output-dir]} params
+        {:keys [deps :mvn/repos]} basis
         src-pom (or (tapi/resolve-param basis params :build/src-pom) "pom.xml")
         src-pom-file (jio/file project-dir src-pom)
         lib (tapi/resolve-param basis params :build/lib)

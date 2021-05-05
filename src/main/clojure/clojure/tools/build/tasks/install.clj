@@ -18,8 +18,9 @@
 (set! *warn-on-reflection* true)
 
 (defn install
-  [{:mvn/keys [local-repo] :as basis} {:build/keys [output-dir] :as params}]
-  (let [lib (tapi/resolve-param basis params :build/lib)
+  [{:build/keys [basis output-dir] :as params}]
+  (let [{:mvn/keys [local-repo]} basis
+        lib (tapi/resolve-param basis params :build/lib)
         group-id (namespace lib)
         artifact-id (name lib)
         classifier (tapi/resolve-param basis params :build/classifier)

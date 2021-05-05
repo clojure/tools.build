@@ -9,7 +9,6 @@
 (ns clojure.tools.build.tasks.jar
   (:require
     [clojure.java.io :as jio]
-    [clojure.tools.build.task.api :as tapi]
     [clojure.tools.build.task.file :as file]
     [clojure.tools.build.task.zip :as zip])
   (:import
@@ -17,7 +16,7 @@
     [java.util.jar Manifest JarOutputStream]))
 
 (defn jar
-  [_ {:build/keys [output-dir compile-dir basis jar-file main] :as params}]
+  [{:build/keys [output-dir compile-dir basis jar-file main] :as params}]
   (let [jar-file (jio/file output-dir jar-file)
         class-dir-file (file/ensure-dir (jio/file output-dir compile-dir))]
     (let [manifest (Manifest.)]

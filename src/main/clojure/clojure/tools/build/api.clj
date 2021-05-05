@@ -23,37 +23,37 @@
 
 (defn clean
   [params]
-  ((requiring-resolve 'clojure.tools.build.tasks.clean/clean) (:build/basis params) params))
+  ((requiring-resolve 'clojure.tools.build.tasks.clean/clean) params))
 
 (defn compile-clj
   [params]
-  ((requiring-resolve 'clojure.tools.build.tasks.compile-clj/compile-clj) (:build/basis params) params))
+  ((requiring-resolve 'clojure.tools.build.tasks.compile-clj/compile-clj) params))
 
 (defn copy
   [params]
-  ((requiring-resolve 'clojure.tools.build.tasks.copy/copy) (:build/basis params) params))
+  ((requiring-resolve 'clojure.tools.build.tasks.copy/copy) params))
 
 (defn install
   [params]
-  ((requiring-resolve 'clojure.tools.build.tasks.install/install) (:build/basis params) params))
+  ((requiring-resolve 'clojure.tools.build.tasks.install/install) params))
 
 (defn javac
   [params]
-  ((requiring-resolve 'clojure.tools.build.tasks.javac/javac) (:build/basis params) params))
+  ((requiring-resolve 'clojure.tools.build.tasks.javac/javac) params))
 
 (defn jar
   [params]
-  ((requiring-resolve 'clojure.tools.build.tasks.jar/jar) (:build/basis params) params))
+  ((requiring-resolve 'clojure.tools.build.tasks.jar/jar) params))
 
 (defn sync-pom
   [params]
-  ((requiring-resolve 'clojure.tools.build.tasks.sync-pom/sync-pom) (:build/basis params) params))
+  ((requiring-resolve 'clojure.tools.build.tasks.sync-pom/sync-pom) params))
 
 (defn uber
   [params]
-  ((requiring-resolve 'clojure.tools.build.tasks.uber/uber) (:build/basis params) params))
+  ((requiring-resolve 'clojure.tools.build.tasks.uber/uber) params))
 
 (defn zip
   [params]
-  ((requiring-resolve 'clojure.tools.build.tasks.zip/zip) (:build/basis params) params))
+  ((requiring-resolve 'clojure.tools.build.tasks.zip/zip) params))
 

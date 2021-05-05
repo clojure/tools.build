@@ -9,11 +9,10 @@
 (ns clojure.tools.build.tasks.clean
   (:require
     [clojure.java.io :as jio]
-    [clojure.tools.build.task.api :as tapi]
     [clojure.tools.build.task.file :as file]))
 
 (defn clean
-  [_ {:build/keys [output-dir target-dir dir] :as params}]
+  [{:build/keys [output-dir target-dir dir] :as params}]
   (let [target-dir-file (jio/file output-dir (or dir target-dir))]
     (file/delete target-dir-file)
     params))
