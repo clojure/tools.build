@@ -46,21 +46,15 @@
 ;; (copy {:build/compile-dir ...
 ;;        :build/copy-specs [{:from ... :include ... :replace ...}]})
 (defn copy
-  [basis {:build/keys [project-dir output-dir] :as params}]
-  (let [copy-specs (tapi/resolve-param basis params :build/copy-specs)
-        resolved-specs (map #(merge default-copy-spec %) copy-specs)
-        to (tapi/resolve-param basis params :build/copy-to :build/class-dir)
-        to-path (.toPath (file/ensure-dir (jio/file output-dir to)))]
-    (doseq [{:keys [from include replace]} resolved-specs]
+  [_ {:build/keys [compile-dir copy-specs] :as params}]
+  (let [to-path (.toPath (file/ensure-dir compile-dir))]
+    (doseq [{:keys [from include replace]} copy-specs]
       ;(println "\nspec" from include to replace)
-      (let [resolved-from (tapi/maybe-resolve-param basis params from)
-            from (map #(tapi/maybe-resolve-param basis params %) (if (coll? resolved-from) resolved-from [resolved-from]))
-            resolved-include (tapi/maybe-resolve-param basis params include)
-            include (map #(tapi/maybe-resolve-param basis params %) (if (coll? resolved-include) resolved-include [resolved-include]))
-            replace (reduce-kv #(assoc %1 %2 (tapi/maybe-resolve-param basis params %3)) {} replace)]
+      (let [from [from]
+            include [include]]
         (doseq [from-dir from]
           ;(println "from-dir" from-dir)
-          (let [from-file (jio/file project-dir from-dir)]
+          (let [from-file (jio/file from-dir)]
             (doseq [include-one include]
               (let [paths (match-paths from-file include-one)]
                 (doseq [^Path path paths]

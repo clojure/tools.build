@@ -14,11 +14,13 @@
 
 (deftest test-clean
   ;; copy src into target, then clean, and check target dir is gone
-  (let [out-dir (build-project '{:project-dir "test-data/p1"
-                                 :tasks [[copy] [clean]]
-                                 :params {:build/target-dir "target"
-                                          :build/class-dir "target/classes"
-                                          :build/copy-specs [{:from "src"}]}})]
+  (let [out-dir (with-test-dir *test-dir*)
+        cd (-> out-dir .getPath (str "/target"))
+        _ (build-project {:project-dir "test-data/p1"
+                          :tasks '[[copy] [clean]]
+                          :params {:build/target-dir "target"
+                                   :build/compile-dir cd
+                                   :build/copy-specs [{:from "src"}]}})]
     (is (false? (.exists (jio/file out-dir "target"))))))
 
 (comment
