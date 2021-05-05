@@ -10,7 +10,6 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.string :as str]
-    [clojure.tools.build.task.api :as tapi]
     [clojure.tools.build.task.file :as file])
   (:import
     [java.io File]
@@ -19,17 +18,16 @@
 (set! *warn-on-reflection* true)
 
 (defn javac
-  [{:keys [libs] :as basis} {:build/keys [project-dir output-dir] :as params}]
-  (let [java-paths (tapi/resolve-param basis params :build/java-paths)]
+  [_ {:build/keys [basis project-dir opts compile-dir java-paths output-dir] :as params}]
+  (let [{:keys [libs]} basis]
     (when (seq java-paths)
-      (let [javac-opts (tapi/resolve-param basis params :build/javac-opts)
-            class-dir (file/ensure-dir (jio/file output-dir (tapi/resolve-param basis params :build/class-dir)))
+      (let [class-dir (file/ensure-dir (jio/file output-dir compile-dir))
             compiler (ToolProvider/getSystemJavaCompiler)
             listener (reify DiagnosticListener (report [_ diag] (println (str diag))))
             file-mgr (.getStandardFileManager compiler listener nil nil)
             class-dir-path (.getPath class-dir)
             classpath (str/join File/pathSeparator (conj (mapcat :paths (vals libs)) class-dir-path))
-            options (concat ["-classpath" classpath "-d" class-dir-path] javac-opts)
+            options (concat ["-classpath" classpath "-d" class-dir-path] opts)
             java-files (mapcat #(file/collect-files (jio/file project-dir %) :collect (file/suffixes ".java")) java-paths)
             file-objs (.getJavaFileObjectsFromFiles file-mgr java-files)
             task (.getTask compiler nil file-mgr listener options nil file-objs)

@@ -16,9 +16,7 @@
 (deftest test-javac
   (let [out-dir (build-project '{:project-dir "test-data/p1"
                                  :tasks [[javac]]
-                                 :params {:build/target-dir "target"
-                                          :build/class-dir "target/classes"
-                                          :build/jar-file "target/out.jar"
+                                 :params {:build/compile-dir "target/classes"
                                           :build/java-paths ["java"]}})]
     (is (true? (.exists (jio/file out-dir "target/classes/foo/Demo1.class"))))
     (is (true? (.exists (jio/file out-dir "target/classes/foo/Demo2.class"))))
