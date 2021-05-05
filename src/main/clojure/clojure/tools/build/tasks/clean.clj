@@ -13,8 +13,7 @@
     [clojure.tools.build.task.file :as file]))
 
 (defn clean
-  [basis {:build/keys [output-dir] :as params}]
-  (let [target-dir (tapi/resolve-param basis params :build/target-dir)
-        target-dir-file (jio/file output-dir target-dir)]
+  [_ {:build/keys [output-dir target-dir dir] :as params}]
+  (let [target-dir-file (jio/file output-dir (or dir target-dir))]
     (file/delete target-dir-file)
     params))
