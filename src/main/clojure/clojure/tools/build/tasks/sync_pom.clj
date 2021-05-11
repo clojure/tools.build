@@ -178,15 +178,13 @@
 
 (defn sync-pom
   [params]
-  (let [{:build/keys [basis project-dir output-dir]} params
+  (let [{:build/keys [basis project-dir output-dir compile-dir src-pom lib version]} params
         {:keys [deps :mvn/repos]} basis
-        src-pom (or (tapi/resolve-param basis params :build/src-pom) "pom.xml")
+        src-pom (or src-pom "pom.xml")
         src-pom-file (jio/file project-dir src-pom)
-        lib (tapi/resolve-param basis params :build/lib)
-        version (tapi/resolve-param basis params :build/version)
-        clj-paths (tapi/resolve-param basis params :build/clj-paths)
+        clj-paths (tapi/resolve-param basis params :build/clj-paths) ;; no param here?
         resolved-paths (flatten (map #(tapi/maybe-resolve-param basis params %) clj-paths))
-        resource-paths (tapi/resolve-param basis params :build/resource-paths)
+        resource-paths (tapi/resolve-param basis params :build/resource-paths)  ;; no param here?
         resolved-resource-paths (flatten (map #(tapi/maybe-resolve-param basis params %) resource-paths))
         repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
         pom (if (.exists src-pom-file)
@@ -208,7 +206,7 @@
                    :group (namespace lib)
                    :artifact (name lib)}
                   version (assoc :version version))))
-        pom-dir (file/ensure-dir (jio/file output-dir (tapi/resolve-param basis params :build/pom-dir)))]
+        pom-dir (file/ensure-dir (jio/file output-dir (tapi/resolve-param basis params :build/pom-dir)))]  ;; no param here?
     (spit (jio/file pom-dir "pom.xml") (xml/indent-str pom))
     (spit (jio/file pom-dir "pom.properties")
       (str/join (System/lineSeparator)
