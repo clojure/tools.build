@@ -19,13 +19,11 @@
 (set! *warn-on-reflection* true)
 
 (defn zip
-  [{:build/keys [output-dir] :as params}]
-  (let [zip-dir (tapi/resolve-param basis params :build/zip-dir)
-        zip-name (tapi/resolve-param basis params :build/zip-name)
-        zip-dir-file (file/ensure-dir (jio/file output-dir zip-dir))
-        zip-file (jio/file output-dir zip-name)
-        zip-path (.toPath zip-dir-file)]
-    (println "Zipping from" (.getPath zip-dir-file) "to" (.getPath zip-file))
+  [{:build/keys [output-dir zip-paths zip-file] :as params}]
+  (let [zip-file (jio/file output-dir zip-file)]
     (with-open [zos (ZipOutputStream. (FileOutputStream. zip-file))]
-      (zip/copy-to-zip zos zip-dir-file))
+      (doseq [zpath zip-paths]
+        (let [zip-from (file/ensure-dir (jio/file output-dir zpath))]
+          (println "Zipping from" (.getPath zip-from) "to" (.getPath zip-file))
+          (zip/copy-to-zip zos zip-from))))
     params))
