@@ -59,11 +59,11 @@
                                           :build/class-dir "target/classes"
                                           :build/jar-file "target/p1-1.2.3.jar"
                                           :build/uber-file "target/p1-1.2.3-standalone.jar"
-                                          :build/pom-dir "target/classes/META-INF/maven/test/p1"
+                                          :build/pom-dir "META-INF/maven/test/p1"
                                           :build/lib test/p1
                                           :build/version "1.2.3"
-                                          :build/clj-paths :clj-paths
-                                          :build/resource-paths :resource-paths}})
+                                          :build/clj-paths ["src"]
+                                          :build/resource-paths ["resources"]}})
         pom-dir (jio/file out-dir "target" "classes" "META-INF" "maven" "test" "p1")
         pom-out (jio/file pom-dir "pom.xml")
         pom (read-xml pom-out)
@@ -94,10 +94,10 @@
                                           :build/class-dir "target/classes"
                                           :build/jar-file "target/p2-1.2.3.jar"
                                           :build/uber-file "target/p2-1.2.3-standalone.jar"
-                                          :build/pom-dir "target/classes/META-INF/maven/test/p2"
+                                          :build/pom-dir "META-INF/maven/test/p2"
                                           :build/version "1.2.3"
-                                          :build/clj-paths :clj-paths
-                                          :build/resource-paths :resource-paths}})
+                                          :build/clj-paths ["src"]
+                                          :build/resource-paths ["resources"]}})
         pom-dir (jio/file out-dir "target" "classes" "META-INF" "maven" "test" "p2")
         pom-out (jio/file pom-dir "pom.xml")
         pom (read-xml pom-out)
@@ -130,7 +130,9 @@
                                           :build/class-dir "target/classes"
                                           :build/jar-file "target/p3-1.2.3.jar"
                                           :build/uber-file "target/p3-1.2.3-standalone.jar"
-                                          :build/pom-dir "target/classes/META-INF/maven/test/p3"
+                                          :build/pom-dir "META-INF/maven/test/p3"
+                                          :build/clj-paths ["src"]
+                                          :build/resource-paths ["resources"]
                                           :build/version "1.2.3"}})
         pom-dir (jio/file out-dir "target" "classes" "META-INF" "maven" "test" "p3")
         pom-out (jio/file pom-dir "pom.xml")]
