@@ -54,7 +54,13 @@
 (deftest test-new-pom
   (let [out-dir (build-project '{:project-dir "test-data/p1"
                                  :tasks [[clean {:build/dir "target"}] [sync-pom]]
-                                 :params {:build/lib test/p1
+                                 :params {:build/target-dir "target"
+                                          :build/compile-dir "target/classes"
+                                          :build/class-dir "target/classes"
+                                          :build/jar-file "target/p1-1.2.3.jar"
+                                          :build/uber-file "target/p1-1.2.3-standalone.jar"
+                                          :build/pom-dir "target/classes/META-INF/maven/test/p1"
+                                          :build/lib test/p1
                                           :build/version "1.2.3"
                                           :build/clj-paths :clj-paths
                                           :build/resource-paths :resource-paths}})
@@ -83,6 +89,12 @@
   (let [out-dir (build-project '{:project-dir "test-data/p2"
                                  :tasks [[clean {:build/dir "target"}] [sync-pom]]
                                  :params {:build/lib test/p2
+                                          :build/target-dir "target"
+                                          :build/compile-dir "target/classes"
+                                          :build/class-dir "target/classes"
+                                          :build/jar-file "target/p2-1.2.3.jar"
+                                          :build/uber-file "target/p2-1.2.3-standalone.jar"
+                                          :build/pom-dir "target/classes/META-INF/maven/test/p2"
                                           :build/version "1.2.3"
                                           :build/clj-paths :clj-paths
                                           :build/resource-paths :resource-paths}})
@@ -113,6 +125,12 @@
   (let [out-dir (build-project '{:project-dir "test-data/p3"
                                  :tasks [[clean {:build/dir "target"}] [sync-pom]]
                                  :params {:build/lib test/p3
+                                          :build/target-dir "target"
+                                          :build/compile-dir "target/classes"
+                                          :build/class-dir "target/classes"
+                                          :build/jar-file "target/p3-1.2.3.jar"
+                                          :build/uber-file "target/p3-1.2.3-standalone.jar"
+                                          :build/pom-dir "target/classes/META-INF/maven/test/p3"
                                           :build/version "1.2.3"}})
         pom-dir (jio/file out-dir "target" "classes" "META-INF" "maven" "test" "p3")
         pom-out (jio/file pom-dir "pom.xml")]
