@@ -48,7 +48,7 @@
   [{:build/keys [compile-dir copy-specs] :as params}]
   (let [to-path (.toPath (file/ensure-dir compile-dir))]
     (doseq [{:keys [from include replace]} copy-specs]
-      ;(println "\nspec" from include to replace)
+      ;(println "\nspec" from include compile-dir replace)
       (let [from [from]
             include [include]]
         (doseq [from-dir from]
