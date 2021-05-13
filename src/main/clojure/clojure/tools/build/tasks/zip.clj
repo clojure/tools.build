@@ -24,5 +24,4 @@
       (doseq [zpath zip-paths]
         (let [zip-from (file/ensure-dir (jio/file zpath))]
           (println "Zipping from" (.getPath zip-from) "to" (.getPath zip-file))
-          (zip/copy-to-zip zos zip-from))))
-    params))
+          (zip/copy-to-zip zos zip-from))))))

@@ -31,5 +31,4 @@
         artifacts (cond-> [jar-artifact]
                     (and pom-dir (.exists pom)) (conj (.setFile (DefaultArtifact. group-id artifact-id classifier "pom" version) pom)))
         install-request (.setArtifacts (InstallRequest.) artifacts)]
-    (.install system session install-request)
-    params))
+    (.install system session install-request)))

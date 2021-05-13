@@ -27,5 +27,4 @@
            "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
           main (assoc "Main-Class" (str main))))
       (with-open [jos (JarOutputStream. (FileOutputStream. jar-file) manifest)]
-        (zip/copy-to-zip jos class-dir-file))))
-  params)
+        (zip/copy-to-zip jos class-dir-file)))))

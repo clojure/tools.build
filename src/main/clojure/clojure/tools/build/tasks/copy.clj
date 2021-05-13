@@ -65,5 +65,4 @@
                       (let [contents (slurp path-file)
                             replaced (reduce (fn [s [find replace]] (str/replace s find replace))
                                        contents replace)]
-                        (spit target-file replaced)))))))))))
-    params))
+                        (spit target-file replaced)))))))))))))

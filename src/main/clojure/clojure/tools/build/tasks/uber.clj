@@ -116,5 +116,4 @@
         main (assoc "Main-Class" (str main))
         (.exists (jio/file working-dir "META-INF" "versions")) (assoc "Multi-Release" "true")))
     (with-open [jos (JarOutputStream. (FileOutputStream. (jio/file uber-file)) manifest)]
-      (zip/copy-to-zip jos working-dir))
-    params))
+      (zip/copy-to-zip jos working-dir))))

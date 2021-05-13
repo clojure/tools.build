@@ -33,5 +33,4 @@
             task (.getTask compiler nil file-mgr listener options nil file-objs)
             success (.call task)]
         (when-not success
-          (throw (ex-info "Java compilation failed" {}))))))
-  params)
+          (throw (ex-info "Java compilation failed" {})))))))
