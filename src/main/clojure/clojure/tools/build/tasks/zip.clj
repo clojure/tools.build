@@ -9,7 +9,6 @@
 (ns clojure.tools.build.tasks.zip
   (:require
     [clojure.java.io :as jio]
-    [clojure.tools.build.task.api :as tapi]
     [clojure.tools.build.task.file :as file]
     [clojure.tools.build.task.zip :as zip])
   (:import
@@ -19,11 +18,11 @@
 (set! *warn-on-reflection* true)
 
 (defn zip
-  [{:build/keys [output-dir zip-paths zip-file] :as params}]
-  (let [zip-file (jio/file output-dir zip-file)]
+  [{:build/keys [zip-paths zip-file] :as params}]
+  (let [zip-file (jio/file zip-file)]
     (with-open [zos (ZipOutputStream. (FileOutputStream. zip-file))]
       (doseq [zpath zip-paths]
-        (let [zip-from (file/ensure-dir (jio/file output-dir zpath))]
+        (let [zip-from (file/ensure-dir (jio/file zpath))]
           (println "Zipping from" (.getPath zip-from) "to" (.getPath zip-file))
           (zip/copy-to-zip zos zip-from))))
     params))
