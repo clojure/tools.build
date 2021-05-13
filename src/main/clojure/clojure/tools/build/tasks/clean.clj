@@ -12,7 +12,7 @@
     [clojure.tools.build.task.file :as file]))
 
 (defn clean
-  [{:build/keys [output-dir target-dir dir] :as params}]
-  (let [target-dir-file (jio/file output-dir (or dir target-dir))]
-    (file/delete target-dir-file)
-    params))
+  [{:build/keys [dir] :as params}]
+  (let [dir-file (jio/file dir)]
+    (if (.exists dir-file)
+      (file/delete dir))))
