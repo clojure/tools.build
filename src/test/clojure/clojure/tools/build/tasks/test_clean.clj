@@ -10,18 +10,18 @@
   (:require
     [clojure.test :refer :all :as test]
     [clojure.java.io :as jio]
+    [clojure.tools.build.api :as api]
     [clojure.tools.build.test-util :refer :all]))
 
 (deftest test-clean
-  ;; copy src into target, then clean, and check target dir is gone
-  (let [out-dir (with-test-dir *test-dir*)
-        cd (-> out-dir .getPath (str "/target"))
-        _ (build-project {:project-dir "test-data/p1"
-                          :tasks '[[copy] [clean]]
-                          :params {:build/target-dir "target"
-                                   :build/compile-dir cd
-                                   :build/copy-specs [{:from "src"}]}})]
-    (is (false? (.exists (jio/file out-dir "target"))))))
+  (with-test-dir "test-data/p1"
+    ;; copy src into target, then clean, and check target dir is gone
+    (doto #:build{:dir (project-path "target")
+                  :compile-dir (project-path "target/classes")
+                  :copy-specs [{:from (project-path "src") :include "**"}]}
+      api/copy
+      api/clean)
+    (is (false? (.exists (jio/file (project-path "target/classes")))))))
 
 (comment
   (run-tests)

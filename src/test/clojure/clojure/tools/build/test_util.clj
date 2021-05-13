@@ -9,28 +9,26 @@
 (ns clojure.tools.build.test-util
   (:require
     [clojure.java.io :as jio]
+    [clojure.string :as str]
     [clojure.test :as test]
-    [clojure.tools.build.task.file :as file]
-    [clojure.tools.build :as build])
+    [clojure.tools.build.task.file :as file])
   (:import
     [java.io File]))
 
 (def ^:dynamic ^File *test-dir*)
 
 (defmacro with-test-dir
-  [& body]
+  [test-project & body]
   `(let [name# (-> test/*testing-vars* last symbol str)
          dir# (jio/file "test-out" name#)]
      (file/delete dir#)
      (.mkdirs dir#)
+     (file/copy-contents (jio/file ~test-project) dir#)
      (binding [*test-dir* dir#]
        ~@body)))
 
-(defn build-project
-  [build-config]
-  (with-test-dir
-    (build/build (assoc build-config :output-dir (.getPath *test-dir*)))
-    *test-dir*))
+(defn project-path [& parts]
+  (str/join "/" (cons (.getAbsolutePath *test-dir*) parts)))
 
 (defn submap?
   "Is m1 a subset of m2?"
