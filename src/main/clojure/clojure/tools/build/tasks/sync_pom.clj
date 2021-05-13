@@ -200,7 +200,7 @@
                    :group (namespace lib)
                    :artifact (name lib)}
                   version (assoc :version version))))
-        pom-dir-file (file/ensure-dir (jio/file compile-dir "maven" (namespace lib) (name lib)))]
+        pom-dir-file (file/ensure-dir (jio/file compile-dir "META-INF" "maven" (namespace lib) (name lib)))]
     (spit (jio/file pom-dir-file "pom.xml") (xml/indent-str pom))
     (spit (jio/file pom-dir-file "pom.properties")
       (str/join (System/lineSeparator)
