@@ -16,9 +16,8 @@
     [clojure.zip :as zip]
     [clojure.tools.deps.alpha.util.maven :as maven]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]
-    [clojure.tools.build.task.api :as tapi]
     [clojure.tools.build.task.file :as file])
-  (:import [java.io File Reader]
+  (:import [java.io Reader]
            [clojure.data.xml.node Element]))
 
 (xml/alias-uri 'pom "http://maven.apache.org/POM/4.0.0")
@@ -178,33 +177,30 @@
 
 (defn sync-pom
   [params]
-  (let [{:build/keys [basis project-dir output-dir compile-dir src-pom lib version clj-paths resource-paths pom-dir]} params
+  (let [{:build/keys [basis compile-dir src-pom lib version clj-paths resource-paths]} params
         {:keys [deps :mvn/repos]} basis
-        src-pom (or src-pom "pom.xml")
-        src-pom-file (jio/file project-dir src-pom)
-        resolved-paths (flatten (map #(tapi/maybe-resolve-param basis params %) clj-paths))
-        resolved-resource-paths (flatten (map #(tapi/maybe-resolve-param basis params %) resource-paths))
+        src-pom-file (jio/file (or src-pom "pom.xml"))
         repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
         pom (if (.exists src-pom-file)
               (with-open [rdr (jio/reader src-pom-file)]
                 (-> rdr
                   parse-xml
                   (replace-deps deps)
-                  (replace-paths resolved-paths)
-                  (replace-resources resolved-resource-paths)
+                  (replace-paths clj-paths)
+                  (replace-resources resource-paths)
                   (replace-repos repos)
                   (replace-lib lib)
                   (replace-version version)))
               (gen-pom
                 (cond->
                   {:deps deps
-                   :src-paths resolved-paths
-                   :resource-paths resolved-resource-paths
+                   :src-paths clj-paths
+                   :resource-paths resource-paths
                    :repos repos
                    :group (namespace lib)
                    :artifact (name lib)}
                   version (assoc :version version))))
-        pom-dir-file (file/ensure-dir (jio/file output-dir compile-dir pom-dir))]
+        pom-dir-file (file/ensure-dir (jio/file compile-dir "maven" (namespace lib) (name lib)))]
     (spit (jio/file pom-dir-file "pom.xml") (xml/indent-str pom))
     (spit (jio/file pom-dir-file "pom.properties")
       (str/join (System/lineSeparator)
