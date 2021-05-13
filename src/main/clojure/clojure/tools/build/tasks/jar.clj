@@ -16,7 +16,7 @@
     [java.util.jar Manifest JarOutputStream]))
 
 (defn jar
-  [{:build/keys [output-dir compile-dir basis jar-file main] :as params}]
+  [{:build/keys [output-dir compile-dir jar-file main] :as params}]
   (let [jar-file (jio/file output-dir jar-file)
         class-dir-file (file/ensure-dir (jio/file output-dir compile-dir))]
     (let [manifest (Manifest.)]
