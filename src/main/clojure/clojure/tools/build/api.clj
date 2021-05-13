@@ -6,11 +6,13 @@
 ;; Basis
 
 (defn load-basis
-  []
-  (let [{:keys [root-edn project-edn]} (deps/find-edn-maps)
-        edns [root-edn project-edn]
-        master-edn (deps/merge-edns edns)]
-    (deps/calc-basis master-edn)))
+  ([]
+   (load-basis nil))
+  ([project-file]
+   (let [{:keys [root-edn project-edn]} (deps/find-edn-maps project-file)
+         edns [root-edn project-edn]
+         master-edn (deps/merge-edns edns)]
+     (deps/calc-basis master-edn))))
 
 ;; Helpers
 
