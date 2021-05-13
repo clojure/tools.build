@@ -18,19 +18,16 @@
 (set! *warn-on-reflection* true)
 
 (defn install
-  [{:build/keys [basis output-dir] :as params}]
+  [{:build/keys [basis lib classifier version jar-file compile-dir] :as params}]
   (let [{:mvn/keys [local-repo]} basis
-        lib (tapi/resolve-param basis params :build/lib)
         group-id (namespace lib)
         artifact-id (name lib)
-        classifier (tapi/resolve-param basis params :build/classifier)
-        version (tapi/resolve-param basis params :build/version)
-        pom-dir (tapi/resolve-param basis params :build/pom-dir)
-        jar-file (jio/file output-dir (tapi/resolve-param basis params :build/jar-file))
+        jar-file-file (jio/file jar-file)
+        pom-dir (jio/file compile-dir "META-INF" "maven" group-id artifact-id)
         pom (jio/file pom-dir "pom.xml")
         system (mvn/make-system)
         session (mvn/make-session system (or local-repo mvn/default-local-repo))
-        jar-artifact (.setFile (DefaultArtifact. group-id artifact-id classifier "jar" version) jar-file)
+        jar-artifact (.setFile (DefaultArtifact. group-id artifact-id classifier "jar" version) jar-file-file)
         artifacts (cond-> [jar-artifact]
                     (and pom-dir (.exists pom)) (conj (.setFile (DefaultArtifact. group-id artifact-id classifier "pom" version) pom)))
         install-request (.setArtifacts (InstallRequest.) artifacts)]
