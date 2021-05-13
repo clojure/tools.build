@@ -13,7 +13,6 @@
     [clojure.pprint :as pprint]
     [clojure.set :as set]
     [clojure.string :as str]
-    [clojure.tools.build.task.api :as tapi]
     [clojure.tools.build.task.file :as file]
     [clojure.tools.build.task.zip :as zip])
   (:import
