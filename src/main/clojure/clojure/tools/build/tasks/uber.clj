@@ -20,6 +20,7 @@
     [java.io File InputStream FileInputStream BufferedInputStream
              OutputStream FileOutputStream BufferedOutputStream ByteArrayOutputStream]
     [java.nio.file Files]
+    [java.nio.file.attribute FileAttribute]
     [java.util.jar JarInputStream JarOutputStream Manifest]))
 
 (set! *warn-on-reflection* true)
@@ -101,20 +102,20 @@
       libs)))
 
 (defn uber
-  [{:build/keys [basis compile-dir output-dir target-dir jar-file main] :as params}]
+  [{:build/keys [basis compile-dir uber-file main] :as params}]
   (let [{:keys [libs]} basis
-        compile-dir (jio/file output-dir compile-dir)
-        jar-file (jio/file output-dir jar-file)
+        compile-dir (jio/file compile-dir)
         manifest (Manifest.)
-        lib-paths (conj (->> libs remove-optional vals (mapcat :paths) (map #(jio/file %))) compile-dir)]
-    (run! #(explode % target-dir) lib-paths)
+        lib-paths (conj (->> libs remove-optional vals (mapcat :paths) (map #(jio/file %))) compile-dir)
+        working-dir (Files/createTempDirectory "uber" (into-array FileAttribute []))]
+    (run! #(explode % working-dir) lib-paths)
     (zip/fill-manifest! manifest
       (cond->
         {"Manifest-Version" "1.0"
          "Created-By" "org.clojure/tools.build"
          "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
         main (assoc "Main-Class" (str main))
-        (.exists (jio/file target-dir "META-INF" "versions")) (assoc "Multi-Release" "true")))
-    (with-open [jos (JarOutputStream. (FileOutputStream. jar-file) manifest)]
-      (zip/copy-to-zip jos target-dir))
+        (.exists (jio/file working-dir "META-INF" "versions")) (assoc "Multi-Release" "true")))
+    (with-open [jos (JarOutputStream. (FileOutputStream. (jio/file uber-file)) manifest)]
+      (zip/copy-to-zip jos working-dir))
     params))
