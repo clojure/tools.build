@@ -9,7 +9,6 @@
 (ns clojure.tools.build.tasks.install
   (:require
     [clojure.java.io :as jio]
-    [clojure.tools.build.task.api :as tapi]
     [clojure.tools.deps.alpha.util.maven :as mvn])
   (:import
     [org.eclipse.aether.artifact DefaultArtifact]
