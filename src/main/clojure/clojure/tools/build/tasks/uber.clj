@@ -106,7 +106,7 @@
         compile-dir (jio/file compile-dir)
         manifest (Manifest.)
         lib-paths (conj (->> libs remove-optional vals (mapcat :paths) (map #(jio/file %))) compile-dir)
-        working-dir (jio/file (Files/createTempDirectory "uber" (into-array FileAttribute [])))]
+        working-dir (.toFile (Files/createTempDirectory "uber" (into-array FileAttribute [])))]
     (run! #(explode % working-dir) lib-paths)
     (zip/fill-manifest! manifest
       (cond->

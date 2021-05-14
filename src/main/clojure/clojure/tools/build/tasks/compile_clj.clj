@@ -37,7 +37,7 @@
 (defn compile-clj
   [{:build/keys [basis clj-paths opts ns-compile filter-nses compile-dir] :as params}]
   (let [{:keys [classpath]} basis
-        working-dir (jio/file (Files/createTempDirectory "compile-clj" (into-array FileAttribute [])))
+        working-dir (.toFile (Files/createTempDirectory "compile-clj" (into-array FileAttribute [])))
         compile-dir-file (file/ensure-dir compile-dir)
         nses (or ns-compile
                (mapcat #(find/find-namespaces-in-dir (jio/file %) find/clj) clj-paths))
