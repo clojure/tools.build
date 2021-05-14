@@ -45,15 +45,15 @@
 ;; (copy {:build/compile-dir ...
 ;;        :build/copy-specs [{:from ... :include ... :replace ...}]})
 (defn copy
-  [{:build/keys [compile-dir copy-specs] :as params}]
-  (let [to-path (.toPath (file/ensure-dir compile-dir))]
+  [{:build/keys [project-dir compile-dir copy-specs] :as params}]
+  (let [to-path (.toPath (file/ensure-dir (file/resolve-path project-dir compile-dir)))]
     (doseq [{:keys [from include replace]} copy-specs]
       ;(println "\nspec" from include compile-dir replace)
       (let [from [from]
             include [include]]
         (doseq [from-dir from]
           ;(println "from-dir" from-dir)
-          (let [from-file (jio/file from-dir)]
+          (let [from-file (file/resolve-path project-dir from-dir)]
             (doseq [include-one include]
               (let [paths (match-paths from-file include-one)]
                 (doseq [^Path path paths]

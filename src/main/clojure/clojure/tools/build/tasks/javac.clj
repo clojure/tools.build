@@ -18,17 +18,17 @@
 (set! *warn-on-reflection* true)
 
 (defn javac
-  [{:build/keys [basis opts compile-dir java-paths] :as params}]
+  [{:build/keys [basis opts project-dir compile-dir java-paths] :as params}]
   (let [{:keys [libs]} basis]
     (when (seq java-paths)
-      (let [class-dir (file/ensure-dir (jio/file compile-dir))
+      (let [class-dir (file/ensure-dir (file/resolve-path project-dir compile-dir))
             compiler (ToolProvider/getSystemJavaCompiler)
             listener (reify DiagnosticListener (report [_ diag] (println (str diag))))
             file-mgr (.getStandardFileManager compiler listener nil nil)
             class-dir-path (.getPath class-dir)
             classpath (str/join File/pathSeparator (conj (mapcat :paths (vals libs)) class-dir-path))
             options (concat ["-classpath" classpath "-d" class-dir-path] opts)
-            java-files (mapcat #(file/collect-files (jio/file %) :collect (file/suffixes ".java")) java-paths)
+            java-files (mapcat #(file/collect-files (jio/file project-dir %) :collect (file/suffixes ".java")) java-paths)
             file-objs (.getJavaFileObjectsFromFiles file-mgr java-files)
             task (.getTask compiler nil file-mgr listener options nil file-objs)
             success (.call task)]

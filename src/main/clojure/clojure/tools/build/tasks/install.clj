@@ -9,7 +9,8 @@
 (ns clojure.tools.build.tasks.install
   (:require
     [clojure.java.io :as jio]
-    [clojure.tools.deps.alpha.util.maven :as mvn])
+    [clojure.tools.deps.alpha.util.maven :as mvn]
+    [clojure.tools.build.task.file :as file])
   (:import
     [org.eclipse.aether.artifact DefaultArtifact]
     [org.eclipse.aether.installation InstallRequest]))
@@ -17,12 +18,12 @@
 (set! *warn-on-reflection* true)
 
 (defn install
-  [{:build/keys [basis lib classifier version jar-file compile-dir] :as params}]
+  [{:build/keys [basis lib classifier version jar-file project-dir compile-dir] :as params}]
   (let [{:mvn/keys [local-repo]} basis
         group-id (namespace lib)
         artifact-id (name lib)
-        jar-file-file (jio/file jar-file)
-        pom-dir (jio/file compile-dir "META-INF" "maven" group-id artifact-id)
+        jar-file-file (jio/file project-dir jar-file)
+        pom-dir (jio/file (file/resolve-path project-dir compile-dir) "META-INF" "maven" group-id artifact-id)
         pom (jio/file pom-dir "pom.xml")
         system (mvn/make-system)
         session (mvn/make-session system (or local-repo mvn/default-local-repo))

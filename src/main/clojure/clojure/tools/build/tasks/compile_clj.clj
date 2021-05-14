@@ -35,20 +35,25 @@
   (str/replace (clojure.lang.Compiler/munge (str ns-sym)) \. \/))
 
 (defn compile-clj
-  [{:build/keys [basis clj-paths opts ns-compile filter-nses compile-dir] :as params}]
-  (let [{:keys [classpath]} basis
-        working-dir (.toFile (Files/createTempDirectory "compile-clj" (into-array FileAttribute [])))
-        compile-dir-file (file/ensure-dir compile-dir)
-        nses (or ns-compile
-               (mapcat #(find/find-namespaces-in-dir (jio/file %) find/clj) clj-paths))
-        working-compile-dir (file/ensure-dir (jio/file working-dir "compile-clj"))
-        compile-script (jio/file working-dir "compile.clj")
-        _ (write-compile-script! compile-script working-dir nses opts)
-        cp-str (-> classpath keys (conj (.getPath working-compile-dir) (.getPath compile-dir-file)) deps/join-classpath)
-        args ["java" "-cp" cp-str "clojure.main" (.getCanonicalPath compile-script)]
-        exit (process/exec args)]
-    (if (zero? exit)
-      (if (seq filter-nses)
-        (file/copy-contents working-compile-dir compile-dir-file (map ns->path filter-nses))
-        (file/copy-contents working-compile-dir compile-dir-file))
-      (throw (ex-info "Clojure compilation failed" {})))))
+  [{:build/keys [basis clj-paths opts ns-compile filter-nses project-dir compile-dir] :as params}]
+  (let [working-dir (.toFile (Files/createTempDirectory "compile-clj" (into-array FileAttribute [])))]
+    (try
+      (let [{:keys [classpath]} basis
+            compile-dir-file (file/ensure-dir (file/resolve-path project-dir compile-dir))
+            nses (or ns-compile
+                   (mapcat #(find/find-namespaces-in-dir (file/resolve-path project-dir %) find/clj) clj-paths))
+            working-compile-dir (file/ensure-dir (jio/file working-dir "compile-clj"))
+            compile-script (jio/file working-dir "compile.clj")
+            _ (write-compile-script! compile-script working-compile-dir nses opts)
+            cp-str (->> (-> classpath keys (conj (.getPath working-compile-dir) (.getPath compile-dir-file)))
+                     (map #(file/resolve-path project-dir %))
+                     deps/join-classpath)
+            args ["java" "-cp" cp-str "clojure.main" (.getCanonicalPath compile-script)]
+            exit (process/exec args)]
+        (if (zero? exit)
+          (if (seq filter-nses)
+            (file/copy-contents working-compile-dir compile-dir-file (map ns->path filter-nses))
+            (file/copy-contents working-compile-dir compile-dir-file))
+          (throw (ex-info "Clojure compilation failed" {}))))
+      (finally
+        (file/delete working-dir)))))

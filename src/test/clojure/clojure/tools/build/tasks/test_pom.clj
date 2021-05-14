@@ -121,14 +121,15 @@
 ;; check that optional deps are marked optional
 (deftest test-optional
   (with-test-dir "test-data/p3"
-    (doto #:build{:dir (project-path "target")
-                  :compile-dir (project-path "target/classes")
-                  :jar-file (project-path "target/p3-1.2.3.jar")
+    (doto #:build{:project-dir (.getAbsolutePath *test-dir*)
+                  :dir "target"
+                  :compile-dir "target/classes"
+                  :jar-file "target/p3-1.2.3.jar"
                   :lib 'test/p3
                   :version "1.2.3"
                   :clj-paths ["src"]
                   :resource-paths ["resources"]
-                  :src-pom (project-path "pom.xml")
+                  :src-pom "pom.xml"
                   :basis (api/load-basis (project-path "deps.edn"))}
       api/clean
       api/sync-pom)

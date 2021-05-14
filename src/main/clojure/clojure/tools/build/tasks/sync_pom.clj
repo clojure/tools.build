@@ -177,9 +177,9 @@
 
 (defn sync-pom
   [params]
-  (let [{:build/keys [basis compile-dir src-pom lib version clj-paths resource-paths]} params
+  (let [{:build/keys [basis project-dir compile-dir src-pom lib version clj-paths resource-paths]} params
         {:keys [deps :mvn/repos]} basis
-        src-pom-file (jio/file (or src-pom "pom.xml"))
+        src-pom-file (file/resolve-path project-dir (or src-pom "pom.xml"))
         repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
         pom (if (.exists src-pom-file)
               (with-open [rdr (jio/reader src-pom-file)]
@@ -200,7 +200,8 @@
                    :group (namespace lib)
                    :artifact (name lib)}
                   version (assoc :version version))))
-        pom-dir-file (file/ensure-dir (jio/file compile-dir "META-INF" "maven" (namespace lib) (name lib)))]
+        compile-dir-file (file/resolve-path project-dir compile-dir)
+        pom-dir-file (file/ensure-dir (jio/file compile-dir-file "META-INF" "maven" (namespace lib) (name lib)))]
     (spit (jio/file pom-dir-file "pom.xml") (xml/indent-str pom))
     (spit (jio/file pom-dir-file "pom.properties")
       (str/join (System/lineSeparator)
