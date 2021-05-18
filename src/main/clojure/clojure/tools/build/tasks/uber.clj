@@ -13,6 +13,7 @@
     [clojure.pprint :as pprint]
     [clojure.set :as set]
     [clojure.string :as str]
+    [clojure.tools.build.api :as api]
     [clojure.tools.build.task.file :as file]
     [clojure.tools.build.task.zip :as zip])
   (:import
@@ -101,11 +102,11 @@
       libs)))
 
 (defn uber
-  [{:keys [basis project-dir class-dir uber-file main] :as params}]
+  [{:keys [basis class-dir uber-file main] :as params}]
   (let [working-dir (.toFile (Files/createTempDirectory "uber" (into-array FileAttribute [])))]
     (try
       (let [{:keys [libs]} basis
-            compile-dir (file/resolve-path project-dir class-dir)
+            compile-dir (api/resolve-path class-dir)
             manifest (Manifest.)
             lib-paths (conj (->> libs remove-optional vals (mapcat :paths) (map #(jio/file %))) compile-dir)]
         (run! #(explode % working-dir) lib-paths)
@@ -116,7 +117,7 @@
              "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
             main (assoc "Main-Class" (str main))
             (.exists (jio/file working-dir "META-INF" "versions")) (assoc "Multi-Release" "true")))
-        (with-open [jos (JarOutputStream. (FileOutputStream. (jio/file project-dir uber-file)) manifest)]
+        (with-open [jos (JarOutputStream. (FileOutputStream. (api/resolve-path uber-file)) manifest)]
           (zip/copy-to-zip jos working-dir)))
       (finally
         (file/delete working-dir)))))

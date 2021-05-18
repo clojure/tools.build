@@ -16,10 +16,10 @@
 
 (deftest test-compile
   (with-test-dir "test-data/p1"
-    (api/compile-clj {:project-dir (.getAbsolutePath *test-dir*)
-                      :class-dir "target/classes"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/compile-clj {:class-dir "target/classes"
                       :clj-dirs ["src"]
-                      :basis (api/load-basis (project-path "deps.edn"))})
+                      :basis (api/load-basis nil)})
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar__init.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar$hello.class")))))))

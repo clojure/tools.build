@@ -8,7 +8,7 @@
 
 (ns clojure.tools.build.tasks.jar
   (:require
-    [clojure.java.io :as jio]
+    [clojure.tools.build.api :as api]
     [clojure.tools.build.task.file :as file]
     [clojure.tools.build.task.zip :as zip])
   (:import
@@ -16,9 +16,9 @@
     [java.util.jar Manifest JarOutputStream]))
 
 (defn jar
-  [{:keys [project-dir class-dir jar-file main] :as params}]
-  (let [jar-file (file/resolve-path project-dir jar-file)
-        class-dir-file (file/ensure-dir (file/resolve-path project-dir class-dir))]
+  [{:keys [class-dir jar-file main] :as params}]
+  (let [jar-file (api/resolve-path jar-file)
+        class-dir-file (file/ensure-dir (api/resolve-path class-dir))]
     (let [manifest (Manifest.)]
       (zip/fill-manifest! manifest
         (cond->

@@ -16,6 +16,7 @@
     [clojure.zip :as zip]
     [clojure.tools.deps.alpha.util.maven :as maven]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]
+    [clojure.tools.build.api :as api]
     [clojure.tools.build.task.file :as file])
   (:import [java.io Reader]
            [clojure.data.xml.node Element]))
@@ -177,9 +178,9 @@
 
 (defn sync-pom
   [params]
-  (let [{:keys [basis project-dir class-dir src-pom lib version src-dirs resource-dirs]} params
+  (let [{:keys [basis class-dir src-pom lib version src-dirs resource-dirs]} params
         {:keys [deps :mvn/repos]} basis
-        src-pom-file (file/resolve-path project-dir (or src-pom "pom.xml"))
+        src-pom-file (api/resolve-path (or src-pom "pom.xml"))
         repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
         pom (if (.exists src-pom-file)
               (with-open [rdr (jio/reader src-pom-file)]
@@ -200,7 +201,7 @@
                    :group (namespace lib)
                    :artifact (name lib)}
                   version (assoc :version version))))
-        class-dir-file (file/resolve-path project-dir class-dir)
+        class-dir-file (api/resolve-path class-dir)
         pom-dir-file (file/ensure-dir (jio/file class-dir-file "META-INF" "maven" (namespace lib) (name lib)))]
     (spit (jio/file pom-dir-file "pom.xml") (xml/indent-str pom))
     (spit (jio/file pom-dir-file "pom.properties")

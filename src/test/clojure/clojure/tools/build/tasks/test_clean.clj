@@ -15,13 +15,11 @@
 
 (deftest test-clean
   (with-test-dir "test-data/p1"
-    (let [project-dir (.getAbsolutePath *test-dir*)]
-      ;; copy src into target, then clean, and check target dir is gone
-      (api/copy {:project-dir project-dir
-                 :target-dir "target/classes"
-                 :src-specs [{:src-dir "src" :include "**"}]})
-      (api/clean {:project-dir project-dir
-                  :dir "target"}))
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    ;; copy src into target, then clean, and check target dir is gone
+    (api/copy {:target-dir "target/classes"
+               :src-specs [{:src-dir "src" :include "**"}]})
+    (api/clean {:dir "target"})
     (is (false? (.exists (jio/file (project-path "target/classes")))))))
 
 (comment

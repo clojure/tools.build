@@ -112,13 +112,3 @@
       (if-let [created (.mkdirs d)]
         d
         (throw (ex-info (str "Can't create directory " dir) {}))))))
-
-(defn resolve-path
-  "If path is absolute or root-path is nil, return path, otherwise
-  resolve path under root-path."
-  ^File [root-path path]
-  (let [path-file (jio/file path)]
-    (cond
-      (.isAbsolute path-file) path-file ;; absolute, ignore root
-      (nil? root-path) (jio/file path-file) ;; relative to current dir
-      :else (jio/file root-path path-file)))) ;; relative to root

@@ -10,6 +10,7 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.string :as str]
+    [clojure.tools.build.api :as api]
     [clojure.tools.build.task.file :as file])
   (:import
     [java.io File]
@@ -45,15 +46,15 @@
 ;; (copy {:build/compile-dir ...
 ;;        :build/copy-specs [{:from ... :include ... :replace ...}]})
 (defn copy
-  [{:keys [project-dir target-dir src-specs] :as params}]
-  (let [to-path (.toPath (file/ensure-dir (file/resolve-path project-dir target-dir)))]
+  [{:keys [target-dir src-specs] :as params}]
+  (let [to-path (.toPath (file/ensure-dir (api/resolve-path target-dir)))]
     (doseq [{:keys [src-dir include replace]} src-specs]
       ;(println "\nspec" from include compile-dir replace)
       (let [from [src-dir]
             include [include]]
         (doseq [from-dir from]
           ;(println "from-dir" from-dir)
-          (let [from-file (file/resolve-path project-dir from-dir)]
+          (let [from-file (api/resolve-path from-dir)]
             (doseq [include-one include]
               (let [paths (match-paths from-file include-one)]
                 (doseq [^Path path paths]

@@ -9,6 +9,7 @@
 (ns clojure.tools.build.tasks.zip
   (:require
     [clojure.java.io :as jio]
+    [clojure.tools.build.api :as api]
     [clojure.tools.build.task.file :as file]
     [clojure.tools.build.task.zip :as zip])
   (:import
@@ -19,7 +20,7 @@
 
 (defn zip
   [{:keys [src-dirs project-dir zip-file] :as params}]
-  (let [zip-file (file/resolve-path project-dir zip-file)]
+  (let [zip-file (api/resolve-path zip-file)]
     (with-open [zos (ZipOutputStream. (FileOutputStream. zip-file))]
       (doseq [zpath src-dirs]
         (let [zip-from (file/ensure-dir (jio/file project-dir zpath))]

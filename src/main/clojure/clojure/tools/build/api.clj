@@ -1,25 +1,47 @@
 (ns clojure.tools.build.api
   (:require
+    [clojure.java.io :as jio]
     [clojure.tools.deps.alpha :as deps]
-    [clojure.tools.build.task.process :as process]))
+    [clojure.tools.build.task.process :as process])
+  (:import
+    [java.io File]))
+
+;; Project dir, defaults to current directory
+
+(def ^:dynamic *project-root* ".")
+
+(defn set-project-root!
+  "Set project root dir (default is \".\")"
+  [root]
+  (alter-var-root #'*project-root* (constantly root)))
+
+(defn resolve-path
+  "If path is absolute or root-path is nil, return path, otherwise
+  resolve path under root-path."
+  ^File [path]
+  (let [path-file (jio/file path)]
+    (if (.isAbsolute path-file)
+      ;; absolute, ignore root
+      path-file
+      ;; relative to *project-root*
+      (jio/file *project-root* path-file))))
 
 ;; Basis
 
 (defn load-basis
   ([]
    (load-basis nil))
-  ([project-file]
-   (let [{:keys [root-edn project-edn]} (deps/find-edn-maps project-file)
+  ([{:keys [deps-file] :or {deps-file "deps.edn"}}]
+   (let [{:keys [root-edn project-edn]} (deps/find-edn-maps (resolve-path deps-file))
          edns [root-edn project-edn]
          master-edn (deps/merge-edns edns)]
      (deps/calc-basis master-edn))))
 
 ;; Helpers
 
-(defn git-version
-  [template]
-  (let [git-version (process/invoke ["git" "rev-list" "HEAD" "--count"])]
-    (format template git-version)))
+(defn git-count-revs
+  [{:keys [dir]}]
+  (process/invoke ["git" "rev-list" "HEAD" "--count"]))
 
 ;; Tasks
 

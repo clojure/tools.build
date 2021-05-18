@@ -51,17 +51,15 @@
 
 (deftest test-new-pom
   (with-test-dir "test-data/p1"
-    (let [project-dir (.getAbsolutePath *test-dir*)]
-      (api/clean {:project-dir project-dir
-                  :dir "target"})
-      (api/sync-pom {:project-dir project-dir
-                     ;; NO :src-pom
-                     :lib 'test/p1
-                     :version "1.2.3"
-                     :class-dir "target/classes"
-                     :src-dirs ["src"]
-                     :resource-dirs ["resources"]
-                     :basis (api/load-basis (project-path "deps.edn"))}))
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/clean {:dir "target"})
+    (api/sync-pom {;; NO :src-pom
+                   :lib 'test/p1
+                   :version "1.2.3"
+                   :class-dir "target/classes"
+                   :src-dirs ["src"]
+                   :resource-dirs ["resources"]
+                   :basis (api/load-basis nil)})
     (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p1"))
           pom-out (jio/file pom-dir "pom.xml")
           pom (read-xml pom-out)
@@ -85,17 +83,15 @@
 
 (deftest test-update-existing-pom
   (with-test-dir "test-data/p2"
-    (let [project-dir (.getAbsolutePath *test-dir*)]
-      (api/clean {:project-dir project-dir
-                  :dir "target"})
-      (api/sync-pom {:project-dir project-dir
-                     :lib 'test/p2
-                     :version "1.2.3"
-                     :class-dir "target/classes"
-                     :src-dirs ["src"]
-                     :src-pom "pom.xml"
-                     :resource-dirs ["resources"]
-                     :basis (api/load-basis (project-path "deps.edn"))}))
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/clean {:dir "target"})
+    (api/sync-pom {:lib 'test/p2
+                   :version "1.2.3"
+                   :class-dir "target/classes"
+                   :src-dirs ["src"]
+                   :src-pom "pom.xml"
+                   :resource-dirs ["resources"]
+                   :basis (api/load-basis nil)})
     (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p2"))
           pom-out (jio/file pom-dir "pom.xml")
           pom (read-xml pom-out)
@@ -120,17 +116,15 @@
 ;; check that optional deps are marked optional
 (deftest test-optional
   (with-test-dir "test-data/p3"
-    (let [project-dir (.getAbsolutePath *test-dir*)]
-      (api/clean {:project-dir project-dir
-                  :dir "target"})
-      (api/sync-pom {:project-dir project-dir
-                     :lib 'test/p3
-                     :version "1.2.3"
-                     :class-dir "target/classes"
-                     :src-dirs ["src"]
-                     :src-pom "pom.xml"
-                     :resource-dirs ["resources"]
-                     :basis (api/load-basis (project-path "deps.edn"))}))
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/clean {:dir "target"})
+    (api/sync-pom {:lib 'test/p3
+                   :version "1.2.3"
+                   :class-dir "target/classes"
+                   :src-dirs ["src"]
+                   :src-pom "pom.xml"
+                   :resource-dirs ["resources"]
+                   :basis (api/load-basis nil)})
     (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p3"))
           pom-out (jio/file pom-dir "pom.xml")]
       (is (.exists pom-out))

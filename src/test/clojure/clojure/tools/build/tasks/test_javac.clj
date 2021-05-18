@@ -16,8 +16,8 @@
 
 (deftest test-javac
   (with-test-dir "test-data/p1"
-    (api/javac {:project-dir (.getAbsolutePath *test-dir*)
-                :class-dir "target/classes"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/javac {:class-dir "target/classes"
                 :java-dirs ["java"]})
     (is (true? (.exists (jio/file (project-path "target/classes/foo/Demo1.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/Demo2.class")))))

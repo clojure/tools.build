@@ -8,12 +8,12 @@
 
 (ns clojure.tools.build.tasks.clean
   (:require
-    [clojure.java.io :as jio]
+    [clojure.tools.build.api :as api]
     [clojure.tools.build.task.file :as file]))
 
 (defn clean
-  [{:keys [project-dir dir] :as params}]
-  (let [dir-file (file/resolve-path project-dir dir)]
+  [{:keys [dir] :as params}]
+  (let [dir-file (api/resolve-path dir)]
     ;(println "dir-file" dir-file)
     (if (.exists dir-file)
       (file/delete dir-file))))
