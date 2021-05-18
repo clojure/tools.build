@@ -18,7 +18,7 @@
 (set! *warn-on-reflection* true)
 
 (defn install
-  [{:build/keys [basis lib classifier version jar-file project-dir compile-dir] :as params}]
+  [{:keys [basis lib classifier version jar-file project-dir compile-dir] :as params}]
   (let [{:mvn/keys [local-repo]} basis
         group-id (namespace lib)
         artifact-id (name lib)

@@ -12,7 +12,7 @@
     [clojure.tools.build.task.file :as file]))
 
 (defn clean
-  [{:build/keys [project-dir dir] :as params}]
+  [{:keys [project-dir dir] :as params}]
   (let [dir-file (file/resolve-path project-dir dir)]
     ;(println "dir-file" dir-file)
     (if (.exists dir-file)

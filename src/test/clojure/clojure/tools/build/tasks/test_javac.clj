@@ -16,10 +16,9 @@
 
 (deftest test-javac
   (with-test-dir "test-data/p1"
-    (doto #:build{:project-dir (.getAbsolutePath *test-dir*)
-                  :compile-dir "target/classes"
-                  :java-paths ["java"]}
-      api/javac)
+    (api/javac {:project-dir (.getAbsolutePath *test-dir*)
+                :class-dir "target/classes"
+                :java-dirs ["java"]})
     (is (true? (.exists (jio/file (project-path "target/classes/foo/Demo1.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/Demo2.class")))))
     (let [class-path (.getPath (jio/file (project-path "target/classes")))]

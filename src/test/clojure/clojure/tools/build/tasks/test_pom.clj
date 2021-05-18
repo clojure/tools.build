@@ -51,17 +51,17 @@
 
 (deftest test-new-pom
   (with-test-dir "test-data/p1"
-    (doto #:build{:dir (project-path "target")
-                  :compile-dir (project-path "target/classes")
-                  :jar-file (project-path "target/p1-1.2.3.jar")
-                  :lib 'test/p1
-                  :version "1.2.3"
-                  :clj-paths ["src"]
-                  :resource-paths ["resources"]
-                  :src-pom (project-path "pom.xml")
-                  :basis (api/load-basis (project-path "deps.edn"))}
-      api/clean
-      api/sync-pom)
+    (let [project-dir (.getAbsolutePath *test-dir*)]
+      (api/clean {:project-dir project-dir
+                  :dir "target"})
+      (api/sync-pom {:project-dir project-dir
+                     ;; NO :src-pom
+                     :lib 'test/p1
+                     :version "1.2.3"
+                     :class-dir "target/classes"
+                     :src-dirs ["src"]
+                     :resource-dirs ["resources"]
+                     :basis (api/load-basis (project-path "deps.edn"))}))
     (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p1"))
           pom-out (jio/file pom-dir "pom.xml")
           pom (read-xml pom-out)
@@ -85,17 +85,17 @@
 
 (deftest test-update-existing-pom
   (with-test-dir "test-data/p2"
-    (doto #:build{:dir (project-path "target")
-                  :compile-dir (project-path "target/classes")
-                  :jar-file (project-path "target/p2-1.2.3.jar")
-                  :lib 'test/p2
-                  :version "1.2.3"
-                  :clj-paths ["src"]
-                  :resource-paths ["resources"]
-                  :src-pom (project-path "pom.xml")
-                  :basis (api/load-basis (project-path "deps.edn"))}
-      api/clean
-      api/sync-pom)
+    (let [project-dir (.getAbsolutePath *test-dir*)]
+      (api/clean {:project-dir project-dir
+                  :dir "target"})
+      (api/sync-pom {:project-dir project-dir
+                     :lib 'test/p2
+                     :version "1.2.3"
+                     :class-dir "target/classes"
+                     :src-dirs ["src"]
+                     :src-pom "pom.xml"
+                     :resource-dirs ["resources"]
+                     :basis (api/load-basis (project-path "deps.edn"))}))
     (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p2"))
           pom-out (jio/file pom-dir "pom.xml")
           pom (read-xml pom-out)
@@ -110,8 +110,7 @@
         [::pom/version] ["1.2.3"]
         [::pom/name] ["p2"]
         [::pom/build ::pom/sourceDirectory] ["src"]
-        [::pom/build ::pom/resources ::pom/resource ::pom/directory] ["resources"]
-        )
+        [::pom/build ::pom/resources ::pom/resource ::pom/directory] ["resources"])
       (= 2 (count (xml-path-val pom [::pom/dependencies])))
       (= 1 (count (xml-path-val pom [::pom/repositories])))
       ;; check properties out
@@ -121,18 +120,17 @@
 ;; check that optional deps are marked optional
 (deftest test-optional
   (with-test-dir "test-data/p3"
-    (doto #:build{:project-dir (.getAbsolutePath *test-dir*)
-                  :dir "target"
-                  :compile-dir "target/classes"
-                  :jar-file "target/p3-1.2.3.jar"
-                  :lib 'test/p3
-                  :version "1.2.3"
-                  :clj-paths ["src"]
-                  :resource-paths ["resources"]
-                  :src-pom "pom.xml"
-                  :basis (api/load-basis (project-path "deps.edn"))}
-      api/clean
-      api/sync-pom)
+    (let [project-dir (.getAbsolutePath *test-dir*)]
+      (api/clean {:project-dir project-dir
+                  :dir "target"})
+      (api/sync-pom {:project-dir project-dir
+                     :lib 'test/p3
+                     :version "1.2.3"
+                     :class-dir "target/classes"
+                     :src-dirs ["src"]
+                     :src-pom "pom.xml"
+                     :resource-dirs ["resources"]
+                     :basis (api/load-basis (project-path "deps.edn"))}))
     (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p3"))
           pom-out (jio/file pom-dir "pom.xml")]
       (is (.exists pom-out))

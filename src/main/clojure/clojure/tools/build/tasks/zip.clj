@@ -18,10 +18,10 @@
 (set! *warn-on-reflection* true)
 
 (defn zip
-  [{:build/keys [zip-paths project-dir zip-file] :as params}]
+  [{:keys [src-dirs project-dir zip-file] :as params}]
   (let [zip-file (file/resolve-path project-dir zip-file)]
     (with-open [zos (ZipOutputStream. (FileOutputStream. zip-file))]
-      (doseq [zpath zip-paths]
+      (doseq [zpath src-dirs]
         (let [zip-from (file/ensure-dir (jio/file project-dir zpath))]
           (println "Zipping from" (.getPath zip-from) "to" (.getPath zip-file))
           (zip/copy-to-zip zos zip-from))))))

@@ -16,11 +16,10 @@
 
 (deftest test-compile
   (with-test-dir "test-data/p1"
-    (doto #:build{:project-dir (.getAbsolutePath *test-dir*)
-                  :compile-dir "target/classes"
-                  :clj-paths ["src"]
-                  :basis (api/load-basis (project-path "deps.edn"))}
-      api/compile-clj)
+    (api/compile-clj {:project-dir (.getAbsolutePath *test-dir*)
+                      :class-dir "target/classes"
+                      :clj-dirs ["src"]
+                      :basis (api/load-basis (project-path "deps.edn"))})
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar__init.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar$hello.class")))))))

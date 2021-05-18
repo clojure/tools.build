@@ -177,7 +177,7 @@
 
 (defn sync-pom
   [params]
-  (let [{:build/keys [basis project-dir compile-dir src-pom lib version clj-paths resource-paths]} params
+  (let [{:keys [basis project-dir class-dir src-pom lib version src-dirs resource-dirs]} params
         {:keys [deps :mvn/repos]} basis
         src-pom-file (file/resolve-path project-dir (or src-pom "pom.xml"))
         repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
@@ -186,22 +186,22 @@
                 (-> rdr
                   parse-xml
                   (replace-deps deps)
-                  (replace-paths clj-paths)
-                  (replace-resources resource-paths)
+                  (replace-paths src-dirs)
+                  (replace-resources resource-dirs)
                   (replace-repos repos)
                   (replace-lib lib)
                   (replace-version version)))
               (gen-pom
                 (cond->
                   {:deps deps
-                   :src-paths clj-paths
-                   :resource-paths resource-paths
+                   :src-paths src-dirs
+                   :resource-paths resource-dirs
                    :repos repos
                    :group (namespace lib)
                    :artifact (name lib)}
                   version (assoc :version version))))
-        compile-dir-file (file/resolve-path project-dir compile-dir)
-        pom-dir-file (file/ensure-dir (jio/file compile-dir-file "META-INF" "maven" (namespace lib) (name lib)))]
+        class-dir-file (file/resolve-path project-dir class-dir)
+        pom-dir-file (file/ensure-dir (jio/file class-dir-file "META-INF" "maven" (namespace lib) (name lib)))]
     (spit (jio/file pom-dir-file "pom.xml") (xml/indent-str pom))
     (spit (jio/file pom-dir-file "pom.properties")
       (str/join (System/lineSeparator)

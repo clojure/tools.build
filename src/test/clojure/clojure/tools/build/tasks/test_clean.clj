@@ -15,13 +15,13 @@
 
 (deftest test-clean
   (with-test-dir "test-data/p1"
-    ;; copy src into target, then clean, and check target dir is gone
-    (doto #:build{:project-dir (.getAbsolutePath *test-dir*)
-                  :dir "target"
-                  :compile-dir "target/classes"
-                  :copy-specs [{:from "src" :include "**"}]}
-      api/copy
-      api/clean)
+    (let [project-dir (.getAbsolutePath *test-dir*)]
+      ;; copy src into target, then clean, and check target dir is gone
+      (api/copy {:project-dir project-dir
+                 :target-dir "target/classes"
+                 :src-specs [{:src-dir "src" :include "**"}]})
+      (api/clean {:project-dir project-dir
+                  :dir "target"}))
     (is (false? (.exists (jio/file (project-path "target/classes")))))))
 
 (comment

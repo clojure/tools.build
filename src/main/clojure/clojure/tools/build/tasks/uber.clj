@@ -101,11 +101,11 @@
       libs)))
 
 (defn uber
-  [{:build/keys [basis project-dir compile-dir uber-file main] :as params}]
+  [{:keys [basis project-dir class-dir uber-file main] :as params}]
   (let [working-dir (.toFile (Files/createTempDirectory "uber" (into-array FileAttribute [])))]
     (try
       (let [{:keys [libs]} basis
-            compile-dir (file/resolve-path project-dir compile-dir)
+            compile-dir (file/resolve-path project-dir class-dir)
             manifest (Manifest.)
             lib-paths (conj (->> libs remove-optional vals (mapcat :paths) (map #(jio/file %))) compile-dir)]
         (run! #(explode % working-dir) lib-paths)
