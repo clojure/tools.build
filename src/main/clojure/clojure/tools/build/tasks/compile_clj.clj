@@ -49,6 +49,7 @@
                    (map #(api/resolve-path %))
                    deps/join-classpath)
           args ["java" "-cp" cp-str "clojure.main" (.getCanonicalPath compile-script)]
+          _ (prn args)
           exit (process/exec args)]
       (if (zero? exit)
         (do
