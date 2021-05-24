@@ -19,6 +19,7 @@
   [{:keys [class-dir jar-file main] :as params}]
   (let [jar-file (api/resolve-path jar-file)
         class-dir-file (file/ensure-dir (api/resolve-path class-dir))]
+    (file/ensure-dir (.getParent jar-file))
     (let [manifest (Manifest.)]
       (zip/fill-manifest! manifest
         (cond->
