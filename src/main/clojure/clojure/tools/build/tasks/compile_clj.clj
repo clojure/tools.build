@@ -48,8 +48,8 @@
           cp-str (->> (-> classpath keys (conj (.getPath working-compile-dir) (.getPath compile-dir-file)))
                    (map #(api/resolve-path %))
                    deps/join-classpath)
+          _ (spit (jio/file working-dir "compile.cp") cp-str)
           args ["java" "-cp" cp-str "clojure.main" (.getCanonicalPath compile-script)]
-          _ (prn args)
           exit (process/exec args)]
       (if (zero? exit)
         (do
