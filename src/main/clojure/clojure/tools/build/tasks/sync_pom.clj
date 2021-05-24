@@ -177,11 +177,12 @@
     (first (filter #(instance? Element %) (first roots)))))
 
 (defn sync-pom
+  ""
   [params]
-  (let [{:keys [basis class-dir src-pom lib version src-dirs resource-dirs]} params
-        {:keys [deps :mvn/repos]} basis
+  (let [{:keys [basis class-dir src-pom lib version src-dirs resource-dirs repos]} params
+        {:keys [deps]} basis
         src-pom-file (api/resolve-path (or src-pom "pom.xml"))
-        repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
+        repos (or repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) (:mvn/repos basis)))
         pom (if (.exists src-pom-file)
               (with-open [rdr (jio/reader src-pom-file)]
                 (-> rdr
