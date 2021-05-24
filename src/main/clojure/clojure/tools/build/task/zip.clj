@@ -14,7 +14,7 @@
     [java.io File BufferedInputStream FileInputStream]
     [java.nio.file Files LinkOption]
     [java.nio.file.attribute BasicFileAttributes]
-    [java.util.zip ZipOutputStream ZipEntry]
+    [java.util.zip ZipFile ZipOutputStream ZipEntry]
     [java.util.jar Manifest Attributes$Name]))
 
 (set! *warn-on-reflection* true)
@@ -55,3 +55,16 @@
       (fn [[name value]]
         (.put attrs (Attributes$Name. ^String name) value)) props)))
 
+(defn list-zip
+  [^String zip-path]
+  (let [zip-file (jio/file zip-path)]
+    (when (.exists zip-file)
+      (with-open [zip (ZipFile. zip-file)]
+        (let [entries (enumeration-seq (.entries zip))]
+          (sort-by :name
+            (into [] (map (fn [^ZipEntry entry]
+                            {:name (.getName entry)
+                             :created (.getCreationTime entry)
+                             :modified (.getLastModifiedTime entry)
+                             :size (.getSize entry)}))
+              entries)))))))
