@@ -132,6 +132,25 @@
         (is (str/includes? generated "core.async"))
         (is (str/includes? generated "<optional>true</optional>"))))))
 
+;; check that supplying an empty repo map removes repos from generated pom
+(deftest test-omit-repos
+  (with-test-dir "test-data/p1"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/clean {:dir "target"})
+    (api/sync-pom {:lib 'test/p1
+                   :version "1.2.3"
+                   :class-dir "target/classes"
+                   :src-dirs ["src"]
+                   :src-pom "pom.xml"
+                   :resource-dirs ["resources"]
+                   :repos {} ;; replace repo map from deps.edn
+                   :basis (api/load-basis nil)})
+    (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p1"))
+          pom-out (jio/file pom-dir "pom.xml")]
+      (is (.exists pom-out))
+      (let [generated (slurp pom-out)]
+        (is (not (str/includes? generated "clojars")))))))
+
 (comment
   (run-tests)
   )
