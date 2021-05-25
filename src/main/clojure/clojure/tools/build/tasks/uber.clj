@@ -108,7 +108,9 @@
       (let [{:keys [libs]} basis
             compile-dir (api/resolve-path class-dir)
             manifest (Manifest.)
-            lib-paths (conj (->> libs remove-optional vals (mapcat :paths) (map #(jio/file %))) compile-dir)]
+            lib-paths (conj (->> libs remove-optional vals (mapcat :paths) (map #(jio/file %))) compile-dir)
+            uber-file (api/resolve-path uber-file)]
+        (file/ensure-dir (.getParent uber-file))
         (run! #(explode % working-dir) lib-paths)
         (zip/fill-manifest! manifest
           (cond->
@@ -117,7 +119,7 @@
              "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
             main (assoc "Main-Class" (str main))
             (.exists (jio/file working-dir "META-INF" "versions")) (assoc "Multi-Release" "true")))
-        (with-open [jos (JarOutputStream. (FileOutputStream. (api/resolve-path uber-file)) manifest)]
+        (with-open [jos (JarOutputStream. (FileOutputStream. uber-file) manifest)]
           (zip/copy-to-zip jos working-dir)))
       (finally
         (file/delete working-dir)))))
