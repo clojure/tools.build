@@ -112,3 +112,14 @@
       (if-let [created (.mkdirs d)]
         d
         (throw (ex-info (str "Can't create directory " dir) {}))))))
+
+(defn ensure-file
+  ([file] (ensure-file file ""))
+  ([file contents & opts]
+   (let [file (jio/file file)
+         parent (.getParent file)]
+     (if (.exists (jio/file parent))
+       (apply spit file contents opts)
+       (do
+         (ensure-dir parent)
+         (apply spit file contents opts))))))
