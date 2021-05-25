@@ -65,5 +65,6 @@
                       (file/copy-file path-file target-file)
                       (let [contents (slurp path-file)
                             replaced (reduce (fn [s [find replace]] (str/replace s find replace))
-                                       contents replace)]
-                        (spit target-file replaced)))))))))))))
+                                             contents replace)]
+                        (file/copy-file path-file target-file)
+                        (spit target-file replaced :append false)))))))))))))

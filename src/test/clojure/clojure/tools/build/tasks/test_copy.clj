@@ -15,11 +15,16 @@
 
 (deftest test-copy
   (with-test-dir "test-data/p1"
-    (api/set-project-root! (.getAbsolutePath *test-dir*))
-    ;; copy src into target, then clean, and check target dir is gone
-    (api/copy {:target-dir "target/classes"
-               :src-specs [{:src-dir "src" :include "**"}]})
-    (is (.exists (jio/file (project-path "target/classes/foo/bar.clj"))))))
+    (let [txt (str (java.util.UUID/randomUUID))]
+      (api/set-project-root! (.getAbsolutePath *test-dir*))
+      ;; copy src into target, then clean, and check target dir is gone
+      (api/copy {:target-dir "target/classes"
+                 :src-specs [{:src-dir "src" :include "**"
+                              :replace {"__REPLACE__" txt}}]})
+      (let [source-file (jio/file (project-path "target/classes/foo/bar.clj"))
+            contents    (slurp source-file)]
+        (is (.exists source-file))
+        (is (clojure.string/includes? contents txt))))))
 
 (comment
   (run-tests)
