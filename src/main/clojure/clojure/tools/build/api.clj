@@ -122,9 +122,8 @@
   git rev-list HEAD --count
 
   Options:
-    :dir - required, dir to invoke this command from, by default current directory"
+    :dir - dir to invoke this command from, by default current directory"
   [{:keys [dir] :or {dir "."} :as params}]
-  (assert-required "git-count-revs" params [:dir])
   (-> {:command-args ["git" "rev-list" "HEAD" "--count"]
        :dir (.getPath (resolve-path dir))
        :out :capture}
