@@ -1,6 +1,7 @@
 (ns clojure.tools.build.api
   (:require
     [clojure.java.io :as jio]
+    [clojure.set :as set]
     [clojure.string :as str]
     [clojure.tools.build.task.file :as file])
   (:import
@@ -32,6 +33,13 @@
       ;; relative to *project-root*
       (jio/file *project-root* path-file))))
 
+(defn- assert-required
+  "Check that each key in required coll is a key in params, throw if not."
+  [task params required]
+  (let [missing (set/difference (set required) (set (keys params)))]
+    (when (seq missing)
+      (throw (ex-info (format "Missing required params for %s: %s" task (vec (sort missing))) params)))))
+
 ;; File tasks
 
 (defn delete
@@ -39,11 +47,22 @@
 
   Options:
     :path - required, path to file or directory"
-  [{:keys [path]}]
+  [{:keys [path] :as params}]
+  (assert-required "delete" params [:path])
   (let [root-file (resolve-path path)]
     ;(println "root-file" root-file)
     (if (.exists root-file)
       (file/delete root-file))))
+
+(defn copy-file
+  "Copy one file from source to target, creating target dirs if needed.
+
+  Options:
+    :src - required, source path
+    :target - required, target path"
+  [{:keys [src target] :as params}]
+  (assert-required "copy-file" params [:src :target])
+  (file/copy-file (resolve-path src) (resolve-path target)))
 
 (defn copy
   "Copy many files and optionally do text replacement.
@@ -55,6 +74,7 @@
       :include - glob of files to include, all = \"**\"
       :replace - map of string in source file to replacement string"
   [params]
+  (assert-required "copy" params [:target-dir :src-specs])
   ((requiring-resolve 'clojure.tools.build.tasks.copy/copy) params))
 
 ;; Basis tasks
@@ -92,6 +112,7 @@
     :append - append to :out-file or :err-file
     :ignore - ignore the stream"
   [params]
+  (assert-required "process" params [:command-args])
   ((requiring-resolve 'clojure.tools.build.tasks.process/process) params))
 
 ;; Git tasks
@@ -102,7 +123,8 @@
 
   Options:
     :dir - required, dir to invoke this command from, by default current directory"
-  [{:keys [dir] :or {dir "."}}]
+  [{:keys [dir] :or {dir "."} :as params}]
+  (assert-required "git-count-revs" params [:dir])
   (-> {:command-args ["git" "rev-list" "HEAD" "--count"]
        :dir (.getPath (resolve-path dir))
        :out :capture}
@@ -126,17 +148,19 @@
     :ns-compile - coll of namespace symbols to compile, all if not specified
     :filter-nses - coll of symbols representing a namespace prefix to include"
   [params]
+  (assert-required "compile-clj" params [:basis :clj-dirs :class-dir])
   ((requiring-resolve 'clojure.tools.build.tasks.compile-clj/compile-clj) params))
 
 (defn javac
   "Compile Java source to classes.
 
   Options:
-    :basis - required, basis to use when compiling
     :java-dirs - required, coll of Java source dirs
     :class-dir - required, dir to write classes, will be created if needed
+    :basis - classpath basis to use when compiling
     :javac-opts - coll of string opts, like [\"-source\" \"8\" \"-target\" \"8\"]"
   [params]
+  (assert-required "javac" params [:java-dirs :class-dir])
   ((requiring-resolve 'clojure.tools.build.tasks.javac/javac) params))
 
 ;; Jar/zip tasks
@@ -154,6 +178,7 @@
     :resource-dirs - coll of resource dirs
     :repos - map of repo name to repo config, replaces repos from deps.edn"
   [params]
+  (assert-required "sync-pom" params [:basis :class-dir :lib :version])
   ((requiring-resolve 'clojure.tools.build.tasks.sync-pom/sync-pom) params))
 
 (defn jar
@@ -164,17 +189,19 @@
     :jar-file - required, jar to write
     :main - main class symbol"
   [params]
+  (assert-required "jar" params [:class-dir :jar-file])
   ((requiring-resolve 'clojure.tools.build.tasks.jar/jar) params))
 
 (defn uber
   "Create uberjar file.
 
   Options:
-    :basis - required, used to pull dep jars
     :class-dir - required, local class dir to include
     :uber-file - required, uber jar file to create
+    :basis - used to pull dep jars
     :main - main class symbol"
   [params]
+  (assert-required "uber" params [:class-dir :uber-file])
   ((requiring-resolve 'clojure.tools.build.tasks.uber/uber) params))
 
 (defn zip
@@ -184,6 +211,7 @@
     :src-dirs - required, coll of source directories to include in zip
     :zip-file - required, zip file to create"
   [params]
+  (assert-required "zip" params [:src-dirs :zip-file])
   ((requiring-resolve 'clojure.tools.build.tasks.zip/zip) params))
 
 ;; Maven tasks
@@ -199,5 +227,6 @@
     :jar-file - required, path to jar file
     :class-dir - required, used to find the pom file"
   [params]
+  (assert-required "install" params [:basis :lib :version :jar-file :class-dir])
   ((requiring-resolve 'clojure.tools.build.tasks.install/install) params))
 
