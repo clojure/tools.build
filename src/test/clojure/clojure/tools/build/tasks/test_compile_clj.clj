@@ -11,8 +11,7 @@
     [clojure.test :refer :all :as test]
     [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
-    [clojure.tools.build.test-util :refer :all]
-    [clojure.tools.build.task.process :as process]))
+    [clojure.tools.build.test-util :refer :all]))
 
 (deftest test-compile
   (with-test-dir "test-data/p1"

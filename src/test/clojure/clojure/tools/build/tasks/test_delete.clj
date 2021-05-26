@@ -19,7 +19,7 @@
     ;; copy src into target, then delete, and check target dir is gone
     (api/copy {:target-dir "target/classes"
                :src-specs [{:src-dir "src" :include "**"}]})
-    (api/delete {:dir "target"})
+    (api/delete {:path "target"})
     (is (false? (.exists (jio/file (project-path "target/classes")))))))
 
 (comment

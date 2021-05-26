@@ -52,7 +52,7 @@
 (deftest test-new-pom
   (with-test-dir "test-data/p1"
     (api/set-project-root! (.getAbsolutePath *test-dir*))
-    (api/clean {:dir "target"})
+    (api/delete {:path "target"})
     (api/sync-pom {;; NO :src-pom
                    :lib 'test/p1
                    :version "1.2.3"
@@ -84,7 +84,7 @@
 (deftest test-update-existing-pom
   (with-test-dir "test-data/p2"
     (api/set-project-root! (.getAbsolutePath *test-dir*))
-    (api/clean {:dir "target"})
+    (api/delete {:path "target"})
     (api/sync-pom {:lib 'test/p2
                    :version "1.2.3"
                    :class-dir "target/classes"
@@ -117,7 +117,7 @@
 (deftest test-optional
   (with-test-dir "test-data/p3"
     (api/set-project-root! (.getAbsolutePath *test-dir*))
-    (api/clean {:dir "target"})
+    (api/delete {:path "target"})
     (api/sync-pom {:lib 'test/p3
                    :version "1.2.3"
                    :class-dir "target/classes"
@@ -136,7 +136,7 @@
 (deftest test-omit-repos
   (with-test-dir "test-data/p1"
     (api/set-project-root! (.getAbsolutePath *test-dir*))
-    (api/clean {:dir "target"})
+    (api/delete {:path "target"})
     (api/sync-pom {:lib 'test/p1
                    :version "1.2.3"
                    :class-dir "target/classes"

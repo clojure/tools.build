@@ -17,7 +17,6 @@
   (with-test-dir "test-data/p1"
     (let [txt (str (java.util.UUID/randomUUID))]
       (api/set-project-root! (.getAbsolutePath *test-dir*))
-      ;; copy src into target, then clean, and check target dir is gone
       (api/copy {:target-dir "target/classes"
                  :src-specs [{:src-dir "src" :include "**"
                               :replace {"__REPLACE__" txt}}]})
