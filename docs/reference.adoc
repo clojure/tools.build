@@ -12,86 +12,26 @@ toc::[]
 
 The tools.deps library and Clojure CLI tools provide support for building classpaths with dependencies, including source-based dependencies (local- and git-based). However, some libraries require build steps for compilation, resource file transformation, or artifact building.
 
-Builds are themselves programs and tools.build is a library for writing builds in terms of tasks driven by data in the deps.edn file. Many common built-in tasks are provided but the system is also open for extension and combination with other tools as needed. For the common case, support is available for invoking builds from the command line with the Clojure CLI tools.
+Builds are themselves programs and tools.build is a library providing tasks that build writers can use. Many common built-in tasks are provided but the system is also open for extension and combination with other tools as needed. Builds, as programs, can be developed interactively at the REPL, and run at the REPL or via the Clojure CLI.
 
 == Overview and Terms
 
 image::overview.png[]
 
 * Basis - given a chain of deps.edn files and modifiers to resolve-deps, make-classpath, etc, the tools.deps library will produce a "runtime basis" consisting of the library and classpath execution environment and alias data
-* Build - a build invocation loads a project basis and runs an ordered series of build tasks to create one or more artifacts
-* Task - a build step, invoked with the basis, and a combination of shared parameters and task parameters. Tasks may produce side effects (often writing to disk) and return new shared parameters that can be used by later tasks.
-* Shared parameter - attribute provided to all tasks (ignored if not used by a task)
-* Task parameter - attribute provided only to a single task, will override any shared parameter
+* Build - a build is a program that runs a ordered series of build tasks to create one or more artifacts
+* Task - a build step, invoked with a map of parameters, including the basis
 * Project directory - the directory containing deps.edn and all other project source files
-* Output directory - the output directory, defaults to the same as `<project-dir>`
-
-== tools.build API
-
-The primary function for executing a build is:
-
-[source,clojure]
-----
-clojure.tools.build/build
-([{:keys [project-dir output-dir tasks params verbose]}])
-  Executes a project build consisting of tasks using shared parameters.
-
-    :project-dir (optional) - path to project root, should include deps.edn file (default = current directory),
-                              used to form the project basis
-    :output-dir (optional) - path to output root (default = project-dir)
-    :tasks (required) - coll of task steps in the form [task-sym task-params]
-                        task-sym (required) - unqualified for built-in tasks, otherwise should resolve to a var
-                        task-params (optional) - map of parameters overriding shared params
-    :params (optional) - shared params passed to all tasks or an alias referring to them
-
-   Build steps:
-     Load basis from project-dir
-     Load build params from either a map or an alias
-     Run tasks, each task is passed the basis and a merge of build params and task-specific params
-     Output files and dirs relative to output-dir
-----
-
-== Shared directories and params
-
-Many parameters are shared across multiple tasks - this is important both to reduce the number of parameters to set and to allow tasks to work together. All parameters must be qualified. Namespace of `build` is reserved.
-
-Important directory parameters shared across the built-in tasks:
-
-[options="header", role="table"]
-|===
-| Directory parameter | Description
-| `:build/project-dir` | The project directory specified in the build, should contain `deps.edn` and serve as the root for all input directories, defaults to current directory.
-| `:build/output-dir` | The output directory, root for all output, defaults to project directory.
-| `:build/target-dir` | The target directory, designed to write new outputs or as a working area. Interpreted relative to `:build/output-dir`.
-| `:build/class-dir` | The classes directory, which is the default output for compilation tasks and resources and the default directory to use when creating a jar file. Intepreted relative to `:build/output-dir`, such as `"target/classes"`.
-| `:build/pom-dir` | The pom directory is where the pom.xml and pom.properties are created, following Maven coventions for jar construction. Interpreted relative to `:build/output-dir`.
-| `:build/clj-paths` | Coll of directories that are Clojure source roots, resolved relative to `:build/project-dir`. See `clj-compile` task.
-| `:build/java-paths` | Coll of directories that are Java source roots, resolved relative to `:build/project-dir`. See `javac` task.
-|===
-
-The `dirs` task can be used to return shared parameter values for most of these according to common Maven conventions.
-
-Additionally, there are some project-oriented parameters that are shared across tasks:
-
-[options="header", role="table"]
-|===
-| Shared parameter | Description
-| `:build/lib` | Qualified symbol defining this projects lib name (in Maven terms `groupId/artifactId`)
-| `:build/classifier` | String specifying the library classifier
-| `:build/version` | String representing this project's version number
-| `:build/main-class` | Symbol for the Clojure namespace with a -main or Java main class
-|===
-
-By convention, parameters that end in `>` expect to find a parameter name that will be returned from a task. For example, the process task takes a `:build/out>` param. The process task will return a shared param whose name is the value of `:build/out>`.
 
 == Built-in tasks
+
+The primary entry point for tools.build is the clojure.tools.build.api namespace.
 
 The following built-in tasks are provided (these may all be specified unqualified):
 
 [options="header", role="table"]
 |===
 | Task | Description
-| `dirs` | Return directory and file shared params matching Maven build conventions
 | `clean` | Clean `:build/target-dir` 
 | `compile-clj` | Compile Clojure namespaces to `:build/class-dir`
 | `sync-pom` | Emit pom from project deps and optionally a source pom to `:build/pom-dir`
@@ -100,31 +40,7 @@ The following built-in tasks are provided (these may all be specified unqualifie
 | `jar` | Create a jar of `:build/class-dir` to `:build/jar-file`
 | `uber` | Create an uberjar (the output jar plus dependent jars) to `:build/uber-file`
 | `zip` | Zip output files
-| `process` | Execute an external process
-| `format-str` | Format a string template with param replacement
 | `install` | Install the created jar to local Maven cache
-|===
-
-=== dirs task
-
-[options="header", role="table"]
-|===
-| Parameter | Required? | Description
-| `:build/lib` | yes | Qualified symbol defining this projects lib name (in Maven terms `groupId/artifactId`)
-| `:build/version` | yes | String representing this project's version number
-| `:build/classifier` | | String specifying the library classifier
-|===
-
-Returns new file and directory parameters using common Maven-conventions:
-
-[options="header", role="table"]
-|===
-| Output param | Description
-| `:build/target-dir` | `"target"` - target dir for making outputs and intermediate products
-| `:build/class-dir` | `"target/classes"` - building jar structure (compiled outputs, resources), relative to `:build/output-dir`
-| `:build/pom-dir` | `"target/classes/META-INF/maven/group-id/artifact-id"` - Maven place to put pom, relative to `:build/output-dir`
-| `:build/jar-file` | `"target/artifact-id-[classifier-]version.jar"` - jar artifact, relative to `:build/output-dir`
-| `:build/uber-file` | `"target/artifact-id-[classifier-]version-standalone.jar"` - uberjar artifact, relative to `:build/output-dir`
 |===
 
 === clean task
@@ -132,10 +48,10 @@ Returns new file and directory parameters using common Maven-conventions:
 [options="header", role="table"]
 |===
 | Parameter | Required? | Description
-| `:build/target-dir` | yes | Target dir, relative to `:build/output-dir`
+| `:dir` | yes | Target directory
 |===
 
-Removes `:build/target-dir` recursively.
+Removes `:dir` recursively.
 
 === compile-clj task
 
@@ -148,17 +64,14 @@ Removes `:build/target-dir` recursively.
 [options="header", role="table"]
 |===
 | Parameter | Required? | Description
-| `:build/project-dir` | yes | Project dir
-| `:build/output-dir` | yes | Output dir
-| `:build/target-dir` | yes | Target dir, relative to `:build/output-dir`
-| `:build/class-dir` | yes | Class output dir, relative to `:build/output-dir`
-| `:build/clj-paths` | | Coll of Clojure source roots, resolved resolve to `:build/project-dir`
-| `:build/compiler-opts` | | Map of https://clojure.org/reference/compilation#_compiler_options[compiler options]
-| `:build/ns-compile` | | Coll of namespace symbols
-| `:build/filter-nses` | | Coll of namespace symbol roots
+| `:class-dir` | yes | Class output dir
+| `:clj-paths` | yes | Coll of Clojure source dirs
+| `:compiler-opts` | | Map of https://clojure.org/reference/compilation#_compiler_options[compiler options]
+| `:ns-compile` | | Coll of namespace symbols to compile (if not supplied, compile all)
+| `:filter-nses` | | Coll of namespace symbol roots to keep after compiling
 |===
 
-The `compile-clj` task compiles either an explicit list of namespaces in `:build/ns-compile` (if provided) or all namespaces detected in `:build/clj-paths` (one of these is required). Namespaces are compiled with `:build/compiler-opts` if provided and output to intermediate `output-dir/target-dir/compile-clj` then filtered with `:build/filter-nses` (coll of namespace prefix symbols) into `output-dir/class-dir`.
+The `compile-clj` task compiles either an explicit list of namespaces in `:ns-compile` (if provided) or all namespaces detected in `:clj-paths` (one of these is required). Namespaces are compiled with `:compiler-opts` if provided and filtered with `:filter-nses` (coll of namespace prefix symbols) into `:class-dir`.
 
 Compilation occurs in a forked process using the `:classpath` from the computed project basis. Compilation errors will be printed to stderr and will cause build execution to abort.
 
@@ -166,22 +79,19 @@ Example compiling all Clojure namespaces in Clojure source paths (when making an
 
 [source,clojure]
 ----
-[compile-clj {:build/project-dir "..."
-              :build/target-dir "target"
-              :build/class-dir "target/classes"
-              :build/clj-paths :clj-paths}]
+[compile-clj {:class-dir "target/classes"
+              :clj-paths ["src"]}]
 ----
 
 Example compiling specific Clojure namespaces with direct linking and keeping only classes from this library:
 
 [source,clojure]
 ----
-[compile-clj {:build/project-dir "..."
-              :build/target-dir "target"
-              :build/class-dir "target/classes"
-              :build/ns-compile [a.b.c a.b.d]
-              :build/compiler-options {:direct-linking true}
-              :build/filter-nses [a.b]}]
+[compile-clj {:basis basis
+              :class-dir "target/classes"
+              :ns-compile [a.b.c a.b.d]
+              :compiler-options {:direct-linking true}
+              :filter-nses [a.b]}]
 ----
 
 === javac task
@@ -337,45 +247,6 @@ In the case of multiple jars with the same resource (not yet configurable):
 
 Creates zip file of zip-dir's contents in zip-name.
 
-=== process task
-
-[options="header", role="table"]
-|===
-| Parameter | Required? | Description
-| `:build/command` | yes | Coll of process params
-| `:build/out>` |  | Param key in which to return the process output
-|===
-
-Expect the command as specified in command and return the trimmed stdout result in the specified out param.
-
-Output params:
-
-[options="header", role="table"]
-|===
-| Out param | Description
-| Value of `:build/out>` | Return the trimmed stdout result of executing the command
-|===
-
-=== format-str task
-
-[options="header", role="table"]
-|===
-| Parameter | Required? | Description
-| `:build/template` | yes | String template per Java formatter
-| `:build/args` | yes | Coll of args (resolved as params) to feed the template
-| `:build/out>` | yes | Param key in which to return the process output
-|===
-
-Format the string template with the args and put the result in the `out>` param.
-
-Output params:
-
-[options="header", role="table"]
-|===
-| Out param | Description
-| Value of `:build/out>` | Return the formatting template
-|===
-
 === install task
 
 * Prereq tasks: expects jar file from `jar` task and pom file from `sync-pom` task
@@ -399,74 +270,28 @@ Installs the jar (created by the `jar` task) into the Maven local repository.
 
 == Usage as a deps tool
 
-Add to your deps.edn and add as a tool:
+Add an alias to your deps.edn for builds:
 
 [source,clojure]
 ----
 {...
  :aliases
  {:build
-  {:replace-deps {org.clojure/tools.build {:git/url "git@github.com:cognitect-labs/tools.build.git"
-                                           :sha "<SHA>"}
-                  org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
-   :exec-fn clojure.tools.build/build
-   :exec-args {:tasks [[dirs] [clean] [copy] [sync-pom] [jar]]
-               :params {:build/copy-specs [{:from :clj-paths}]
-                        :build/lib my/lib1
-                        :build/version "1.2.3"}}}}}
+  {:replace-deps {io.github.clojure/tools.build {:git/url "git@github.com:cognitect-labs/tools.build.git"
+                                                 :git/tag "TAG", :git/sha "PREFIX-SHA"}}
+   :replace-paths ["."]
+   :ns-default build}}}
 ----
 
-You can find the latest sha for tools.build with:
+Run the function `jar` in build.clj: 
 
 [source]
 ----
-git ls-remote git@github.com:cognitect-labs/tools.build.git refs/heads/master
-----
-
-Run it: 
-
-[source]
-----
-clj -X:build
-----
-
-Override a parameter, like `:version`:
-
-[source]
-----
-clj -X:build '[:params :build/version]' '"2.2.2"'
+clj -X:build jar
 ----
 
 == Creating new tasks
 
-Tasks are functions that take the following form:
+Tasks are functions that take a map. 
 
-[source,clojure]
-----
-(defn a-task [basis params])
-
-  basis - the basis created by build params
-  params - a merged map consisting of shared params and task params
-----
-
-Tasks may return a map containing new params to be passed to subsequent tasks. If there are no params to add, return nil.
-
-=== Parameter validation
-
-To provide validation for your spec parameters, create specs in your task namespace for those parameter values.
-Each attribute will be checked according to its spec (if available) prior to task invocation.
-
-=== Parameter resolution
-
-The parameters passed to a task are a merge of the shared parameters flowing through the task pipeline and the per-task parameters. In general, task params may be the value to use, or the name of another parameter to resolve, or an alias. A
-helper function is provided to aid in resolution:
-
-[source]
-----
-clojure.tools.build.task.api/resolve-param
-([basis params key default-key] [basis params key])
-  Resolve task param, or alias. First tries to resolve key
-  as param, repeatedly while finding keywords. Next tries to
-  resolve as alias if still a keyword. Returns nil if not resolved.
-----
-
+Tasks can use any external dependencies that are needed (these will be added to your deps.edn :build alias alongside tools.build).

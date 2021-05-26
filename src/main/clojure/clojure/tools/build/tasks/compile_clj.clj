@@ -14,7 +14,7 @@
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.task.file :as file]
-    [clojure.tools.build.task.process :as process]
+    [clojure.tools.build.tasks.process :as process]
     [clojure.tools.namespace.find :as find])
   (:import
     [java.io File]
@@ -50,7 +50,7 @@
                    deps/join-classpath)
           _ (spit (jio/file working-dir "compile.cp") cp-str)
           args ["java" "-cp" cp-str "clojure.main" (.getCanonicalPath compile-script)]
-          exit (process/exec args)]
+          exit (:exit (process/process {:command-args args}))]
       (if (zero? exit)
         (do
           (if (seq filter-nses)
