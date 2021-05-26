@@ -11,8 +11,7 @@
     [clojure.test :refer :all :as test]
     [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
-    [clojure.tools.build.test-util :refer :all]
-    [clojure.tools.build.task.process :as process]))
+    [clojure.tools.build.test-util :refer :all]))
 
 (deftest test-javac
   (with-test-dir "test-data/p1"
@@ -22,8 +21,8 @@
     (is (true? (.exists (jio/file (project-path "target/classes/foo/Demo1.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/Demo2.class")))))
     (let [class-path (.getPath (jio/file (project-path "target/classes")))]
-      (is (= "Hello" (process/invoke ["java" "-cp" class-path "foo.Demo1"])))
-      (is (= "Hello" (process/invoke ["java" "-cp" class-path "foo.Demo2"]))))))
+      (is (= "Hello\n" (:out (api/process {:command-args ["java" "-cp" class-path "foo.Demo1"] :out :capture}))))
+      (is (= "Hello\n" (:out (api/process {:command-args ["java" "-cp" class-path "foo.Demo2"] :out :capture})))))))
 
 (comment
   (run-tests)
