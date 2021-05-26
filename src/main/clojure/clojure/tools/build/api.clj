@@ -38,7 +38,7 @@
   [task params required]
   (let [missing (set/difference (set required) (set (keys params)))]
     (when (seq missing)
-      (throw (ex-info (format "Missing required params for %s: %s" task (vec (sort missing))) params)))))
+      (throw (ex-info (format "Missing required params for %s: %s" task (vec (sort missing))) (or params {}))))))
 
 ;; File tasks
 
