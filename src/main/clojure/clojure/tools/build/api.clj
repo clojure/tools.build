@@ -1,7 +1,8 @@
 (ns clojure.tools.build.api
   (:require
     [clojure.java.io :as jio]
-    [clojure.string :as str])
+    [clojure.string :as str]
+    [clojure.tools.build.task.file :as file])
   (:import
     [java.io File]))
 
@@ -31,8 +32,32 @@
       ;; relative to *project-root*
       (jio/file *project-root* path-file))))
 
-;; Basis
+;; File tasks
 
+(defn delete
+  "Delete file or directory recursively, if it exists.
+
+  Options:
+    :path - required, path to file or directory"
+  [{:keys [path]}]
+  (let [root-file (resolve-path path)]
+    ;(println "root-file" root-file)
+    (if (.exists root-file)
+      (file/delete root-file))))
+
+(defn copy
+  "Copy many files and optionally do text replacement.
+
+  Options:
+    :target-dir - required, dir to write files, will be created if it doesn't exist
+    :src-specs - required, coll of specs: {:src-dir ... :include ... :replace ...}
+      :src-dir - dir to find files to copy
+      :include - glob of files to include, all = \"**\"
+      :replace - map of string in source file to replacement string"
+  [params]
+  ((requiring-resolve 'clojure.tools.build.tasks.copy/copy) params))
+
+;; Basis tasks
 
 (defn load-basis
   "Load the project basis (classpath context based on project deps.edn)
@@ -44,6 +69,8 @@
    ((requiring-resolve 'clojure.tools.build.tasks.load-basis/load-basis)))
   ([params]
    ((requiring-resolve 'clojure.tools.build.tasks.load-basis/load-basis) params)))
+
+;; Process tasks
 
 (defn process
   "Exec the command made from command-args, redirect out and err as directed,
@@ -67,12 +94,14 @@
   [params]
   ((requiring-resolve 'clojure.tools.build.tasks.process/process) params))
 
+;; Git tasks
+
 (defn git-count-revs
   "Shells out to git to count the number of commits on this branch:
-    git rev-list HEAD --count
+  git rev-list HEAD --count
 
   Options:
-    :dir - dir to invoke this command from, by default current directory"
+    :dir - required, dir to invoke this command from, by default current directory"
   [{:keys [dir] :or {dir "."}}]
   (-> {:command-args ["git" "rev-list" "HEAD" "--count"]
        :dir (.getPath (resolve-path dir))
@@ -81,41 +110,94 @@
     :out
     str/trim))
 
-;; Tasks
-
-(defn clean
-  [params]
-  ((requiring-resolve 'clojure.tools.build.tasks.clean/clean) params))
+;; Compile tasks
 
 (defn compile-clj
+  "Compile Clojure source to classes.
+
+  Options:
+    :basis - required, basis to use when compiling
+    :clj-dirs - required, coll of Clojure source dirs
+    :class-dir - required, dir to write classes, will be created if needed
+    :compile-opts - map of Clojure compiler options:
+      {:disable-locals-clearing false
+       :elide-meta [:doc :file :line ...]
+       :direct-linking false}
+    :ns-compile - coll of namespace symbols to compile, all if not specified
+    :filter-nses - coll of symbols representing a namespace prefix to include"
   [params]
   ((requiring-resolve 'clojure.tools.build.tasks.compile-clj/compile-clj) params))
 
-(defn copy
-  [params]
-  ((requiring-resolve 'clojure.tools.build.tasks.copy/copy) params))
-
-(defn install
-  [params]
-  ((requiring-resolve 'clojure.tools.build.tasks.install/install) params))
-
 (defn javac
+  "Compile Java source to classes.
+
+  Options:
+    :basis - required, basis to use when compiling
+    :java-dirs - required, coll of Java source dirs
+    :class-dir - required, dir to write classes, will be created if needed
+    :javac-opts - coll of string opts, like [\"-source\" \"8\" \"-target\" \"8\"]"
   [params]
   ((requiring-resolve 'clojure.tools.build.tasks.javac/javac) params))
 
-(defn jar
-  [params]
-  ((requiring-resolve 'clojure.tools.build.tasks.jar/jar) params))
+;; Jar/zip tasks
 
 (defn sync-pom
+  "Sync or generate pom from deps.edn.
+
+  Options:
+    :basis - required, used to pull deps, repos
+    :class-dir - required, dir to write classes, will be created if needed
+    :src-pom - source pom.xml to synchronize from
+    :lib - required, project lib symbol
+    :version - required, project version
+    :src-dirs - coll of src dirs
+    :resource-dirs - coll of resource dirs
+    :repos - map of repo name to repo config, replaces repos from deps.edn"
   [params]
   ((requiring-resolve 'clojure.tools.build.tasks.sync-pom/sync-pom) params))
 
+(defn jar
+  "Create jar file.
+
+  Options:
+    :class-dir - required, dir to include in jar
+    :jar-file - required, jar to write
+    :main - main class symbol"
+  [params]
+  ((requiring-resolve 'clojure.tools.build.tasks.jar/jar) params))
+
 (defn uber
+  "Create uberjar file.
+
+  Options:
+    :basis - required, used to pull dep jars
+    :class-dir - required, local class dir to include
+    :uber-file - required, uber jar file to create
+    :main - main class symbol"
   [params]
   ((requiring-resolve 'clojure.tools.build.tasks.uber/uber) params))
 
 (defn zip
+  "Create zip file.
+
+  Options:
+    :src-dirs - required, coll of source directories to include in zip
+    :zip-file - required, zip file to create"
   [params]
   ((requiring-resolve 'clojure.tools.build.tasks.zip/zip) params))
+
+;; Maven tasks
+
+(defn install
+  "Install Maven jar to local repo.
+
+  Options:
+    :basis - required, used for :mvn/local-repo
+    :lib - required, lib symbol
+    :classifier - classifier string, if needed
+    :version - required, string version
+    :jar-file - required, path to jar file
+    :class-dir - required, used to find the pom file"
+  [params]
+  ((requiring-resolve 'clojure.tools.build.tasks.install/install) params))
 

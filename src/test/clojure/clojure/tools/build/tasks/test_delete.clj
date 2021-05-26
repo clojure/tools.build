@@ -6,20 +6,20 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.build.tasks.test-clean
+(ns clojure.tools.build.tasks.test-delete
   (:require
     [clojure.test :refer :all :as test]
     [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.test-util :refer :all]))
 
-(deftest test-clean
+(deftest test-delete
   (with-test-dir "test-data/p1"
     (api/set-project-root! (.getAbsolutePath *test-dir*))
-    ;; copy src into target, then clean, and check target dir is gone
+    ;; copy src into target, then delete, and check target dir is gone
     (api/copy {:target-dir "target/classes"
                :src-specs [{:src-dir "src" :include "**"}]})
-    (api/clean {:dir "target"})
+    (api/delete {:dir "target"})
     (is (false? (.exists (jio/file (project-path "target/classes")))))))
 
 (comment

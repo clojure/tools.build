@@ -43,8 +43,8 @@
 (def ^:private default-copy-spec
   {:from ["."] :include "**"})
 
-;; (copy {:build/compile-dir ...
-;;        :build/copy-specs [{:from ... :include ... :replace ...}]})
+;; (copy {:target-dir ...
+;;        :src-specs [{:src-dir ... :include ... :replace ...}]})
 (defn copy
   [{:keys [target-dir src-specs] :as params}]
   (let [to-path (.toPath (file/ensure-dir (api/resolve-path target-dir)))]
