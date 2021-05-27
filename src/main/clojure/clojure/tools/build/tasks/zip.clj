@@ -10,8 +10,8 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
-    [clojure.tools.build.task.file :as file]
-    [clojure.tools.build.task.zip :as zip])
+    [clojure.tools.build.util.file :as file]
+    [clojure.tools.build.util.zip :as zip])
   (:import
     [java.io FileOutputStream]
     [java.util.zip ZipOutputStream]))

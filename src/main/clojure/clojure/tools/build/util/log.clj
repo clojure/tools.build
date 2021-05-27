@@ -6,7 +6,7 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.build.task.log
+(ns clojure.tools.build.util.log
   (:require
     [clojure.pprint :as pprint]))
 

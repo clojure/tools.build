@@ -17,7 +17,7 @@
     [clojure.tools.deps.alpha.util.maven :as maven]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]
     [clojure.tools.build.api :as api]
-    [clojure.tools.build.task.file :as file])
+    [clojure.tools.build.util.file :as file])
   (:import [java.io Reader]
            [clojure.data.xml.node Element]))
 

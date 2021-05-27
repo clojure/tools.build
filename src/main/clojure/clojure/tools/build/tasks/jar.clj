@@ -9,8 +9,8 @@
 (ns clojure.tools.build.tasks.jar
   (:require
     [clojure.tools.build.api :as api]
-    [clojure.tools.build.task.file :as file]
-    [clojure.tools.build.task.zip :as zip])
+    [clojure.tools.build.util.file :as file]
+    [clojure.tools.build.util.zip :as zip])
   (:import
     [java.io File FileOutputStream]
     [java.util.jar Manifest JarOutputStream]))

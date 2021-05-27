@@ -11,7 +11,7 @@
     [clojure.java.io :as jio]
     [clojure.string :as str]
     [clojure.tools.build.api :as api]
-    [clojure.tools.build.task.file :as file])
+    [clojure.tools.build.util.file :as file])
   (:import
     [java.io File]
     [javax.tools ToolProvider DiagnosticListener]))

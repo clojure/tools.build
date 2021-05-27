@@ -12,7 +12,7 @@
     [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.test-util :refer :all]
-    [clojure.tools.build.task.zip :as zip])
+    [clojure.tools.build.util.zip :as zip])
   (:import [java.util.zip ZipFile ZipOutputStream ZipEntry]))
 
 (defn slurp-manifest

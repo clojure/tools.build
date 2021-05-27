@@ -6,10 +6,10 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.build.task.zip
+(ns clojure.tools.build.util.zip
   (:require
     [clojure.java.io :as jio]
-    [clojure.tools.build.task.file :as file])
+    [clojure.tools.build.util.file :as file])
   (:import
     [java.io File BufferedInputStream FileInputStream]
     [java.nio.file Files LinkOption]

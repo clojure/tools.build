@@ -14,8 +14,8 @@
     [clojure.set :as set]
     [clojure.string :as str]
     [clojure.tools.build.api :as api]
-    [clojure.tools.build.task.file :as file]
-    [clojure.tools.build.task.zip :as zip])
+    [clojure.tools.build.util.file :as file]
+    [clojure.tools.build.util.zip :as zip])
   (:import
     [java.io File InputStream FileInputStream BufferedInputStream
              OutputStream FileOutputStream BufferedOutputStream ByteArrayOutputStream]

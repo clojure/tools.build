@@ -12,7 +12,7 @@
     [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.test-util :refer :all]
-    [clojure.tools.build.task.zip :as zip]))
+    [clojure.tools.build.util.zip :as zip]))
 
 (deftest test-zip
   (let [zip-path "target/output.zip"]

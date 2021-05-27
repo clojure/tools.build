@@ -6,13 +6,13 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.build.task.file
+(ns clojure.tools.build.util.file
   (:require
     [clojure.java.io :as jio]
     [clojure.string :as str])
   (:import
     [java.io File]
-    [java.nio.file Path Paths Files LinkOption CopyOption StandardCopyOption]))
+    [java.nio.file Path Files LinkOption CopyOption StandardCopyOption]))
 
 (set! *warn-on-reflection* true)
 

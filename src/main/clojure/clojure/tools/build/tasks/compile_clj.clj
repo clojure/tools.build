@@ -13,7 +13,7 @@
     [clojure.string :as str]
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.build.api :as api]
-    [clojure.tools.build.task.file :as file]
+    [clojure.tools.build.util.file :as file]
     [clojure.tools.build.tasks.process :as process]
     [clojure.tools.namespace.find :as find])
   (:import
