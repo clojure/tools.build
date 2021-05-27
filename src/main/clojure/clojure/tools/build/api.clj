@@ -64,6 +64,20 @@
   (assert-required "copy-file" params [:src :target])
   (file/copy-file (resolve-path src) (resolve-path target)))
 
+(defn write-file
+  "Like spit, but create dirs if needed.
+
+  Options:
+    :path - required, file path
+    :content - val to write, will pr-str (if omitted, like touch)
+    :opts - coll of writer opts like :append and :encoding"
+  [{:keys [path content opts] :as params}]
+  (assert-required "write-file" params [:path])
+  (let [f (resolve-path path)]
+    (if content
+      (apply file/ensure-file f (pr-str content) opts)
+      (file/ensure-file f))))
+
 (defn copy
   "Copy many files and optionally do text replacement.
 
