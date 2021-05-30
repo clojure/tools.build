@@ -40,30 +40,20 @@
     (Files/walkFileTree root-path visitor)
     @paths))
 
-(def ^:private default-copy-spec
-  {:from ["."] :include "**"})
-
-;; (copy {:target-dir ...
-;;        :src-specs [{:src-dir ... :include ... :replace ...}]})
 (defn copy
-  [{:keys [target-dir src-specs] :as params}]
+  [{:keys [target-dir src-dirs include replace] :or {include "**"} :as params}]
   (let [to-path (.toPath (file/ensure-dir (api/resolve-path target-dir)))]
-    (doseq [{:keys [src-dir include replace]} src-specs]
-      ;(println "\nspec" from include compile-dir replace)
-      (let [from [src-dir]
-            include [include]]
-        (doseq [from-dir from]
-          ;(println "from-dir" from-dir)
-          (let [from-file (api/resolve-path from-dir)]
-            (doseq [include-one include]
-              (let [paths (match-paths from-file include-one)]
-                (doseq [^Path path paths]
-                  (let [path-file (.toFile path)
-                        target-file (.toFile (.resolve to-path (.relativize (.toPath from-file) path)))]
-                    ;(println "copying" (.toString path-file) (.toString target-file) (boolean (not (empty? replace))))
-                    (if (empty? replace)
-                      (file/copy-file path-file target-file)
-                      (let [contents (slurp path-file)
-                            replaced (reduce (fn [s [find replace]] (str/replace s find replace))
-                                             contents replace)]
-                        (file/ensure-file target-file replaced :append false)))))))))))))
+    (doseq [dir src-dirs]
+      ;(println "from" dir)
+      (let [from-file (api/resolve-path dir)
+            paths (match-paths from-file include)]
+        (doseq [^Path path paths]
+          (let [path-file (.toFile path)
+                target-file (.toFile (.resolve to-path (.relativize (.toPath from-file) path)))]
+            ;(println "copying" (.toString path-file) (.toString target-file) (boolean (not (empty? replace))))
+            (if (empty? replace)
+              (file/copy-file path-file target-file)
+              (let [contents (slurp path-file)
+                    replaced (reduce (fn [s [find replace]] (str/replace s find replace))
+                               contents replace)]
+                (file/ensure-file target-file replaced :append false)))))))))

@@ -30,7 +30,7 @@
       (api/javac {:class-dir "target/classes"
                   :java-dirs ["java"]})
       (api/copy {:target-dir "target/classes"
-                 :src-specs [{:src-dir "src" :include "**"}]})
+                 :src-dirs ["src"]})
       (api/uber {:class-dir "target/classes"
                  :uber-file uber-path
                  :main 'foo.bar})

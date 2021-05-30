@@ -18,8 +18,8 @@
     (let [txt (str (java.util.UUID/randomUUID))]
       (api/set-project-root! (.getAbsolutePath *test-dir*))
       (api/copy {:target-dir "target/classes"
-                 :src-specs [{:src-dir "src" :include "**"
-                              :replace {"__REPLACE__" txt}}]})
+                 :src-dirs ["src"]
+                 :replace {"__REPLACE__" txt}})
       (let [source-file (jio/file (project-path "target/classes/foo/bar.clj"))
             contents    (slurp source-file)]
         (is (.exists source-file))

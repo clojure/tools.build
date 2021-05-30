@@ -83,12 +83,11 @@
 
   Options:
     :target-dir - required, dir to write files, will be created if it doesn't exist
-    :src-specs - required, coll of specs: {:src-dir ... :include ... :replace ...}
-      :src-dir - dir to find files to copy
-      :include - glob of files to include, all = \"**\"
-      :replace - map of string in source file to replacement string"
+    :src-dirs   - required, coll of dirs to copy from
+    :include    - glob of files to include, default = \"**\"
+    :replace    - map of source to replacement string in files"
   [params]
-  (assert-required "copy" params [:target-dir :src-specs])
+  (assert-required "copy" params [:target-dir :src-dirs])
   ((requiring-resolve 'clojure.tools.build.tasks.copy/copy) params))
 
 ;; Basis tasks
