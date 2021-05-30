@@ -151,7 +151,7 @@
 
   Options:
     :basis - required, basis to use when compiling
-    :clj-dirs - required, coll of Clojure source dirs
+    :src-dirs - required, coll of Clojure source dirs
     :class-dir - required, dir to write classes, will be created if needed
     :compile-opts - map of Clojure compiler options:
       {:disable-locals-clearing false
@@ -160,19 +160,19 @@
     :ns-compile - coll of namespace symbols to compile, all if not specified
     :filter-nses - coll of symbols representing a namespace prefix to include"
   [params]
-  (assert-required "compile-clj" params [:basis :clj-dirs :class-dir])
+  (assert-required "compile-clj" params [:basis :src-dirs :class-dir])
   ((requiring-resolve 'clojure.tools.build.tasks.compile-clj/compile-clj) params))
 
 (defn javac
   "Compile Java source to classes.
 
   Options:
-    :java-dirs - required, coll of Java source dirs
+    :src-dirs - required, coll of Java source dirs
     :class-dir - required, dir to write classes, will be created if needed
     :basis - classpath basis to use when compiling
     :javac-opts - coll of string opts, like [\"-source\" \"8\" \"-target\" \"8\"]"
   [params]
-  (assert-required "javac" params [:java-dirs :class-dir])
+  (assert-required "javac" params [:src-dirs :class-dir])
   ((requiring-resolve 'clojure.tools.build.tasks.javac/javac) params))
 
 ;; Jar/zip tasks

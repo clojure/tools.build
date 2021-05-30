@@ -36,12 +36,12 @@
   (str/replace (clojure.lang.Compiler/munge (str ns-sym)) \. \/))
 
 (defn compile-clj
-  [{:keys [basis clj-dirs compile-opts ns-compile filter-nses class-dir] :as params}]
+  [{:keys [basis src-dirs compile-opts ns-compile filter-nses class-dir] :as params}]
   (let [working-dir (.toFile (Files/createTempDirectory "compile-clj" (into-array FileAttribute [])))]
     (let [{:keys [classpath]} basis
           compile-dir-file (file/ensure-dir (api/resolve-path class-dir))
           nses (or ns-compile
-                 (mapcat #(find/find-namespaces-in-dir (api/resolve-path %) find/clj) clj-dirs))
+                 (mapcat #(find/find-namespaces-in-dir (api/resolve-path %) find/clj) src-dirs))
           working-compile-dir (file/ensure-dir (jio/file working-dir "compile-clj"))
           compile-script (jio/file working-dir "compile.clj")
           _ (write-compile-script! compile-script working-compile-dir nses compile-opts)
