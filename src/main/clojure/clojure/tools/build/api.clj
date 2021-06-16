@@ -242,3 +242,44 @@
   (assert-required "install" params [:basis :lib :version :jar-file :class-dir])
   ((requiring-resolve 'clojure.tools.build.tasks.install/install) params))
 
+
+;; deflinked
+
+(defmacro deflinked
+  [nom targets]
+  `(defn ~nom
+     [params#]
+     (let [to# (:to params#)]
+       (loop [p# params#
+              remaining# ~targets]
+         (let [target# (first remaining#)]
+           (if target#
+             (let [nextp# (target# p#)]
+               (if (and nextp# (= (symbol (resolve to#)) (symbol (resolve target#))))
+                 nextp#
+                 (recur nextp# (rest remaining#))))
+             p#))))))
+
+(comment
+
+  (defn a [_] (println "A"))
+  (defn b [_] (println "B"))
+  (defn c [_] (println "C"))
+
+  (macroexpand-1 '(deflinked abclink [a b c]))
+  
+  (deflinked abclink [a b c])
+
+  (defn abclink [params]
+    (let [to (:to params)]
+      (loop [p params remaining [a b c]]
+        (let [target (first remaining)]
+          (if target
+            (let [nextp (target p)]
+              (if (= (symbol (resolve to)) (symbol (resolve target)))
+                nextp
+                (recur nextp (rest remaining))))
+            p)))))
+
+
+)
