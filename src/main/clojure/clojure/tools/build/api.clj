@@ -3,7 +3,8 @@
     [clojure.java.io :as jio]
     [clojure.set :as set]
     [clojure.string :as str]
-    [clojure.tools.build.util.file :as file])
+    [clojure.tools.build.util.file :as file]
+    [clojure.tools.cli.help :as cli])
   (:import
     [java.io File]))
 
@@ -247,15 +248,20 @@
 
 (defmacro deflinked
   [nom targets]
-  `(defn ~nom
-     [params#]
-     (let [to# (:to params#)]
+  `(defn ~nom [params#]
+     (let [to# (:to params#)
+           ns-defs# (merge params# (cli/garner-ns-defaults))
+           ns-default# (:ns-default ns-defs#)
+           ns-aliases# (:ns-aliases ns-defs#)]
+       (println :====> ns-defs#)
        (loop [p# params#
               remaining# ~targets]
          (let [target# (first remaining#)]
            (if target#
              (let [nextp# (target# p#)]
-               (if (and nextp# (= (symbol (resolve to#)) (symbol (resolve target#))))
+               (if (and nextp#
+                        (= (symbol (resolve to#))
+                           (symbol (resolve target#))))
                  nextp#
                  (recur nextp# (rest remaining#))))
              p#))))))
