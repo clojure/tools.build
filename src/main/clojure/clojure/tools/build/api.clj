@@ -258,6 +258,9 @@
 ;; deflinked
 
 (defmacro deflinked
+  "Defines a named, linked set of tasks that can short-circuit execution at
+  a specific task specified via a :to parameter. Tasks comprising the chain
+  are execute as if by ->."
   [nom targets]
   `(defn ~nom [params#]
      (let [[to#] (when-let [t# (:to params#)] (qualify-fn-symbols [t#]))]
