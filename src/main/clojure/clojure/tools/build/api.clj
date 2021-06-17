@@ -247,11 +247,13 @@
   (let [ns-defs    (cli/garner-ns-defaults)
         ns-default (:ns-default ns-defs)
         ns-aliases (:ns-aliases ns-defs)]
-    (vec
-     (map #(-> %
-               (cli/qualify-fn ns-aliases ns-default)
-               requiring-resolve)
-          syms))))
+    (if (or ns-default ns-aliases)
+      (vec
+       (map #(-> %
+                 (cli/qualify-fn ns-aliases ns-default)
+                 requiring-resolve)
+            syms))
+      syms)))
 
 ;; deflinked
 
@@ -263,33 +265,28 @@
               remaining# ~(qualify-fn-symbols targets)]
          (let [target# (first remaining#)]
            (if target#
-             (let [nextp# (do (print "CALL ") (target# p#))]
-               (println {:p nextp#, :tgt target# :to to# :rem remaining#})
-               (if (and to#
-                        (= to# target#))
+             (let [nextp# (target# p#)]
+               (if (and to# (= to# target#))
                  nextp#
                  (recur nextp# (rest remaining#))))
              p#))))))
 
 (comment
-  (defn a [_] (println "A"))
-  (defn b [_] (println "B"))
-  (defn c [_] (println "C"))
+  (defn a [p] (println "A") p)
+  (defn b [p] (println "B") p)
+  (defn c [p] (println "C") p)
 
   (macroexpand-1 '(deflinked abclink [a b c]))
   
-  (deflinked abclink [a b c])
-
   (defn abclink [params]
-    (let [to (:to params)]
-      (loop [p params remaining [a b c]]
-        (let [target (first remaining)]
-          (if target
-            (let [nextp (target p)]
-              (if (= (symbol (resolve to)) (symbol (resolve target)))
-                nextp
-                (recur nextp (rest remaining))))
-            p)))))
-
-
+    (let [[to] (when-let [t (:to params)] (clojure.tools.build.api/qualify-fn-symbols [t]))]
+      (loop [parms params
+             remaining-tasks [build/a build/b build/c]]
+        (let [task (first remaining-tasks)]
+          (if task
+            (let [ret (task parms)]
+              (if (and to (= to task))
+                ret
+                (recur ret (rest remaining-tasks))))
+            parms)))))
 )
