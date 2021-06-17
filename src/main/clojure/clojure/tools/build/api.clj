@@ -243,23 +243,29 @@
   (assert-required "install" params [:basis :lib :version :jar-file :class-dir])
   ((requiring-resolve 'clojure.tools.build.tasks.install/install) params))
 
+(defn- qualify-fn-symbols [syms]
+  (let [ns-defs    (cli/garner-ns-defaults)
+        ns-default (:ns-default ns-defs)
+        ns-aliases (:ns-aliases ns-defs)]
+    (vec
+     (map #(-> %
+               (cli/qualify-fn ns-aliases ns-default)
+               requiring-resolve)
+          syms))))
 
 ;; deflinked
 
 (defmacro deflinked
   [nom targets]
   `(defn ~nom [params#]
-     (let [to# (:to params#)
-           ns-defs# (merge params# (cli/garner-ns-defaults))
-           ns-default# (:ns-default ns-defs#)
-           ns-aliases# (:ns-aliases ns-defs#)]
-       (println :====> ns-defs#)
+     (let [to# (:to params#)]
        (loop [p# params#
-              remaining# ~targets]
+              remaining# ~(qualify-fn-symbols targets)]
          (let [target# (first remaining#)]
            (if target#
-             (let [nextp# (target# p#)]
-               (if (and nextp#
+             (let [nextp# (do (print "CALL ") (target# p#))]
+               (println {:p nextp#, :tgt target# :to to# :rem remaining#})
+               (if (and to#
                         (= (symbol (resolve to#))
                            (symbol (resolve target#))))
                  nextp#
