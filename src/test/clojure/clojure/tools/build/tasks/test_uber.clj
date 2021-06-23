@@ -29,7 +29,7 @@
       (api/set-project-root! (.getAbsolutePath *test-dir*))
       (api/javac {:class-dir "target/classes"
                   :src-dirs ["java"]})
-      (api/copy {:target-dir "target/classes"
+      (api/copy-dir {:target-dir "target/classes"
                  :src-dirs ["src"]})
       (api/uber {:class-dir "target/classes"
                  :uber-file uber-path

@@ -17,7 +17,7 @@
   (with-test-dir "test-data/p1"
     (let [txt (str (java.util.UUID/randomUUID))]
       (api/set-project-root! (.getAbsolutePath *test-dir*))
-      (api/copy {:target-dir "target/classes"
+      (api/copy-dir {:target-dir "target/classes"
                  :src-dirs ["src"]
                  :replace {"__REPLACE__" txt}})
       (let [source-file (jio/file (project-path "target/classes/foo/bar.clj"))

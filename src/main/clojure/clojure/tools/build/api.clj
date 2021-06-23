@@ -78,8 +78,8 @@
       (apply file/ensure-file f (pr-str content) opts)
       (file/ensure-file f))))
 
-(defn copy
-  "Copy many files and optionally do text replacement.
+(defn copy-dir
+  "Copy the contents of the src-dirs to the target-dir, optionally do text replacement.
 
   Options:
     :target-dir - required, dir to write files, will be created if it doesn't exist
