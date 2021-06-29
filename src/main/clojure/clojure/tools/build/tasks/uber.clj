@@ -81,7 +81,7 @@
               (recur))))))
     (file/copy-contents lib-file out-dir)))
 
-(defn remove-optional
+(defn- remove-optional
   "Remove optional libs and their transitive dependencies from the lib tree.
   Only remove transitive if all dependents are optional."
   [libs]
