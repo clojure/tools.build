@@ -5,31 +5,28 @@ A library for building artifacts in Clojure projects.
 
 ## Docs
 
-See [reference](docs/reference.adoc) and [guide](docs/guide.adoc) for docs and usage.
+* [API](https://clojure.github.io/tools.build)
+* [Guide](https://clojure.org/guides/tools_build)
 
 # Release Information
 
-Latest release: not yet released
+Latest release:
 
-* [All released versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.build%22)
-
-[deps.edn](https://clojure.org/guides/deps_and_cli) dependency information:
+[deps.edn](https://clojure.org/reference/deps_and_cli) dependency information:
 
 ```
-org.clojure/tools.build {:mvn/version "TBD"}
-```
+io.github.clojure/tools.build {:git/tag "v0.0.7" :git/sha "e870398"}
+``` 
 
 # Developer Information
 
 * [GitHub project](https://github.com/clojure/tools.build)
 * [How to contribute](https://clojure.org/community/contributing)
-* [Bug Tracker](https://clojure.atlassian.net/browse/TDEPS)
-* [Continuous Integration](https://build.clojure.org/job/tools.build/)
-* [Compatibility Test Matrix](https://build.clojure.org/job/tools.build-test-matrix/)
+* [Bug Tracker](https://clojure.atlassian.net/browse/TBUILD)
 
 # Copyright and License
 
-Copyright © 2020 Rich Hickey, Alex Miller, and contributors
+Copyright © 2021 Rich Hickey, Alex Miller, and contributors
 
 All rights reserved. The use and
 distribution terms for this software are covered by the
