@@ -18,13 +18,13 @@
   ".")
 
 (defn set-project-root!
-  "Set project root dir (default is \".\")"
+  "Set *project-root* dir (default is \".\")"
   [root]
   (alter-var-root #'*project-root* (constantly root)))
 
 (defn resolve-path
   "If path is absolute or root-path is nil then return path,
-  otherwise resolve path under root-path."
+  otherwise resolve relative to *project-root*."
   ^File [path]
   (let [path-file (jio/file path)]
     (if (.isAbsolute path-file)
@@ -34,7 +34,8 @@
       (jio/file *project-root* path-file))))
 
 (defn- assert-required
-  "Check that each key in required coll is a key in params, throw if not."
+  "Check that each key in required coll is a key in params and throw if
+  required are missing in params, otherwise return nil."
   [task params required]
   (let [missing (set/difference (set required) (set (keys params)))]
     (when (seq missing)
@@ -43,7 +44,7 @@
 ;; File tasks
 
 (defn delete
-  "Delete file or directory recursively, if it exists.
+  "Delete file or directory recursively, if it exists. Returns nil.
 
   Options:
     :path - required, path to file or directory"
@@ -56,6 +57,7 @@
 
 (defn copy-file
   "Copy one file from source to target, creating target dirs if needed.
+  Returns nil.
 
   Options:
     :src - required, source path
@@ -65,12 +67,12 @@
   (file/copy-file (resolve-path src) (resolve-path target)))
 
 (defn write-file
-  "Like spit, but create dirs if needed.
+  "Like spit, but create dirs if needed. Returns nil.
 
   Options:
     :path - required, file path
     :content - val to write, will pr-str (if omitted, like touch)
-    :opts - coll of writer opts like :append and :encoding"
+    :opts - coll of writer opts like :append and :encoding (per clojure.java.io)"
   [{:keys [path content opts] :as params}]
   (assert-required "write-file" params [:path])
   (let [f (resolve-path path)]
@@ -80,6 +82,11 @@
 
 (defn copy-dir
   "Copy the contents of the src-dirs to the target-dir, optionally do text replacement.
+  Returns nil.
+
+  Globs are wildcard patterns for specifying sets of files in a directory
+  tree, as specified in the glob syntax of java.nio.file.FileSystem:
+  https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)
 
   Options:
     :target-dir - required, dir to write files, will be created if it doesn't exist
@@ -131,8 +138,8 @@
 ;; Git tasks
 
 (defn git-count-revs
-  "Shells out to git to count the number of commits on this branch:
-  git rev-list HEAD --count
+  "Shells out to git and returns count of commits on this branch:
+    git rev-list HEAD --count
 
   Options:
     :dir - dir to invoke this command from, by default current directory"
@@ -147,7 +154,7 @@
 ;; Compile tasks
 
 (defn compile-clj
-  "Compile Clojure source to classes.
+  "Compile Clojure source to classes. Returns nil.
 
   Options:
     :basis - required, basis to use when compiling
@@ -164,7 +171,7 @@
   ((requiring-resolve 'clojure.tools.build.tasks.compile-clj/compile-clj) params))
 
 (defn javac
-  "Compile Java source to classes.
+  "Compile Java source to classes. Returns nil.
 
   Options:
     :src-dirs - required, coll of Java source dirs
@@ -178,7 +185,7 @@
 ;; Jar/zip tasks
 
 (defn sync-pom
-  "Sync or generate pom from deps.edn.
+  "Sync or generate pom from deps.edn. Returns nil.
 
   Options:
     :basis - required, used to pull deps, repos
@@ -194,7 +201,8 @@
   ((requiring-resolve 'clojure.tools.build.tasks.sync-pom/sync-pom) params))
 
 (defn jar
-  "Create jar file.
+  "Create jar file containing contents of class-dir. Use main in the manifest
+  if provided. Returns nil.
 
   Options:
     :class-dir - required, dir to include in jar
@@ -205,7 +213,8 @@
   ((requiring-resolve 'clojure.tools.build.tasks.jar/jar) params))
 
 (defn uber
-  "Create uberjar file.
+  "Create uberjar file containing contents of deps in basis and class-dir.
+  Use main class in manifest if provided. Returns nil.
 
   Options:
     :class-dir - required, local class dir to include
@@ -217,7 +226,7 @@
   ((requiring-resolve 'clojure.tools.build.tasks.uber/uber) params))
 
 (defn zip
-  "Create zip file.
+  "Create zip file containing contents of src dirs. Returns nil.
 
   Options:
     :src-dirs - required, coll of source directories to include in zip
@@ -229,7 +238,8 @@
 ;; Maven tasks
 
 (defn install
-  "Install Maven jar to local repo.
+  "Generate pom file and install pom and jar to local Maven repo.
+  Returns nil.
 
   Options:
     :basis - required, used for :mvn/local-repo

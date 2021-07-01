@@ -53,10 +53,11 @@
   (into-array CopyOption [StandardCopyOption/COPY_ATTRIBUTES StandardCopyOption/REPLACE_EXISTING]))
 
 (defn copy-file
-  "Copy file from src to target, retaining file attributes"
+  "Copy file from src to target, retaining file attributes. Returns nil."
   [^File src-file ^File target-file]
   (.mkdirs target-file)
-  (Files/copy (.toPath src-file) (.toPath target-file) copy-options))
+  (Files/copy (.toPath src-file) (.toPath target-file) copy-options)
+  nil)
 
 (defn copy-contents
   "Copy files in src dir to target dir, optionally filtering by prefix paths"
