@@ -53,7 +53,7 @@
   (with-test-dir "test-data/p1"
     (api/set-project-root! (.getAbsolutePath *test-dir*))
     (api/delete {:path "target"})
-    (api/sync-pom {;; NO :src-pom
+    (api/write-pom {;; NO :src-pom
                    :lib 'test/p1
                    :version "1.2.3"
                    :class-dir "target/classes"
@@ -85,7 +85,7 @@
   (with-test-dir "test-data/p2"
     (api/set-project-root! (.getAbsolutePath *test-dir*))
     (api/delete {:path "target"})
-    (api/sync-pom {:lib 'test/p2
+    (api/write-pom {:lib 'test/p2
                    :version "1.2.3"
                    :class-dir "target/classes"
                    :src-dirs ["src"]
@@ -118,7 +118,7 @@
   (with-test-dir "test-data/p3"
     (api/set-project-root! (.getAbsolutePath *test-dir*))
     (api/delete {:path "target"})
-    (api/sync-pom {:lib 'test/p3
+    (api/write-pom {:lib 'test/p3
                    :version "1.2.3"
                    :class-dir "target/classes"
                    :src-dirs ["src"]
@@ -137,7 +137,7 @@
   (with-test-dir "test-data/p1"
     (api/set-project-root! (.getAbsolutePath *test-dir*))
     (api/delete {:path "target"})
-    (api/sync-pom {:lib 'test/p1
+    (api/write-pom {:lib 'test/p1
                    :version "1.2.3"
                    :class-dir "target/classes"
                    :src-dirs ["src"]

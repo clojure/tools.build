@@ -184,20 +184,27 @@
 
 ;; Jar/zip tasks
 
-(defn sync-pom
-  "Sync or generate pom from deps.edn. Returns nil.
+(defn write-pom
+  "Write pom.xml and pom.properties files to the class dir under
+  META-INF/maven/group-id/artifact-id/ (where Maven typically writes
+  these files). The pom deps, dirs, and repos are either synced from
+  the src-pom or generated from the basis.
+
+  If a repos map is provided it supersedes the repos in the basis.
+
+  Returns nil.
 
   Options:
     :basis - required, used to pull deps, repos
-    :class-dir - required, dir to write classes, will be created if needed
-    :src-pom - source pom.xml to synchronize from
+    :class-dir - required, root dir for writing pom files, created if needed
+    :src-pom - source pom.xml to synchronize from, default = \"./pom.xml\"
     :lib - required, project lib symbol
     :version - required, project version
     :src-dirs - coll of src dirs
     :resource-dirs - coll of resource dirs
     :repos - map of repo name to repo config, replaces repos from deps.edn"
   [params]
-  (assert-required "sync-pom" params [:basis :class-dir :lib :version])
+  (assert-required "write-pom" params [:basis :class-dir :lib :version])
   ((requiring-resolve 'clojure.tools.build.tasks.sync-pom/sync-pom) params))
 
 (defn jar
