@@ -22,11 +22,11 @@
                      :patterns [".*"]}}
 
   ;; Regenerate docs in docs/
-  ;; clj -X:codox
-  :codox {:extra-deps {codox/codox {:mvn/version "0.10.7"}}
-          :exec-fn codox.main/generate-docs
-          :exec-args {:source-paths ["src/main/clojure"]
-                      :namespaces [clojure.tools.build.api]
-                      :output-path "docs"}}
+  ;; clj -X:docs
+  :docs {:extra-deps {codox/codox {:mvn/version "0.10.7"}}
+         :exec-fn codox.main/generate-docs
+         :exec-args {:source-paths ["src/main/clojure"]
+                     :namespaces [clojure.tools.build.api]
+                     :output-path "docs"}}
   }
 }
