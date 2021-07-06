@@ -134,9 +134,9 @@
    :classpath - classpath map per make-classpath-map
    :classpath-roots - vector of paths in classpath order"
   ([]
-   ((requiring-resolve 'clojure.tools.build.tasks.load-basis/load-basis)))
+   ((requiring-resolve 'clojure.tools.build.tasks.create-basis/create-basis)))
   ([params]
-   ((requiring-resolve 'clojure.tools.build.tasks.load-basis/load-basis) params)))
+   ((requiring-resolve 'clojure.tools.build.tasks.create-basis/create-basis) params)))
 
 ;; Process tasks
 

@@ -6,14 +6,14 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.build.tasks.load-basis
+(ns clojure.tools.build.tasks.create-basis
   (:require
     [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.util.dir :as dir]))
 
-(defn load-basis
+(defn create-basis
   "Wrapper for deps/create-basis, but ensure relative paths are resolved
   relative to *project-root*.
 
@@ -24,7 +24,7 @@
     :extra   - dep source, default = nil
     :aliases - coll of aliases of argmaps to apply to subprocesses"
   ([]
-   (load-basis nil))
+   (create-basis nil))
   ([params]
    (dir/with-dir (jio/file api/*project-root*)
      (deps/create-basis params))))
