@@ -6,7 +6,7 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.build.tasks.sync-pom
+(ns clojure.tools.build.tasks.write-pom
   (:require
     [clojure.java.io :as jio]
     [clojure.string :as str]
@@ -176,7 +176,7 @@
                                     :skip-whitespace true}))]
     (first (filter #(instance? Element %) (first roots)))))
 
-(defn sync-pom
+(defn write-pom
   ""
   [params]
   (let [{:keys [basis class-dir src-pom lib version src-dirs resource-dirs repos]} params

@@ -233,7 +233,7 @@
     :repos - map of repo name to repo config, replaces repos from deps.edn"
   [params]
   (assert-required "write-pom" params [:basis :class-dir :lib :version])
-  ((requiring-resolve 'clojure.tools.build.tasks.sync-pom/sync-pom) params))
+  ((requiring-resolve 'clojure.tools.build.tasks.write-pom/write-pom) params))
 
 (defn jar
   "Create jar file containing contents of class-dir. Use main in the manifest

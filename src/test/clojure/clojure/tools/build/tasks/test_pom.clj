@@ -14,7 +14,7 @@
     [clojure.zip :as zip]
     [clojure.data.xml :as xml]
     [clojure.tools.build.api :as api]
-    [clojure.tools.build.tasks.sync-pom :as sync-pom]
+    [clojure.tools.build.tasks.write-pom :as write-pom]
     [clojure.tools.build.test-util :refer :all])
   (:import
     [java.io File InputStream]
@@ -27,7 +27,7 @@
 (defn read-xml
   [^File f]
   (when (.exists f)
-    (#'sync-pom/parse-xml (jio/reader f))))
+    (#'write-pom/parse-xml (jio/reader f))))
 
 (defn xml-path-val
   [root tag-path]
