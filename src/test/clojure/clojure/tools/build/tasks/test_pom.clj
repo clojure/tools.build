@@ -59,7 +59,7 @@
                    :class-dir "target/classes"
                    :src-dirs ["src"]
                    :resource-dirs ["resources"]
-                   :basis (api/load-basis nil)})
+                   :basis (api/create-basis nil)})
     (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p1"))
           pom-out (jio/file pom-dir "pom.xml")
           pom (read-xml pom-out)
@@ -91,7 +91,7 @@
                    :src-dirs ["src"]
                    :src-pom "pom.xml"
                    :resource-dirs ["resources"]
-                   :basis (api/load-basis nil)})
+                   :basis (api/create-basis nil)})
     (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p2"))
           pom-out (jio/file pom-dir "pom.xml")
           pom (read-xml pom-out)
@@ -124,7 +124,7 @@
                    :src-dirs ["src"]
                    :src-pom "pom.xml"
                    :resource-dirs ["resources"]
-                   :basis (api/load-basis nil)})
+                   :basis (api/create-basis nil)})
     (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p3"))
           pom-out (jio/file pom-dir "pom.xml")]
       (is (.exists pom-out))
@@ -144,7 +144,7 @@
                    :src-pom "pom.xml"
                    :resource-dirs ["resources"]
                    :repos {} ;; replace repo map from deps.edn
-                   :basis (api/load-basis nil)})
+                   :basis (api/create-basis nil)})
     (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p1"))
           pom-out (jio/file pom-dir "pom.xml")]
       (is (.exists pom-out))

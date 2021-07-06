@@ -8,19 +8,23 @@
 
 (ns clojure.tools.build.tasks.load-basis
   (:require
+    [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
-    [clojure.tools.deps.alpha :as deps]))
+    [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps.alpha.util.dir :as dir]))
 
 (defn load-basis
-  "Load the project basis (classpath context based on project deps.edn)
-  and returns it.
+  "Wrapper for deps/create-basis, but ensure relative paths are resolved
+  relative to *project-root*.
 
-  Options:
-    :deps-file - path to deps file, default = deps.edn"
+    Options (note, paths resolved via *project-root*):
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+    :aliases - coll of aliases of argmaps to apply to subprocesses"
   ([]
    (load-basis nil))
-  ([{:keys [deps-file] :or {deps-file "deps.edn"}}]
-   (let [{:keys [root-edn project-edn]} (deps/find-edn-maps (api/resolve-path deps-file))
-         edns [root-edn project-edn]
-         master-edn (deps/merge-edns edns)]
-     (deps/calc-basis master-edn))))
+  ([params]
+   (dir/with-dir (jio/file api/*project-root*)
+     (deps/create-basis params))))

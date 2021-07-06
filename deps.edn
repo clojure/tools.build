@@ -2,25 +2,27 @@
 
  :deps
  {org.clojure/clojure {:mvn/version "1.10.3"}
-  org.clojure/tools.deps.alpha {:mvn/version "0.11.905"}
-  ;org.clojure/tools.deps.alpha {:git/url "https://github.com/clojure/tools.deps.alpha.git" :sha "6bd58578605212ce2ffec4ad666492d76ff8ef65"}
+  ;org.clojure/tools.deps.alpha {:mvn/version "0.11.905"}
+  org.clojure/tools.deps.alpha {:git/url "https://github.com/clojure/tools.deps.alpha.git"
+                                :sha "459222ca6e4fce91cf5838435589a028cedbc784"}
   org.clojure/tools.namespace {:mvn/version "1.0.0"}
-  org.slf4j/slf4j-nop {:mvn/version "1.7.25"}
-
-  ;; speculative s3 deployment task
-  ;com.cognitect.aws/api {:mvn/version "0.8.408"}
-  ;com.cognitect.aws/endpoints {:mvn/version "1.1.11.705"}
-  ;com.cognitect.aws/s3 {:mvn/version "784.2.593.0"}
-  }
+  org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
 
  :aliases
- {:clj-paths ["src/main/clojure"]
-  :java-paths ["java"]
-  :resource-paths ["src/main/resources"]
+ {;; Run all tests
+  ;; clj -X:test
+  :test {:extra-paths ["src/test/clojure"]
+         :extra-deps {io.github.cognitect-labs/test-runner
+                      {:local/root "../test-runner"}}
+;;         :extra-deps {io.github.cognitect-labs/test-runner
+;;                      {:git/url "https://github.com/cognitect-labs/test-runner.git"
+;;                       :sha "705ad25bbf0228b1c38d0244a36001c2987d7337"}}
+         :exec-fn cognitect.test-runner.api/test
+         :exec-args {:dirs ["src/test/clojure"]
+                     :patterns [".*"]}}
 
-  :dev
-  {:extra-paths ["classes"]}
-
+  ;; Regenerate docs in docs/
+  ;; clj -X:codox
   :codox {:extra-deps {codox/codox {:mvn/version "0.10.7"}}
           :exec-fn codox.main/generate-docs
           :exec-args {:source-paths ["src/main/clojure"]

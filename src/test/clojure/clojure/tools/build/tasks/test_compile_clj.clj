@@ -18,7 +18,7 @@
     (api/set-project-root! (.getAbsolutePath *test-dir*))
     (api/compile-clj {:class-dir "target/classes"
                       :src-dirs ["src"]
-                      :basis (api/load-basis nil)})
+                      :basis (api/create-basis nil)})
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar__init.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar$hello.class")))))))

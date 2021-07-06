@@ -99,12 +99,40 @@
 
 ;; Basis tasks
 
-(defn load-basis
-  "Load the project basis (classpath context based on project deps.edn)
-  and returns it.
+(defn create-basis
+  "Create a basis from a set of deps sources and a set of aliases. By default, use
+  root, user, and project deps and no aliases (essentially the same classpath you
+  get by default from the Clojure CLI).
 
-  Options:
-    :deps-file - path to deps file, default = deps.edn"
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :extra.
+
+  Aliases refer to argmaps in the merged deps that will be supplied to the basis
+  subprocesses (tool, resolve-deps, make-classpath-map).
+
+  The following subprocess argmap args can be provided:
+    Key                  Subproc             Description
+    :replace-deps        tool                Replace project deps
+    :replace-paths       tool                Replace project paths
+    :extra-deps          resolve-deps        Add additional deps
+    :override-deps       resolve-deps        Override coord of dep
+    :default-deps        resolve-deps        Provide coord if missing
+    :extra-paths         make-classpath-map  Add additional paths
+    :classpath-overrides make-classpath-map  Replace lib path in cp
+
+  Options (note, paths resolved via *project-root*):
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+    :aliases - coll of aliases of argmaps  to apply to subprocesses
+
+  Returns a runtime basis, which is the initial merged deps edn map plus these keys:
+   :resolve-args - the resolve args passed in, if any
+   :classpath-args - the classpath args passed in, if any
+   :libs - lib map, per resolve-deps
+   :classpath - classpath map per make-classpath-map
+   :classpath-roots - vector of paths in classpath order"
   ([]
    ((requiring-resolve 'clojure.tools.build.tasks.load-basis/load-basis)))
   ([params]
