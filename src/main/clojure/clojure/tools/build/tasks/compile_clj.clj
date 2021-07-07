@@ -49,8 +49,10 @@
                    (map #(api/resolve-path %))
                    deps/join-classpath)
           _ (spit (jio/file working-dir "compile.cp") cp-str)
-          args ["java" "-cp" cp-str "clojure.main" (.getCanonicalPath compile-script)]
-          exit (:exit (process/process {:command-args args}))]
+          process-args (process/java-command {:basis basis
+                                              :main 'clojure.main
+                                              :main-args [(.getCanonicalPath compile-script)]})
+          exit (:exit (process/process process-args))]
       (if (zero? exit)
         (do
           (if (seq filter-nses)

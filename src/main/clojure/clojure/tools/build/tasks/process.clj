@@ -9,6 +9,7 @@
 (ns clojure.tools.build.tasks.process
   (:require
     [clojure.java.io :as jio]
+    [clojure.tools.deps.alpha :as deps]
     [clojure.tools.build.api :as api])
   (:import
     [java.io InputStream StringWriter]
@@ -70,3 +71,24 @@
       (cond-> {:exit exit}
         out-str (assoc :out out-str)
         err-str (assoc :err err-str)))))
+
+(defn java-command
+  "Create Java command line args from a basis.
+
+  Options:
+    :java-cmd - Java command, default = \"java\"
+    :basis - required, runtime basis (used to make a classpath)
+    :java-opts - coll of string jvm opts
+    :main - required, main class symbol
+    :main-args - coll of main class args
+
+  Returns:
+    :command-args - coll of command arg strings"
+  [{:keys [java-cmd basis java-opts main main-args]
+    :or {java-cmd "java"} :as params}]
+  (let [{:keys [classpath]} basis
+        cp-str (->> classpath
+                 keys
+                 (map #(api/resolve-path %))
+                 deps/join-classpath)]
+    {:command-args (vec (concat [java-cmd] java-opts ["-cp" cp-str (name main)] main-args))}))

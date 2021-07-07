@@ -140,6 +140,22 @@
 
 ;; Process tasks
 
+(defn java-command
+  "Create Java command line args from a basis.
+
+  Options:
+    :java-cmd - Java command, default = \"java\"
+    :basis - required, runtime basis (used to make a classpath)
+    :java-opts - coll of string jvm opts
+    :main - required, main class symbol
+    :main-args - coll of main class args
+
+  Returns map suitable for passing to process with keys:
+    :command-args - coll of command arg strings"
+  [params]
+  (assert-required "java-command" params [:basis :main])
+  ((requiring-resolve 'clojure.tools.build.tasks.process/java-command) params))
+
 (defn process
   "Exec the command made from command-args, redirect out and err as directed,
   and return {:exit exit-code, :out captured-out, :err captured-err}
