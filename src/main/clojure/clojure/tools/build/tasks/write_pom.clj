@@ -176,18 +176,29 @@
                                     :skip-whitespace true}))]
     (first (filter #(instance? Element %) (first roots)))))
 
+(defn- libs->deps
+  "Convert libmap to root deps"
+  [libs]
+  (reduce-kv
+    (fn [ret lib {:keys [dependents] :as coord}]
+      (if (seq dependents)
+        ret
+        (assoc ret lib coord)))
+    {} libs))
+
 (defn write-pom
   ""
   [params]
   (let [{:keys [basis class-dir src-pom lib version src-dirs resource-dirs repos]} params
-        {:keys [deps]} basis
+        {:keys [deps libs]} basis
+        root-deps (libs->deps libs)
         src-pom-file (api/resolve-path (or src-pom "pom.xml"))
         repos (or repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) (:mvn/repos basis)))
         pom (if (.exists src-pom-file)
               (with-open [rdr (jio/reader src-pom-file)]
                 (-> rdr
                   parse-xml
-                  (replace-deps deps)
+                  (replace-deps root-deps)
                   (replace-paths src-dirs)
                   (replace-resources resource-dirs)
                   (replace-repos repos)
@@ -195,7 +206,7 @@
                   (replace-version version)))
               (gen-pom
                 (cond->
-                  {:deps deps
+                  {:deps root-deps
                    :src-paths src-dirs
                    :resource-paths resource-dirs
                    :repos repos

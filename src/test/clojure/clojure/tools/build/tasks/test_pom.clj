@@ -151,6 +151,26 @@
       (let [generated (slurp pom-out)]
         (is (not (str/includes? generated "clojars")))))))
 
+;; check that :extra-deps in basis aliases are reflected in pom deps
+(deftest test-extra-deps
+  (with-test-dir "test-data/p1"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/delete {:path "target"})
+    (api/write-pom {:lib 'test/p1
+                    :version "1.2.3"
+                    :class-dir "target/classes"
+                    :src-dirs ["src"]
+                    :src-pom "pom.xml"
+                    :resource-dirs ["resources"]
+                    :basis (api/create-basis '{:extra {:aliases {:ex {:extra-deps {org.clojure/data.json {:mvn/version "2.3.1"}}}}}
+                                               :aliases [:ex]})})
+    (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p1"))
+          pom-out (jio/file pom-dir "pom.xml")]
+      (is (.exists pom-out))
+      (let [generated (slurp pom-out)]
+        (is (str/includes? generated "data.json"))))))
+
+
 (comment
   (run-tests)
   )
