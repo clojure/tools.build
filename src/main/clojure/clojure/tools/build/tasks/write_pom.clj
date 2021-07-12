@@ -190,7 +190,7 @@
   ""
   [params]
   (let [{:keys [basis class-dir src-pom lib version src-dirs resource-dirs repos]} params
-        {:keys [deps libs]} basis
+        {:keys [libs]} basis
         root-deps (libs->deps libs)
         src-pom-file (api/resolve-path (or src-pom "pom.xml"))
         repos (or repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) (:mvn/repos basis)))
