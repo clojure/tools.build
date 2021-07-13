@@ -27,7 +27,7 @@
 
 (def ^:private uber-exclusions
   [#"project.clj"
-   #"META-INF/.*\.(?:SF|RSA|DSA)"])
+   #"META-INF/.*\.(?:SF|RSA|DSA|MF)"])
 
 (defn- exclude-from-uber?
   [^String path]
