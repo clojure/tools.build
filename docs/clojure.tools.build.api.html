@@ -83,7 +83,8 @@ if provided. Returns nil.
 Options:
   :class-dir - required, dir to include in jar
   :jar-file - required, jar to write
-  :main - main class symbol</pre></div></div><div class="public anchor" id="var-java-command"><h3>java-command</h3><div class="usage"><code>(java-command params)</code></div><div class="doc"><pre class="plaintext">Create Java command line args from a basis.
+  :main - main class symbol
+  :manifest - map of manifest attributes, merged last over defaults+:main</pre></div></div><div class="public anchor" id="var-java-command"><h3>java-command</h3><div class="usage"><code>(java-command params)</code></div><div class="doc"><pre class="plaintext">Create Java command line args from a basis.
 
 Options:
   :java-cmd - Java command, default = "java"
@@ -125,7 +126,8 @@ Options:
   :class-dir - required, local class dir to include
   :uber-file - required, uber jar file to create
   :basis - used to pull dep jars
-  :main - main class symbol</pre></div></div><div class="public anchor" id="var-write-file"><h3>write-file</h3><div class="usage"><code>(write-file {:keys [path content opts], :as params})</code></div><div class="doc"><pre class="plaintext">Like spit, but create dirs if needed. Returns nil.
+  :main - main class symbol
+  :manifest - map of manifest attributes, merged last over defaults+:main</pre></div></div><div class="public anchor" id="var-write-file"><h3>write-file</h3><div class="usage"><code>(write-file {:keys [path content opts], :as params})</code></div><div class="doc"><pre class="plaintext">Like spit, but create dirs if needed. Returns nil.
 
 Options:
   :path - required, file path
