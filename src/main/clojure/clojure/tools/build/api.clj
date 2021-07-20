@@ -258,7 +258,8 @@
   Options:
     :class-dir - required, dir to include in jar
     :jar-file - required, jar to write
-    :main - main class symbol"
+    :main - main class symbol
+    :manifest - map of manifest attributes, merged last over defaults+:main"
   [params]
   (assert-required "jar" params [:class-dir :jar-file])
   ((requiring-resolve 'clojure.tools.build.tasks.jar/jar) params))
@@ -271,7 +272,8 @@
     :class-dir - required, local class dir to include
     :uber-file - required, uber jar file to create
     :basis - used to pull dep jars
-    :main - main class symbol"
+    :main - main class symbol
+    :manifest - map of manifest attributes, merged last over defaults+:main"
   [params]
   (assert-required "uber" params [:class-dir :uber-file])
   ((requiring-resolve 'clojure.tools.build.tasks.uber/uber) params))

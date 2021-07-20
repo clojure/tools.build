@@ -102,23 +102,26 @@
       libs)))
 
 (defn uber
-  [{:keys [basis class-dir uber-file main] :as params}]
+  [{mf-attrs :manifest, :keys [basis class-dir uber-file main] :as params}]
   (let [working-dir (.toFile (Files/createTempDirectory "uber" (into-array FileAttribute [])))]
     (try
       (let [{:keys [libs]} basis
             compile-dir (api/resolve-path class-dir)
             manifest (Manifest.)
             lib-paths (conj (->> libs remove-optional vals (mapcat :paths) (map #(jio/file %))) compile-dir)
-            uber-file (api/resolve-path uber-file)]
+            uber-file (api/resolve-path uber-file)
+            mf-attr-strs (reduce-kv (fn [m k v] (assoc m (str k) (str v))) nil mf-attrs)]
         (file/ensure-dir (.getParent uber-file))
         (run! #(explode % working-dir) lib-paths)
         (zip/fill-manifest! manifest
-          (cond->
-            {"Manifest-Version" "1.0"
-             "Created-By" "org.clojure/tools.build"
-             "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
-            main (assoc "Main-Class" (str main))
-            (.exists (jio/file working-dir "META-INF" "versions")) (assoc "Multi-Release" "true")))
+          (merge
+            (cond->
+              {"Manifest-Version" "1.0"
+               "Created-By" "org.clojure/tools.build"
+               "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
+              main (assoc "Main-Class" (str main))
+              (.exists (jio/file working-dir "META-INF" "versions")) (assoc "Multi-Release" "true"))
+            mf-attr-strs))
         (with-open [jos (JarOutputStream. (FileOutputStream. uber-file) manifest)]
           (zip/copy-to-zip jos working-dir)))
       (finally

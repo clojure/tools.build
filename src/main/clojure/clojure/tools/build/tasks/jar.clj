@@ -16,16 +16,19 @@
     [java.util.jar Manifest JarOutputStream]))
 
 (defn jar
-  [{:keys [class-dir jar-file main] :as params}]
+  [{mf-attrs :manifest, :keys [class-dir jar-file main] :as params}]
   (let [jar-file (api/resolve-path jar-file)
-        class-dir-file (file/ensure-dir (api/resolve-path class-dir))]
+        class-dir-file (file/ensure-dir (api/resolve-path class-dir))
+        mf-attr-strs (reduce-kv (fn [m k v] (assoc m (str k) (str v))) nil mf-attrs)]
     (file/ensure-dir (.getParent jar-file))
     (let [manifest (Manifest.)]
       (zip/fill-manifest! manifest
-        (cond->
-          {"Manifest-Version" "1.0"
-           "Created-By" "org.clojure/tools.build"
-           "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
-          main (assoc "Main-Class" (str main))))
+        (merge
+          (cond->
+            {"Manifest-Version" "1.0"
+             "Created-By" "org.clojure/tools.build"
+             "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
+            main (assoc "Main-Class" (str main)))
+          mf-attr-strs))
       (with-open [jos (JarOutputStream. (FileOutputStream. jar-file) manifest)]
         (zip/copy-to-zip jos class-dir-file)))))
