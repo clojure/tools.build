@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* 0.1.4
+* 0.1.4 169fef9 on July 20, 2021
   * jar - add support for custom :manifest attributes
   * uber - add support for custom :manifest attributes
   * create-basis - make more tolerant of missing deps.edn file
