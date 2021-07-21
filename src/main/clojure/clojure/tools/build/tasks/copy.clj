@@ -40,9 +40,20 @@
     (Files/walkFileTree root-path visitor)
     @paths))
 
+(def default-ignores
+  [".*~$"
+   "^#.*#$"
+   "^\\.#.*"
+   "^.DS_Store$"])
+
+(defn ignore? [name ignore-regexes]
+  (boolean (some #(re-matches % name) ignore-regexes)))
+
 (defn copy
-  [{:keys [target-dir src-dirs include replace] :or {include "**"} :as params}]
-  (let [to-path (.toPath (file/ensure-dir (api/resolve-path target-dir)))]
+  [{:keys [target-dir src-dirs include replace ignores]
+    :or {include "**", ignores default-ignores} :as params}]
+  (let [to-path (.toPath (file/ensure-dir (api/resolve-path target-dir)))
+        ignore-regexes (map re-pattern ignores)]
     (doseq [dir src-dirs]
       ;(println "from" dir)
       (let [from-file (api/resolve-path dir)
@@ -50,10 +61,11 @@
         (doseq [^Path path paths]
           (let [path-file (.toFile path)
                 target-file (.toFile (.resolve to-path (.relativize (.toPath from-file) path)))]
-            ;(println "copying" (.toString path-file) (.toString target-file) (boolean (not (empty? replace))))
-            (if (empty? replace)
-              (file/copy-file path-file target-file)
-              (let [contents (slurp path-file)
-                    replaced (reduce (fn [s [find replace]] (str/replace s find replace))
-                               contents replace)]
-                (file/ensure-file target-file replaced :append false)))))))))
+            (when-not (ignore? (.getName path-file) ignore-regexes)
+              ;(println "copying" (.toString path-file) (.toString target-file) (boolean (not (empty? replace))))
+              (if (empty? replace)
+                (file/copy-file path-file target-file)
+                (let [contents (slurp path-file)
+                      replaced (reduce (fn [s [find replace]] (str/replace s find replace))
+                                 contents replace)]
+                  (file/ensure-file target-file replaced :append false))))))))))

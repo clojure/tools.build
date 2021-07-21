@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * copy-dir - Fix TBUILD-4 - set up default and overridable file ignore patterns
 * v0.1.5 1cd59e6 on July 21, 2021
   * jar, uber - Fix TBUILD-8 - jar files built on Windows had bad paths
 * v0.1.4 169fef9 on July 20, 2021
