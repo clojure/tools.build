@@ -92,7 +92,7 @@
     :target-dir - required, dir to write files, will be created if it doesn't exist
     :src-dirs   - required, coll of dirs to copy from
     :include    - glob of files to include, default = \"**\"
-    :ignore     - collection of ignore regex patterns (applied only to file names),
+    :ignores    - collection of ignore regex patterns (applied only to file names),
                   see clojure.tools.build.tasks.copy/default-ignores for defaults
     :replace    - map of source to replacement string in files"
   [params]
