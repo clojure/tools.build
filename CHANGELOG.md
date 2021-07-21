@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* v0.1.5
+  * jar, uber - Fix TBUILD-8 - jar files built on Windows had bad paths
 * v0.1.4 169fef9 on July 20, 2021
   * jar - add support for custom :manifest attributes
   * uber - add support for custom :manifest attributes
