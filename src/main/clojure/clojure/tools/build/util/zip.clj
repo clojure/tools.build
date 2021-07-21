@@ -9,7 +9,8 @@
 (ns clojure.tools.build.util.zip
   (:require
     [clojure.java.io :as jio]
-    [clojure.tools.build.util.file :as file])
+    [clojure.tools.build.util.file :as file]
+    [clojure.string :as str])
   (:import
     [java.io File BufferedInputStream FileInputStream]
     [java.nio.file Files LinkOption]
@@ -24,6 +25,7 @@
   (let [dir (.isDirectory file)
         attrs (Files/readAttributes (.toPath file) BasicFileAttributes ^"[Ljava.nio.file.LinkOption;" (into-array LinkOption []))
         path (if (and dir (not (.endsWith path "/"))) (str path "/") path)
+        path (str/replace path \\ \/) ;; only use unix-style paths in jars
         entry (doto (ZipEntry. path)
                 ;(.setSize (.size attrs))
                 ;(.setLastAccessTime (.lastAccessTime attrs))
