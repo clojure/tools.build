@@ -75,8 +75,8 @@
         [::pom/name] ["p1"]
         [::pom/build ::pom/sourceDirectory] ["src"]
         [::pom/build ::pom/resources ::pom/resource ::pom/directory] ["resources"])
-      (= 2 (count (xml-path-val pom [::pom/dependencies])))
-      (= 1 (count (xml-path-val pom [::pom/repositories])))
+      (is (= 2 (count (xml-path-val pom [::pom/dependencies]))))
+      (is (= 1 (count (xml-path-val pom [::pom/repositories]))))
       ;; check properties out
       (is (.exists prop-out))
       (is (submap? {"groupId" "test", "artifactId" "p1", "version" "1.2.3"} props)))))
@@ -107,8 +107,8 @@
         [::pom/name] ["p2"]
         [::pom/build ::pom/sourceDirectory] ["src"]
         [::pom/build ::pom/resources ::pom/resource ::pom/directory] ["resources"])
-      (= 2 (count (xml-path-val pom [::pom/dependencies])))
-      (= 1 (count (xml-path-val pom [::pom/repositories])))
+      (is (= 2 (count (xml-path-val pom [::pom/dependencies]))))
+      (is (= 1 (count (xml-path-val pom [::pom/repositories]))))
       ;; check properties out
       (is (.exists prop-out))
       (is (submap? {"groupId" "test", "artifactId" "p2", "version" "1.2.3"} props)))))
