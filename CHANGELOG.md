@@ -1,6 +1,9 @@
 Changelog
 ===========
 
+* next
+  * TBUILD-10 - fix missing assertions in tests
+  * Remove unnecessary resource file that overrides tools.deps
 * v0.1.6 5636e61 on July 21, 2021
   * copy-dir - Fix TBUILD-4 - set up default and overridable file ignore patterns
 * v0.1.5 1cd59e6 on July 21, 2021
