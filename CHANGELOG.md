@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.1.7 8a3abc2 on July 28, 2021
   * TBUILD-10 - fix missing assertions in tests
   * Remove unnecessary resource file that overrides tools.deps
 * v0.1.6 5636e61 on July 21, 2021
