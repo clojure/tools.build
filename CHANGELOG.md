@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * write-file - TBUILD-15 - add :string option 
 * v0.1.7 8a3abc2 on July 28, 2021
   * TBUILD-10 - fix missing assertions in tests
   * Remove unnecessary resource file that overrides tools.deps
