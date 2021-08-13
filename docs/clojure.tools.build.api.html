@@ -129,11 +129,15 @@ Options:
   :uber-file - required, uber jar file to create
   :basis - used to pull dep jars
   :main - main class symbol
-  :manifest - map of manifest attributes, merged last over defaults+:main</pre></div></div><div class="public anchor" id="var-write-file"><h3>write-file</h3><div class="usage"><code>(write-file {:keys [path content opts], :as params})</code></div><div class="doc"><pre class="plaintext">Like spit, but create dirs if needed. Returns nil.
+  :manifest - map of manifest attributes, merged last over defaults+:main</pre></div></div><div class="public anchor" id="var-write-file"><h3>write-file</h3><div class="usage"><code>(write-file {:keys [path content string opts], :as params})</code></div><div class="doc"><pre class="plaintext">Writes a file at path, will create parent dirs if needed. Returns nil.
+File contents may be specified either with :content (for data, that
+will be pr-str'ed) or with :string for the string to write. If
+neither is specified, an empty file is created (like touch).
 
 Options:
   :path - required, file path
-  :content - val to write, will pr-str (if omitted, like touch)
+  :content - val to write, will pr-str
+  :string - string to write
   :opts - coll of writer opts like :append and :encoding (per clojure.java.io)</pre></div></div><div class="public anchor" id="var-write-pom"><h3>write-pom</h3><div class="usage"><code>(write-pom params)</code></div><div class="doc"><pre class="plaintext">Write pom.xml and pom.properties files to the class dir under
 META-INF/maven/group-id/artifact-id/ (where Maven typically writes
 these files). The pom deps, dirs, and repos are either synced from
@@ -149,6 +153,9 @@ Options:
   :src-pom - source pom.xml to synchronize from, default = "./pom.xml"
   :lib - required, project lib symbol
   :version - required, project version
+  :scm - map of scm properties to write in pom
+         keys:  :connection, :developerConnection, :tag, :url
+         See: <a href="https://maven.apache.org/pom.html#SCM">https://maven.apache.org/pom.html#SCM</a> for details
   :src-dirs - coll of src dirs
   :resource-dirs - coll of resource dirs
   :repos - map of repo name to repo config, replaces repos from deps.edn</pre></div></div><div class="public anchor" id="var-zip"><h3>zip</h3><div class="usage"><code>(zip params)</code></div><div class="doc"><pre class="plaintext">Create zip file containing contents of src dirs. Returns nil.
