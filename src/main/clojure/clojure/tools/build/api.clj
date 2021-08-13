@@ -67,18 +67,23 @@
   (file/copy-file (resolve-path src) (resolve-path target)))
 
 (defn write-file
-  "Like spit, but create dirs if needed. Returns nil.
+  "Writes a file at path, will create parent dirs if needed. Returns nil.
+  File contents may be specified either with :content (for data, that
+  will be pr-str'ed) or with :string for the string to write. If
+  neither is specified, an empty file is created (like touch).
 
   Options:
     :path - required, file path
-    :content - val to write, will pr-str (if omitted, like touch)
+    :content - val to write, will pr-str
+    :string - string to write
     :opts - coll of writer opts like :append and :encoding (per clojure.java.io)"
-  [{:keys [path content opts] :as params}]
+  [{:keys [path content string opts] :as params}]
   (assert-required "write-file" params [:path])
   (let [f (resolve-path path)]
-    (if content
-      (apply file/ensure-file f (pr-str content) opts)
-      (file/ensure-file f))))
+    (cond
+      content (apply file/ensure-file f (pr-str content) opts)
+      string (apply file/ensure-file f string opts)
+      :else (file/ensure-file f))))
 
 (defn copy-dir
   "Copy the contents of the src-dirs to the target-dir, optionally do text replacement.
