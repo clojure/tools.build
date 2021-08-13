@@ -59,7 +59,8 @@
                    :class-dir "target/classes"
                    :src-dirs ["src"]
                    :resource-dirs ["resources"]
-                   :basis (api/create-basis nil)})
+                   :basis (api/create-basis nil)
+                   :scm {:tag "v1.2.3" :url "https://github.com/example/p1"}})
     (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p1"))
           pom-out (jio/file pom-dir "pom.xml")
           pom (read-xml pom-out)
@@ -74,7 +75,9 @@
         [::pom/version] ["1.2.3"]
         [::pom/name] ["p1"]
         [::pom/build ::pom/sourceDirectory] ["src"]
-        [::pom/build ::pom/resources ::pom/resource ::pom/directory] ["resources"])
+        [::pom/build ::pom/resources ::pom/resource ::pom/directory] ["resources"]
+        [::pom/scm ::pom/tag] ["v1.2.3"]
+        [::pom/scm ::pom/url] ["https://github.com/example/p1"])
       (is (= 2 (count (xml-path-val pom [::pom/dependencies]))))
       (is (= 1 (count (xml-path-val pom [::pom/repositories]))))
       ;; check properties out
@@ -91,7 +94,9 @@
                    :src-dirs ["src"]
                    :src-pom "pom.xml"
                    :resource-dirs ["resources"]
-                   :basis (api/create-basis nil)})
+                   :basis (api/create-basis nil)
+                   :scm {:tag "v1.2.3"
+                         :url "https://github.com/example/p1"}})
     (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p2"))
           pom-out (jio/file pom-dir "pom.xml")
           pom (read-xml pom-out)
@@ -106,7 +111,8 @@
         [::pom/version] ["1.2.3"]
         [::pom/name] ["p2"]
         [::pom/build ::pom/sourceDirectory] ["src"]
-        [::pom/build ::pom/resources ::pom/resource ::pom/directory] ["resources"])
+        [::pom/build ::pom/resources ::pom/resource ::pom/directory] ["resources"]
+        [::pom/scm ::pom/tag] ["v1.2.3"])
       (is (= 2 (count (xml-path-val pom [::pom/dependencies]))))
       (is (= 1 (count (xml-path-val pom [::pom/repositories]))))
       ;; check properties out

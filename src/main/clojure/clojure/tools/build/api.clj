@@ -251,6 +251,9 @@
     :src-pom - source pom.xml to synchronize from, default = \"./pom.xml\"
     :lib - required, project lib symbol
     :version - required, project version
+    :scm - map of scm properties to write in pom
+           keys:  :connection, :developerConnection, :tag, :url
+           See: https://maven.apache.org/pom.html#SCM for details
     :src-dirs - coll of src dirs
     :resource-dirs - coll of resource dirs
     :repos - map of repo name to repo config, replaces repos from deps.edn"

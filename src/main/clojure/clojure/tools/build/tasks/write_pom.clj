@@ -79,9 +79,10 @@
    (map to-repo repos)])
 
 (defn- gen-pom
-  [{:keys [deps src-paths resource-paths repos group artifact version]
+  [{:keys [deps src-paths resource-paths repos group artifact version scm]
     :or {version "0.1.0"}}]
-  (let [[path & paths] src-paths]
+  (let [[path & paths] src-paths
+        {:keys [connection developerConnection tag url]} scm]
     (xml/sexp-as-element
       [::pom/project
        {:xmlns "http://maven.apache.org/POM/4.0.0"
@@ -99,7 +100,13 @@
          [::pom/build
           (when path (gen-source-dir path))
           (when (seq resource-paths) (gen-resources resource-paths))])
-       (gen-repos repos)])))
+       (gen-repos repos)
+       (when scm
+         [::pom/scm
+          (when connection [::pom/connection connection])
+          (when developerConnection [::pom/developerConnection developerConnection])
+          (when tag [::pom/tag tag])
+          (when url [::pom/url url])])])))
 
 (defn- make-xml-element
   [{:keys [tag attrs] :as node} children]
@@ -169,6 +176,16 @@
     (xml-update pom [::pom/version] (xml/sexp-as-element [::pom/version version]))
     pom))
 
+(defn- replace-scm
+  [pom {:keys [connection developerConnection tag url] :as scm}]
+  (if scm
+    (cond-> pom
+      connection (xml-update [::pom/scm ::pom/connection] (xml/sexp-as-element [::pom/connection connection]))
+      developerConnection (xml-update [::pom/scm ::pom/developerConnection] (xml/sexp-as-element [::pom/developerConnection developerConnection]))
+      tag (xml-update [::pom/scm ::pom/tag] (xml/sexp-as-element [::pom/tag tag]))
+      url (xml-update [::pom/scm ::pom/url] (xml/sexp-as-element [::pom/url url])))
+    pom))
+
 (defn- parse-xml
   [^Reader rdr]
   (let [roots (tree/seq-tree event/event-element event/event-exit? event/event-node
@@ -189,7 +206,7 @@
 (defn write-pom
   ""
   [params]
-  (let [{:keys [basis class-dir src-pom lib version src-dirs resource-dirs repos]} params
+  (let [{:keys [basis class-dir src-pom lib version scm src-dirs resource-dirs repos]} params
         {:keys [libs]} basis
         root-deps (libs->deps libs)
         src-pom-file (api/resolve-path (or src-pom "pom.xml"))
@@ -203,7 +220,8 @@
                   (replace-resources resource-dirs)
                   (replace-repos repos)
                   (replace-lib lib)
-                  (replace-version version)))
+                  (replace-version version)
+                  (replace-scm scm)))
               (gen-pom
                 (cond->
                   {:deps root-deps
@@ -212,7 +230,8 @@
                    :repos repos
                    :group (namespace lib)
                    :artifact (name lib)}
-                  version (assoc :version version))))
+                  version (assoc :version version)
+                  scm (assoc :scm scm))))
         class-dir-file (api/resolve-path class-dir)
         pom-dir-file (file/ensure-dir (jio/file class-dir-file "META-INF" "maven" (namespace lib) (name lib)))]
     (spit (jio/file pom-dir-file "pom.xml") (xml/indent-str pom))
