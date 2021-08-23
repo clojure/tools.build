@@ -237,6 +237,27 @@
 
 ;; Jar/zip tasks
 
+(defn pom-path
+  "Calculate path to pom.xml in jar meta (same path used by write-pom).
+  Relative path in jar is:
+    META-INF/maven/<groupId>/<artifactId>/pom.xml
+
+  If :class-dir provided, return path will start with resolved class-dir
+  (which may be either absolute or relative), otherwise just relative
+  path in jar.
+
+  Options:
+    :lib - required, used to form the relative path in jar to pom.xml
+    :class-dir - optional, if provided will be resolved and form the root of the path"
+  [params]
+  (assert-required "pom-path" params [:lib])
+  (let [{:keys [class-dir lib]} params
+        pom-dir ((requiring-resolve 'clojure.tools.build.tasks.write-pom/meta-maven-path) {:lib lib})
+        pom-file (if class-dir
+                   (jio/file (resolve-path class-dir) pom-dir "pom.xml")
+                   (jio/file pom-dir "pom.xml"))]
+    (.toString pom-file)))
+
 (defn write-pom
   "Write pom.xml and pom.properties files to the class dir under
   META-INF/maven/group-id/artifact-id/ (where Maven typically writes

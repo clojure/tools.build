@@ -203,6 +203,12 @@
         (assoc ret lib coord)))
     {} libs))
 
+(defn meta-maven-path
+  [params]
+  (let [{:keys [lib]} params
+        pom-file (jio/file "META-INF" "maven" (namespace lib) (name lib))]
+    (.toString pom-file)))
+
 (defn write-pom
   ""
   [params]
@@ -233,7 +239,8 @@
                   version (assoc :version version)
                   scm (assoc :scm scm))))
         class-dir-file (api/resolve-path class-dir)
-        pom-dir-file (file/ensure-dir (jio/file class-dir-file "META-INF" "maven" (namespace lib) (name lib)))]
+        pom-dir (meta-maven-path {:lib lib})
+        pom-dir-file (file/ensure-dir (jio/file class-dir-file pom-dir))]
     (spit (jio/file pom-dir-file "pom.xml") (xml/indent-str pom))
     (spit (jio/file pom-dir-file "pom.properties")
       (str/join (System/lineSeparator)

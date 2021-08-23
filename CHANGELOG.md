@@ -3,6 +3,7 @@ Changelog
 
 * next
   * git-count-revs - add :path option
+  * pom-path - new task that computes the path to the pom.xml in a jar
 * v0.1.8 38d2780 on Aug 13, 2021
   * write-file - TBUILD-15 - add :string option 
   * write-pom - TBUILD-13 - add :scm options to write scm properties
