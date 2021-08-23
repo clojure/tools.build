@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.1.9 6736c83 on Aug 22, 2021
   * git-count-revs - add :path option
   * pom-path - new task that computes the path to the pom.xml in a jar
 * v0.1.8 38d2780 on Aug 13, 2021
