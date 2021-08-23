@@ -193,9 +193,11 @@
     git rev-list HEAD --count
 
   Options:
-    :dir - dir to invoke this command from, by default current directory"
-  [{:keys [dir] :or {dir "."} :as params}]
-  (-> {:command-args ["git" "rev-list" "HEAD" "--count"]
+    :dir - dir to invoke this command from, by default current directory
+    :path - path to count commits for relative to dir"
+  [{:keys [dir path] :or {dir "."} :as params}]
+  (-> {:command-args (cond-> ["git" "rev-list" "HEAD" "--count"]
+                       path (conj "--" path))
        :dir (.getPath (resolve-path dir))
        :out :capture}
     process
