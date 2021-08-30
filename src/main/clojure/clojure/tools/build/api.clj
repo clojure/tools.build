@@ -223,7 +223,7 @@
        :direct-linking false}
     :filter-nses - coll of symbols representing a namespace prefix to include"
   [params]
-  (assert-required "compile-clj" params [:basis :src-dirs :class-dir])
+  (assert-required "compile-clj" params [:basis :class-dir])
   ((requiring-resolve 'clojure.tools.build.tasks.compile-clj/compile-clj) params))
 
 (defn javac
