@@ -209,15 +209,18 @@
 (defn compile-clj
   "Compile Clojure source to classes. Returns nil.
 
+  If :ns-compile is provided, compile those namespaces, otherwise find all namespaces
+  in :src-dirs and compile those.
+
   Options:
     :basis - required, basis to use when compiling
-    :src-dirs - required, coll of Clojure source dirs
     :class-dir - required, dir to write classes, will be created if needed
+    :src-dirs - coll of Clojure source dirs, used to find all Clojure nses to compile
+    :ns-compile - coll of specific namespace symbols to compile
     :compile-opts - map of Clojure compiler options:
       {:disable-locals-clearing false
        :elide-meta [:doc :file :line ...]
        :direct-linking false}
-    :ns-compile - coll of namespace symbols to compile, all if not specified
     :filter-nses - coll of symbols representing a namespace prefix to include"
   [params]
   (assert-required "compile-clj" params [:basis :src-dirs :class-dir])
