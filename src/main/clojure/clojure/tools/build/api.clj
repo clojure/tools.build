@@ -209,14 +209,19 @@
 (defn compile-clj
   "Compile Clojure source to classes. Returns nil.
 
-  If :ns-compile is provided, compile those namespaces, otherwise find all namespaces
-  in :src-dirs and compile those.
+  To determine the namespaces to compile:
+  * If :ns-compile - use coll of explicit namespaces to compile
+  * Else if :sort = :topo (default) - topologically sort all
+    namespaces in :src-dirs and compile from least dependent
+  * Else if :sort = :bfs - compile all namespaces in :src-dirs
+    and compile in breadth-first search order
 
   Options:
     :basis - required, basis to use when compiling
     :class-dir - required, dir to write classes, will be created if needed
     :src-dirs - coll of Clojure source dirs, used to find all Clojure nses to compile
     :ns-compile - coll of specific namespace symbols to compile
+    :sort - :topo (default) or :bfs for breadth-first search
     :compile-opts - map of Clojure compiler options:
       {:disable-locals-clearing false
        :elide-meta [:doc :file :line ...]

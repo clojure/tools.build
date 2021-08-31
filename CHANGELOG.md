@@ -3,6 +3,7 @@ Changelog
 
 * next
   * compile-clj - fix docs and code to not require :src-dirs
+  * compile-clj - sort namespaces using topological sort by default
 * v0.1.9 6736c83 on Aug 22, 2021
   * git-count-revs - add :path option
   * pom-path - new task that computes the path to the pom.xml in a jar

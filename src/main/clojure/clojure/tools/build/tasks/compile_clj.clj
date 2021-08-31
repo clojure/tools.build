@@ -15,7 +15,9 @@
     [clojure.tools.build.api :as api]
     [clojure.tools.build.util.file :as file]
     [clojure.tools.build.tasks.process :as process]
-    [clojure.tools.namespace.find :as find])
+    [clojure.tools.namespace.find :as find]
+    [clojure.tools.namespace.dependency :as dependency]
+    [clojure.tools.namespace.parse :as parse])
   (:import
     [java.io File]
     [java.nio.file Files]
@@ -35,13 +37,40 @@
   [ns-sym]
   (str/replace (clojure.lang.Compiler/munge (str ns-sym)) \. \/))
 
+(defn- nses-in-bfs
+  [dirs]
+  (mapcat #(find/find-namespaces-in-dir (api/resolve-path %) find/clj) dirs))
+
+(defn- nses-in-topo
+  [dirs]
+  (let [ns-decls (mapcat #(find/find-ns-decls-in-dir (api/resolve-path %)) dirs)
+        ns-candidates (set (map parse/name-from-ns-decl ns-decls))
+        graph (reduce
+                (fn [graph decl]
+                  (let [sym (parse/name-from-ns-decl decl)]
+                    (reduce
+                      (fn [graph dep] (dependency/depend graph sym dep))
+                      graph
+                      (parse/deps-from-ns-decl decl))))
+                (dependency/graph)
+                ns-decls)]
+    (->> graph
+      dependency/topo-sort
+      (filter ns-candidates) ;; only keep stuff in these dirs
+      (concat ns-candidates) ;; but make sure everything is in there at least once
+      distinct)))
+
 (defn compile-clj
-  [{:keys [basis src-dirs compile-opts ns-compile filter-nses class-dir] :as params}]
+  [{:keys [basis src-dirs compile-opts ns-compile filter-nses class-dir sort] :as params
+    :or {sort :topo}}]
   (let [working-dir (.toFile (Files/createTempDirectory "compile-clj" (into-array FileAttribute [])))]
     (let [{:keys [classpath]} basis
           compile-dir-file (file/ensure-dir (api/resolve-path class-dir))
-          nses (or ns-compile
-                 (mapcat #(find/find-namespaces-in-dir (api/resolve-path %) find/clj) src-dirs))
+          nses (cond
+                 (seq ns-compile) ns-compile
+                 (= sort :topo) (nses-in-topo src-dirs)
+                 (= sort :bfs) (nses-in-bfs src-dirs)
+                 :else (throw (ex-info "Missing :ns-compile or :sort order in compile-clj task" {})))
           working-compile-dir (file/ensure-dir (jio/file working-dir "compile-clj"))
           compile-script (jio/file working-dir "compile.clj")
           _ (write-compile-script! compile-script working-compile-dir nses compile-opts)
