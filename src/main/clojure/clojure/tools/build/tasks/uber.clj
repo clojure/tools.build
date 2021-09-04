@@ -119,7 +119,7 @@
               {"Manifest-Version" "1.0"
                "Created-By" "org.clojure/tools.build"
                "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
-              main (assoc "Main-Class" (str main))
+              main (assoc "Main-Class" (str/replace (str main) \- \_))
               (.exists (jio/file working-dir "META-INF" "versions")) (assoc "Multi-Release" "true"))
             mf-attr-strs))
         (with-open [jos (JarOutputStream. (FileOutputStream. uber-file) manifest)]

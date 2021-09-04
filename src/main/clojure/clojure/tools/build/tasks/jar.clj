@@ -10,7 +10,8 @@
   (:require
     [clojure.tools.build.api :as api]
     [clojure.tools.build.util.file :as file]
-    [clojure.tools.build.util.zip :as zip])
+    [clojure.tools.build.util.zip :as zip]
+    [clojure.string :as str])
   (:import
     [java.io File FileOutputStream]
     [java.util.jar Manifest JarOutputStream]))
@@ -28,7 +29,7 @@
             {"Manifest-Version" "1.0"
              "Created-By" "org.clojure/tools.build"
              "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
-            main (assoc "Main-Class" (str main)))
+            main (assoc "Main-Class" (str/replace (str main) \- \_)))
           mf-attr-strs))
       (with-open [jos (JarOutputStream. (FileOutputStream. jar-file) manifest)]
         (zip/copy-to-zip jos class-dir-file)))))
