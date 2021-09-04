@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* v0.2.1 dd64636 on Sep 4, 2021
+  * jar, uber - replace - with _ in main class name
 * v0.2.0 7cbb94b on Aug 31, 2021
   * compile-clj - fix docs and code to not require :src-dirs
   * compile-clj - TBUILD-7 - sort namespaces using topological sort by default
