@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * unzip - new task to unzip a zip file in a dir
 * v0.2.1 dd64636 on Sep 4, 2021
   * jar, uber - replace - with _ in main class name
 * v0.2.0 7cbb94b on Aug 31, 2021

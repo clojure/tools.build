@@ -12,10 +12,11 @@
     [clojure.tools.build.util.file :as file]
     [clojure.string :as str])
   (:import
-    [java.io File BufferedInputStream FileInputStream]
+    [java.io File InputStream BufferedInputStream FileInputStream
+             OutputStream BufferedOutputStream FileOutputStream]
     [java.nio.file Files LinkOption]
     [java.nio.file.attribute BasicFileAttributes]
-    [java.util.zip ZipFile ZipOutputStream ZipEntry]
+    [java.util.zip ZipFile ZipInputStream ZipOutputStream ZipEntry]
     [java.util.jar Manifest Attributes$Name]))
 
 (set! *warn-on-reflection* true)
@@ -70,3 +71,34 @@
                              :modified (.getLastModifiedTime entry)
                              :size (.getSize entry)}))
               entries)))))))
+
+(defn- copy-stream!
+  "Copy input stream to output stream using buffer.
+  Caller is responsible for passing buffered streams and closing streams."
+  [^InputStream is ^OutputStream os ^bytes buffer]
+  (loop []
+    (let [size (.read is buffer)]
+      (if (pos? size)
+        (do
+          (.write os buffer 0 size)
+          (recur))
+        (.close os)))))
+
+(defn unzip
+  [^String zip-path ^String target-dir]
+  (let [buffer (byte-array 1024)
+        zip-file (jio/file zip-path)]
+    (if (.exists zip-file)
+      (with-open [zis (ZipInputStream. (BufferedInputStream. (FileInputStream. zip-file)))]
+        (loop []
+          (if-let [entry (.getNextEntry zis)]
+            ;(println "entry:" (.getName entry) (.isDirectory entry))
+            (let [out-file (jio/file target-dir (.getName entry))]
+              (jio/make-parents out-file)
+              (when-not (.isDirectory entry)
+                (with-open [output (BufferedOutputStream. (FileOutputStream. out-file))]
+                  (copy-stream! zis output buffer)
+                  (Files/setLastModifiedTime (.toPath out-file) (.getLastModifiedTime entry))))
+              (recur))
+            true)))
+      false)))

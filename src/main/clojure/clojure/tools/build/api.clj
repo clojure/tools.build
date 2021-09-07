@@ -329,6 +329,16 @@
   (assert-required "zip" params [:src-dirs :zip-file])
   ((requiring-resolve 'clojure.tools.build.tasks.zip/zip) params))
 
+(defn unzip
+  "Unzip zip file to target-dir. Returns nil.
+
+  Options:
+    :zip-file - required, zip file to unzip
+    :target-dir - required, directory to unzip in"
+  [params]
+  (assert-required "unzip" params [:zip-file :target-dir])
+  ((requiring-resolve 'clojure.tools.build.tasks.zip/unzip) params))
+
 ;; Maven tasks
 
 (defn install

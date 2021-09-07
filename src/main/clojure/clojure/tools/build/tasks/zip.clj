@@ -27,3 +27,10 @@
         (let [zip-from (file/ensure-dir (api/resolve-path zpath))]
           ;(println "Zipping from" (.getPath zip-from) "to" (.getPath zip-file))
           (zip/copy-to-zip zos zip-from))))))
+
+(defn unzip
+  [{:keys [zip-file target-dir] :as params}]
+  (let [{:keys [zip-file target-dir]} params
+        ret (zip/unzip (api/resolve-path zip-file) (api/resolve-path target-dir))]
+    (when-not ret
+      (throw (ex-info (format "Zip file does not exist: %s" zip-file) {})))))
