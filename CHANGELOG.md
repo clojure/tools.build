@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* v0.3.0 e418fc9 on Sep 11, 2021
+  * Bump to latest tools.deps - 0.12.1036
 * v0.2.2 3049217 on Sep 7, 2021
   * unzip - new task to unzip a zip file in a dir
 * v0.2.1 dd64636 on Sep 4, 2021
