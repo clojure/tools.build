@@ -309,12 +309,44 @@
   "Create uberjar file containing contents of deps in basis and class-dir.
   Use main class in manifest if provided. Returns nil.
 
+  When combining jar files into an uber jar, multiple jars may contain a file
+  at the same path. The conflict handlers are a map of string regex pattern
+  to either a keyword (to use a built-in handler), a symbol (to resolve and
+  invoke), a function instance, or a vector of the prior to run multiple. The
+  special key `:else` specifies the default behavior if not matched.
+
+  Conflict handler signature (side effecting function):
+
+    (fn [{:path        ^String path      ;; path in uber jar, matched by regex
+          :in          ^InputStream in   ;; input stream to incoming file
+          :working-dir ^File root-dir    ;; root directory of uber contents
+          :out-file    ^File out-file    ;; existing file under root-dir
+          :source      ^Symbol lib       ;; if this came from a lib jar
+         }])  ;; returns nil
+
+  Available conflict handlers:
+    :ignore - don't do anything
+    :overwrite - overwrite (replaces prior file)
+    :append - append the file after a blank line
+    :append-dedupe - append the file but dedupe appended sections
+    :data-readers - merge data_readers.clj
+    :warn - print a warning
+    :error - throw an error (a useful :default-handler)
+
+  Default conflict handlers map:
+    {\"^data_readers\.clj[cs]?$\" :data_readers
+     \"^META-INF/services/\" :append
+     \"(?i)^(META-INF/)?(COPYRIGHT|NOTICE|LICENSE)(\\.(txt|md))?$\" :append-dedupe
+     :default :ignore}
+
   Options:
     :class-dir - required, local class dir to include
     :uber-file - required, uber jar file to create
     :basis - used to pull dep jars
     :main - main class symbol
-    :manifest - map of manifest attributes, merged last over defaults+:main"
+    :manifest - map of manifest attributes, merged last over defaults + :main
+    :conflict-handlers - map of regex string pattern to built-in handlers,
+                         symbols to eval, or function instances"
   [params]
   (assert-required "uber" params [:class-dir :uber-file])
   ((requiring-resolve 'clojure.tools.build.tasks.uber/uber) params))
