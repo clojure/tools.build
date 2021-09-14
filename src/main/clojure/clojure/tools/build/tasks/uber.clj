@@ -158,7 +158,7 @@
       state)
 
     :else
-    (throw (ex-info (format "Unexpected lib file: " (.toString lib-file)) {}))))
+    (throw (ex-info (format "Unexpected lib file: %s" (.toString lib-file)) {}))))
 
 (defn- remove-optional
   "Remove optional libs and their transitive dependencies from the lib tree.
