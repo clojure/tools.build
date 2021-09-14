@@ -130,7 +130,11 @@
 
 (defn- explode
   [^File lib-file lib {:keys [out-dir buffer handlers]} state]
-  (if (str/ends-with? (.getPath lib-file) ".jar")
+  (cond
+    (not (.exists lib-file))
+    state
+
+    (str/ends-with? (.getPath lib-file) ".jar")
     (with-open [jis (JarInputStream. (BufferedInputStream. (FileInputStream. lib-file)))]
       (loop [the-state state]
         (if-let [entry (.getNextJarEntry jis)]
@@ -147,9 +151,14 @@
                   (recur the-state)))
               (recur the-state)))
           the-state)))
+
+    (.isDirectory lib-file)
     (do
       (file/copy-contents lib-file out-dir)
-      state)))
+      state)
+
+    :else
+    (throw (ex-info (format "Unexpected lib file: " (.toString lib-file)) {}))))
 
 (defn- remove-optional
   "Remove optional libs and their transitive dependencies from the lib tree.
