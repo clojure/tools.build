@@ -8,13 +8,21 @@
 
 (ns clojure.tools.build.tasks.test-uber
   (:require
+    [clojure.set :as set]
     [clojure.string :as str]
     [clojure.test :refer :all :as test]
     [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
+    [clojure.tools.build.tasks.uber :as uber]
     [clojure.tools.build.test-util :refer :all]
     [clojure.tools.build.util.zip :as zip]
-    [clojure.tools.build.tasks.test-jar :as test-jar]))
+    [clojure.tools.build.tasks.test-jar :as test-jar]
+    [clojure.edn :as edn]))
+
+(deftest string-stream-rt
+  (are [s] (= s (#'uber/stream->string (#'uber/string->stream s)))
+    ""
+    "abc"))
 
 (deftest test-uber
   (let [uber-path "target/p1-uber.jar"]
@@ -23,14 +31,16 @@
       (api/javac {:class-dir "target/classes"
                   :src-dirs ["java"]})
       (api/copy-dir {:target-dir "target/classes"
-                 :src-dirs ["src"]})
+                     :src-dirs ["src"]})
       (api/uber {:class-dir "target/classes"
+                 :basis (api/create-basis nil)
                  :uber-file uber-path
                  :main 'foo.bar})
       (let [uf (jio/file (project-path uber-path))]
         (is (true? (.exists uf)))
-        (is (= #{"META-INF/MANIFEST.MF" "foo/" "foo/bar.clj" "foo/Demo2.class" "foo/Demo1.class"}
-               (set (map :name (zip/list-zip (project-path uber-path))))))
+        (is (set/subset?
+              #{"META-INF/MANIFEST.MF" "foo/" "foo/bar.clj" "foo/Demo2.class" "foo/Demo1.class"}
+              (set (map :name (zip/list-zip (project-path uber-path))))))
         (is (= (str/includes? (test-jar/slurp-manifest uf) "Main-Class: foo.bar")))))))
 
 (deftest test-custom-manifest
@@ -54,6 +64,65 @@
           (is (= (str/includes? manifest-out "Main-Class: baz")))
           (is (= (str/includes? manifest-out "Custom-Thing: 100"))))))))
 
+(deftest test-conflicts
+  (with-test-dir "test-data/uber-conflict"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+
+    ;; make "jars"
+    (doseq [j ["j1" "j2" "j3"]]
+      (let [classes (format "target/%s/classes" j)
+            jar-file (format "target/%s.jar" j)]
+        (api/copy-dir {:target-dir classes :src-dirs [j]})
+        (api/jar {:class-dir classes :jar-file jar-file})))
+
+    ;; uber including j1, j2, j3
+    (api/uber {:class-dir "target/classes"
+               :basis (api/create-basis {:root nil
+                                         :project {:deps {'dummy/j1 {:local/root "target/j1.jar"}
+                                                          'dummy/j2 {:local/root "target/j2.jar"}
+                                                          'dummy/j3 {:local/root "target/j3.jar"}}}})
+               :uber-file "target/conflict.jar"
+               :conflict-handlers {"ignore.txt" :ignore
+                                   "overwrite.txt" :overwrite
+                                   "append.txt" :append}})
+
+    ;; unzip
+    (api/unzip {:zip-file "target/conflict.jar" :target-dir "target/unzip"})
+
+    ;; non-conflicting files are combined, conflicting files are reconciled
+    (let [fs (map :name (zip/list-zip (project-path "target/conflict.jar")))]
+      (is
+        (set/subset?
+          #{"META-INF/LICENSE.txt" "META-INF/MANIFEST.MF"
+            "data_readers.clj"
+            "my/j1.txt" "my/j2.txt"
+            "ignore.txt" "overwrite.txt" "append.txt"}
+          (set fs))))
+
+    ;; data_readers.clj merge
+    (is (= '{j1a my.foo/j1a-reader, j1b my.bar/j1b-reader,
+             j2a my.foo/j2a-reader, j2b my.bar/j2b-reader}
+          (edn/read-string (slurp (project-path "target/unzip/data_readers.clj")))))
+
+    ;; ignore files ignore, so first one wins
+    (is (= (slurp (project-path "j1/ignore.txt"))
+          (slurp (project-path "target/unzip/ignore.txt"))))
+
+    ;; overwrite files overwrite, so last wins
+    (is (= (slurp (project-path "j2/overwrite.txt"))
+          (slurp (project-path "target/unzip/overwrite.txt"))))
+
+    ;; append files append
+    (is (= (str (slurp (project-path "j1/append.txt")) "\n"
+             (slurp (project-path "j2/append.txt")))
+          (slurp (project-path "target/unzip/append.txt"))))
+
+    ;; LICENSE files append but no dupes - include j1 and j2, but not j3 (dupe of j1)
+    (is (= (str (slurp (project-path "j1/META-INF/LICENSE.txt")) "\n"
+             (slurp (project-path "j2/META-INF/LICENSE.txt")))
+          (slurp (project-path "target/unzip/META-INF/LICENSE.txt"))))))
+
 (comment
+  (test-conflicts)
   (run-tests)
   )

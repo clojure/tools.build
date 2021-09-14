@@ -309,44 +309,51 @@
   "Create uberjar file containing contents of deps in basis and class-dir.
   Use main class in manifest if provided. Returns nil.
 
-  When combining jar files into an uber jar, multiple jars may contain a file
-  at the same path. The conflict handlers are a map of string regex pattern
-  to either a keyword (to use a built-in handler), a symbol (to resolve and
-  invoke), a function instance, or a vector of the prior to run multiple. The
-  special key `:else` specifies the default behavior if not matched.
-
-  Conflict handler signature (side effecting function):
-
-    (fn [{:path        ^String path      ;; path in uber jar, matched by regex
-          :in          ^InputStream in   ;; input stream to incoming file
-          :working-dir ^File root-dir    ;; root directory of uber contents
-          :out-file    ^File out-file    ;; existing file under root-dir
-          :source      ^Symbol lib       ;; if this came from a lib jar
-         }])  ;; returns nil
-
-  Available conflict handlers:
-    :ignore - don't do anything
-    :overwrite - overwrite (replaces prior file)
-    :append - append the file after a blank line
-    :append-dedupe - append the file but dedupe appended sections
-    :data-readers - merge data_readers.clj
-    :warn - print a warning
-    :error - throw an error (a useful :default-handler)
-
-  Default conflict handlers map:
-    {\"^data_readers\.clj[cs]?$\" :data_readers
-     \"^META-INF/services/\" :append
-     \"(?i)^(META-INF/)?(COPYRIGHT|NOTICE|LICENSE)(\\.(txt|md))?$\" :append-dedupe
-     :default :ignore}
-
   Options:
     :class-dir - required, local class dir to include
     :uber-file - required, uber jar file to create
     :basis - used to pull dep jars
     :main - main class symbol
     :manifest - map of manifest attributes, merged last over defaults + :main
-    :conflict-handlers - map of regex string pattern to built-in handlers,
-                         symbols to eval, or function instances"
+    :conflict-handlers - map of string pattern (regex) to built-in handlers,
+                         symbols to eval, or function instances
+
+  When combining jar files into an uber jar, multiple jars may contain a file
+  at the same path. The conflict handlers are a map of string regex pattern
+  to:
+    a keyword (to use a built-in handler) or
+    a symbol (to resolve and invoke) or
+    a function instance
+  The special key `:default` specifies the default behavior if not matched.
+
+  Conflict handler signature (fn [params]) => effect-map:
+    params:
+      :path     - String, path in uber jar, matched by regex
+      :in       - InputStream to incoming file (see stream->string if needed)
+      :existing - File, existing File at path
+      :lib      - symbol, lib source for incoming conflict
+      :state    - map, available for retaining state during uberjar process
+
+  Handler should return effect-map with optional keys:
+    :state      - updated state map
+    :write      - map of string path to map of :string (string) or
+                  :stream (InputStream) to write and optional :append
+                  flag. Omit if no files to write.
+
+  Available built-in conflict handlers:
+    :ignore - don't do anything (default)
+    :overwrite - overwrite (replaces prior file)
+    :append - append the file with a blank line separator
+    :append-dedupe - append the file but dedupe appended sections
+    :data-readers - merge data_readers.clj
+    :warn - print a warning
+    :error - throw an error
+
+  Default conflict handlers map:
+    {\"^data_readers.clj[cs]?$\" :data_readers
+     \"^META-INF/services/\" :append
+     \"(?i)^(META-INF/)?(COPYRIGHT|NOTICE|LICENSE)(\\.(txt|md))?$\" :append-dedupe
+     :default :ignore}"
   [params]
   (assert-required "uber" params [:class-dir :uber-file])
   ((requiring-resolve 'clojure.tools.build.tasks.uber/uber) params))
