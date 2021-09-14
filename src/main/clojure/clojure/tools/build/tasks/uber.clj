@@ -27,7 +27,12 @@
 
 (def ^:private uber-exclusions
   [#"project.clj"
-   #"META-INF/.*\.(?:SF|RSA|DSA|MF)"])
+   #"META-INF/.*\.(?:SF|RSA|DSA|MF)"
+   #"module-info\.class"
+   #"(.*/)?\.DS_Store"
+   #"(.*/)?\.keep"
+   #".*\.pom"
+   #"(?i)META-INF/(?:INDEX\.LIST|DEPENDENCIES)(?:\.txt)?"])
 
 (defn- exclude-from-uber?
   [^String path]
