@@ -315,6 +315,7 @@
     :basis - used to pull dep jars
     :main - main class symbol
     :manifest - map of manifest attributes, merged last over defaults + :main
+    :exclude - coll of string patterns (regex) to exclude from deps
     :conflict-handlers - map of string pattern (regex) to built-in handlers,
                          symbols to eval, or function instances
 

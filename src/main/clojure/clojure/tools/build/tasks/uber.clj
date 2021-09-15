@@ -35,8 +35,8 @@
    #"(?i)META-INF/(?:INDEX\.LIST|DEPENDENCIES)(?:\.txt)?"])
 
 (defn- exclude-from-uber?
-  [^String path]
-  (loop [[re & res] uber-exclusions]
+  [exclude-patterns ^String path]
+  (loop [[re & res] exclude-patterns]
     (if re
       (if (re-matches re path)
         true
@@ -128,8 +128,18 @@
         (or new-state state))
       (throw (ex-info (format "No handler found for conflict at %s" path) {})))))
 
+(defn- ensure-dir
+  "Returns true if parent dir exists, false if exists but is not a file,
+  and throws if it cannot be created."
+  [^File parent ^File child]
+  (if (.exists parent)
+    (.isDirectory parent)
+    (if (jio/make-parents child)
+      true
+      (throw (ex-info (str "Unable to create parent dirs for: " (.toString child)) {})))))
+
 (defn- explode
-  [^File lib-file lib {:keys [out-dir buffer handlers]} state]
+  [^File lib-file lib {:keys [out-dir buffer exclude handlers]} state]
   (cond
     (not (.exists lib-file))
     state
@@ -139,17 +149,28 @@
       (loop [the-state state]
         (if-let [entry (.getNextJarEntry jis)]
           (let [path (.getName entry)
-                out-file (jio/file out-dir path)]
-            (jio/make-parents out-file)
-            (if-not (or (.isDirectory entry) (exclude-from-uber? path))
-              (if (.exists out-file)
-                (recur (handle-conflict handlers entry buffer out-dir
-                         {:lib lib, :path path, :in jis, :existing out-file, :state the-state}))
-                (do
-                  (copy-stream! ^InputStream jis (BufferedOutputStream. (FileOutputStream. out-file)) buffer)
-                  (Files/setLastModifiedTime (.toPath out-file) (.getLastModifiedTime entry))
-                  (recur the-state)))
-              (recur the-state)))
+                out-file (jio/file out-dir path)
+                parent-file (.getParentFile out-file)]
+            (cond
+              ;; excluded or directory - do nothing
+              (or (exclude-from-uber? exclude path) (.isDirectory entry))
+              (recur the-state)
+
+              ;; conflict, same file from multiple sources - handle
+              (.exists out-file)
+              (recur (handle-conflict handlers entry buffer out-dir
+                       {:lib lib, :path path, :in jis, :existing out-file, :state the-state}))
+
+              ;; write new file, parent dir exists for writing
+              (ensure-dir parent-file out-file)
+              (do
+                (copy-stream! ^InputStream jis (BufferedOutputStream. (FileOutputStream. out-file)) buffer)
+                (Files/setLastModifiedTime (.toPath out-file) (.getLastModifiedTime entry))
+                (recur the-state))
+
+              :parent-dir-is-a-file
+              (throw (ex-info (format "Cannot write %s from %s as parent dir is a file from another lib. One of them must be excluded."
+                                path lib) {}))))
           the-state)))
 
     (.isDirectory lib-file)
@@ -218,11 +239,12 @@
     {} (merge default-handlers handlers)))
 
 (defn uber
-  [{mf-attrs :manifest, :keys [basis class-dir uber-file main conflict-handlers]}]
+  [{mf-attrs :manifest, :keys [basis class-dir uber-file main exclude conflict-handlers]}]
   (let [working-dir (.toFile (Files/createTempDirectory "uber" (into-array FileAttribute [])))
         context {:out-dir working-dir
                  :buffer (byte-array 4096)
-                 :handlers (prep-handlers conflict-handlers)}]
+                 :handlers (prep-handlers conflict-handlers)
+                 :exclude (map re-pattern (into uber-exclusions exclude))}]
     (try
       (let [{:keys [libs]} basis
             compile-dir (api/resolve-path class-dir)

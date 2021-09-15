@@ -10,14 +10,16 @@
   (:require
     [clojure.set :as set]
     [clojure.string :as str]
-    [clojure.test :refer :all :as test]
+    [clojure.test :refer :all]
     [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.tasks.uber :as uber]
     [clojure.tools.build.test-util :refer :all]
     [clojure.tools.build.util.zip :as zip]
     [clojure.tools.build.tasks.test-jar :as test-jar]
-    [clojure.edn :as edn]))
+    [clojure.edn :as edn])
+  (:import
+    [clojure.lang ExceptionInfo]))
 
 (deftest string-stream-rt
   (are [s] (= s (#'uber/stream->string (#'uber/string->stream s)))
@@ -122,7 +124,37 @@
              (slurp (project-path "j2/META-INF/LICENSE.txt")))
           (slurp (project-path "target/unzip/META-INF/LICENSE.txt"))))))
 
+(deftest test-case-sensitive-dir-file-collision
+  (with-test-dir "test-data/case-sensitive-collision"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+
+    ;; make "jars"
+    (doseq [j ["j1" "j2"]]
+      (let [classes (format "target/%s/classes" j)
+            jar-file (format "target/%s.jar" j)]
+        (api/copy-dir {:target-dir classes :src-dirs [j]})
+        (api/jar {:class-dir classes :jar-file jar-file})))
+
+    ;; uber including j1, j2 - should fail with conflict
+    (let [basis (api/create-basis {:root nil
+                                   :project {:deps {'dummy/j1 {:local/root "target/j1.jar"}
+                                                    'dummy/j2 {:local/root "target/j2.jar"}}}})]
+      (try
+        (api/uber {:class-dir "target/classes", :basis basis, :uber-file "target/collision.jar"})
+        (catch ExceptionInfo ex
+          (= "Cannot write foo/hi.txt from dummy/j2 as parent dir is a file from another lib. One of them must be excluded."
+            (ex-message ex))))
+
+      ;; uber including j1, j2 but excluding one of the conflicts
+      (api/uber {:class-dir "target/classes", :basis basis, :uber-file "target/collision.jar"
+                 :exclude ["FOO"]})
+
+      ;; after exclusion, only foo/hi.txt
+      (let [fs (map :name (zip/list-zip (project-path "target/collision.jar")))]
+        (is (= #{"META-INF/MANIFEST.MF" "foo/" "foo/hi.txt"} (set fs)))))))
+
 (comment
   (test-conflicts)
+  (test-case-sensitive-dir-file-collision)
   (run-tests)
   )
