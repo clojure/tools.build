@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+* next
+  * uber - TBUILD-2 - add support for configurable conflict handlers
+  * uber - TBUILD-11 - detect file and dir with same name in uber
+  * uber - TBUILD-16 - expand default exclusions
+  * uber - add support for custom exclusions
 * v0.3.0 e418fc9 on Sep 11, 2021
   * Bump to latest tools.deps - 0.12.1036
 * v0.2.2 3049217 on Sep 7, 2021
