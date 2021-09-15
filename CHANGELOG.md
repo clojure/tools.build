@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.4.0 801a22f on Sep 15, 2021
   * uber - TBUILD-2 - add support for configurable conflict handlers
   * uber - TBUILD-11 - detect file and dir with same name in uber
   * uber - TBUILD-16 - expand default exclusions

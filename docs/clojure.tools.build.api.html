@@ -148,7 +148,47 @@ Options:
   :uber-file - required, uber jar file to create
   :basis - used to pull dep jars
   :main - main class symbol
-  :manifest - map of manifest attributes, merged last over defaults+:main</pre></div></div><div class="public anchor" id="var-unzip"><h3>unzip</h3><div class="usage"><code>(unzip params)</code></div><div class="doc"><pre class="plaintext">Unzip zip file to target-dir. Returns nil.
+  :manifest - map of manifest attributes, merged last over defaults + :main
+  :exclude - coll of string patterns (regex) to exclude from deps
+  :conflict-handlers - map of string pattern (regex) to built-in handlers,
+                       symbols to eval, or function instances
+
+When combining jar files into an uber jar, multiple jars may contain a file
+at the same path. The conflict handlers are a map of string regex pattern
+to:
+  a keyword (to use a built-in handler) or
+  a symbol (to resolve and invoke) or
+  a function instance
+The special key `:default` specifies the default behavior if not matched.
+
+Conflict handler signature (fn [params]) =&gt; effect-map:
+  params:
+    :path     - String, path in uber jar, matched by regex
+    :in       - InputStream to incoming file (see stream-&gt;string if needed)
+    :existing - File, existing File at path
+    :lib      - symbol, lib source for incoming conflict
+    :state    - map, available for retaining state during uberjar process
+
+Handler should return effect-map with optional keys:
+  :state      - updated state map
+  :write      - map of string path to map of :string (string) or
+                :stream (InputStream) to write and optional :append
+                flag. Omit if no files to write.
+
+Available built-in conflict handlers:
+  :ignore - don't do anything (default)
+  :overwrite - overwrite (replaces prior file)
+  :append - append the file with a blank line separator
+  :append-dedupe - append the file but dedupe appended sections
+  :data-readers - merge data_readers.clj
+  :warn - print a warning
+  :error - throw an error
+
+Default conflict handlers map:
+  {"^data_readers.clj[cs]?$" :data_readers
+   "^META-INF/services/" :append
+   "(?i)^(META-INF/)?(COPYRIGHT|NOTICE|LICENSE)(\.(txt|md))?$" :append-dedupe
+   :default :ignore}</pre></div></div><div class="public anchor" id="var-unzip"><h3>unzip</h3><div class="usage"><code>(unzip params)</code></div><div class="doc"><pre class="plaintext">Unzip zip file to target-dir. Returns nil.
 
 Options:
   :zip-file - required, zip file to unzip
