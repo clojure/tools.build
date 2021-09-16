@@ -2,8 +2,10 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.set :as set]
+    [clojure.spec.alpha :as s]
     [clojure.string :as str]
-    [clojure.tools.build.util.file :as file])
+    [clojure.tools.build.util.file :as file]
+    [clojure.tools.build.api.specs :as specs])
   (:import
     [java.io File]))
 
@@ -41,6 +43,15 @@
     (when (seq missing)
       (throw (ex-info (format "Missing required params for %s: %s" task (vec (sort missing))) (or params {}))))))
 
+(defn- assert-specs
+  "Check that key in params satisfies the spec. Throw if it exists and
+  does not conform to the spec, otherwise return nil."
+  [task params & key-specs]
+  (doseq [[key spec] (partition-all 2 key-specs)]
+    (let [val (get params key)]
+      (when (and val (not (s/valid? spec val)))
+        (throw (ex-info (format "Invalid param %s in call to %s: got %s, expected %s" key task (pr-str val) (s/form spec)) {}))))))
+
 ;; File tasks
 
 (defn delete
@@ -50,6 +61,7 @@
     :path - required, path to file or directory"
   [{:keys [path] :as params}]
   (assert-required "delete" params [:path])
+  (assert-specs "delete" params :path ::specs/path)
   (let [root-file (resolve-path path)]
     ;(println "root-file" root-file)
     (if (.exists root-file)
@@ -64,6 +76,9 @@
     :target - required, target path"
   [{:keys [src target] :as params}]
   (assert-required "copy-file" params [:src :target])
+  (assert-specs "copy-file" params
+    :src ::specs/path
+    :target ::specs/path)
   (file/copy-file (resolve-path src) (resolve-path target)))
 
 (defn write-file
@@ -79,6 +94,7 @@
     :opts - coll of writer opts like :append and :encoding (per clojure.java.io)"
   [{:keys [path content string opts] :as params}]
   (assert-required "write-file" params [:path])
+  (assert-specs "write-file" params :path ::specs/path)
   (let [f (resolve-path path)]
     (cond
       content (apply file/ensure-file f (pr-str content) opts)
@@ -102,6 +118,9 @@
     :replace    - map of source to replacement string in files"
   [params]
   (assert-required "copy" params [:target-dir :src-dirs])
+  (assert-specs "copy" params
+    :target-dir ::specs/path
+    :src-dirs ::specs/paths)
   ((requiring-resolve 'clojure.tools.build.tasks.copy/copy) params))
 
 ;; Basis tasks
@@ -132,7 +151,7 @@
     :user    - dep source, default = :standard
     :project - dep source, default = :standard (\"./deps.edn\")
     :extra   - dep source, default = nil
-    :aliases - coll of aliases of argmaps  to apply to subprocesses
+    :aliases - coll of aliases of argmaps to apply to subprocesses
 
   Returns a runtime basis, which is the initial merged deps edn map plus these keys:
    :resolve-args - the resolve args passed in, if any
@@ -184,6 +203,10 @@
     :ignore - ignore the stream"
   [params]
   (assert-required "process" params [:command-args])
+  (assert-specs "process" params
+    :dir ::specs/path
+    :out-file ::specs/path
+    :err-file ::specs/path)
   ((requiring-resolve 'clojure.tools.build.tasks.process/process) params))
 
 ;; Git tasks
@@ -196,6 +219,9 @@
     :dir - dir to invoke this command from, by default current directory
     :path - path to count commits for relative to dir"
   [{:keys [dir path] :or {dir "."} :as params}]
+  (assert-specs "git-count-revs" params
+    :dir ::specs/path
+    :path ::specs/path)
   (-> {:command-args (cond-> ["git" "rev-list" "HEAD" "--count"]
                        path (conj "--" path))
        :dir (.getPath (resolve-path dir))
@@ -229,6 +255,9 @@
     :filter-nses - coll of symbols representing a namespace prefix to include"
   [params]
   (assert-required "compile-clj" params [:basis :class-dir])
+  (assert-specs "compile-clj" params
+    :class-dir ::specs/path
+    :src-dirs ::specs/paths)
   ((requiring-resolve 'clojure.tools.build.tasks.compile-clj/compile-clj) params))
 
 (defn javac
@@ -241,6 +270,9 @@
     :javac-opts - coll of string opts, like [\"-source\" \"8\" \"-target\" \"8\"]"
   [params]
   (assert-required "javac" params [:src-dirs :class-dir])
+  (assert-specs "javac" params
+    :src-dirs ::specs/paths
+    :class-dir ::specs/path)
   ((requiring-resolve 'clojure.tools.build.tasks.javac/javac) params))
 
 ;; Jar/zip tasks
@@ -259,6 +291,9 @@
     :class-dir - optional, if provided will be resolved and form the root of the path"
   [params]
   (assert-required "pom-path" params [:lib])
+  (assert-specs "pom-path" params
+    :lib ::specs/lib
+    :class-dir ::specs/path)
   (let [{:keys [class-dir lib]} params
         pom-dir ((requiring-resolve 'clojure.tools.build.tasks.write-pom/meta-maven-path) {:lib lib})
         pom-file (if class-dir
@@ -290,6 +325,12 @@
     :repos - map of repo name to repo config, replaces repos from deps.edn"
   [params]
   (assert-required "write-pom" params [:basis :class-dir :lib :version])
+  (assert-specs "write-pom" params
+    :lib ::specs/lib
+    :class-dir ::specs/path
+    :src-pom ::specs/path
+    :src-dirs ::specs/paths
+    :resource-dirs ::specs/paths)
   ((requiring-resolve 'clojure.tools.build.tasks.write-pom/write-pom) params))
 
 (defn jar
@@ -303,6 +344,9 @@
     :manifest - map of manifest attributes, merged last over defaults+:main"
   [params]
   (assert-required "jar" params [:class-dir :jar-file])
+  (assert-specs "jar" params
+    :class-dir ::specs/path
+    :jar-file ::specs/path)
   ((requiring-resolve 'clojure.tools.build.tasks.jar/jar) params))
 
 (defn uber
@@ -357,6 +401,9 @@
      :default :ignore}"
   [params]
   (assert-required "uber" params [:class-dir :uber-file])
+  (assert-specs "uber" params
+    :class-dir ::specs/path
+    :uber-file ::specs/path)
   ((requiring-resolve 'clojure.tools.build.tasks.uber/uber) params))
 
 (defn zip
@@ -367,6 +414,9 @@
     :zip-file - required, zip file to create"
   [params]
   (assert-required "zip" params [:src-dirs :zip-file])
+  (assert-specs "zip" params
+    :src-dirs ::specs/paths
+    :zip-file ::specs/path)
   ((requiring-resolve 'clojure.tools.build.tasks.zip/zip) params))
 
 (defn unzip
@@ -377,6 +427,9 @@
     :target-dir - required, directory to unzip in"
   [params]
   (assert-required "unzip" params [:zip-file :target-dir])
+  (assert-specs "unzip" params
+    :zip-file ::specs/path
+    :target-dir ::specs/path)
   ((requiring-resolve 'clojure.tools.build.tasks.zip/unzip) params))
 
 ;; Maven tasks
@@ -394,5 +447,9 @@
     :class-dir - required, used to find the pom file"
   [params]
   (assert-required "install" params [:basis :lib :version :jar-file :class-dir])
+  (assert-specs "install" params
+    :lib ::specs/lib
+    :jar-file ::specs/path
+    :class-dir ::specs/path)
   ((requiring-resolve 'clojure.tools.build.tasks.install/install) params))
 

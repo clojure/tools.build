@@ -18,7 +18,8 @@
     [clojure.tools.build.test-util :refer :all])
   (:import
     [java.io File InputStream]
-    [java.util Properties]))
+    [java.util Properties]
+    [clojure.lang ExceptionInfo]))
 
 (set! *warn-on-reflection* true)
 
@@ -184,6 +185,25 @@
     (is (= "./foo/META-INF/maven/a.b/c/pom.xml" (api/pom-path {:class-dir "foo" :lib 'a.b/c})))
     (api/set-project-root! prior)))
 
+(deftest test-validate-lib
+  (with-test-dir "test-data/p1"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/delete {:path "target"})
+    (try
+      (api/write-pom {:lib 'unqualified-lib ;; invalid
+                      :version "1.2.3"
+                      :class-dir "target/classes"
+                      :src-dirs ["src"]
+                      :src-pom "pom.xml"
+                      :resource-dirs ["resources"]
+                      :basis (api/create-basis nil)})
+      (catch ExceptionInfo e
+        (let [m (ex-message e)]
+          (is (str/includes? m ":lib"))
+          (is (str/includes? m "unqualified-lib"))
+          (is (str/includes? m "qualified-ident?")))))))
+
 (comment
   (run-tests)
+  (test-validate-lib)
   )
