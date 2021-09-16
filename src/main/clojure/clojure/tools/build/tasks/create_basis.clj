@@ -19,7 +19,7 @@
 
     Options (note, paths resolved via *project-root*):
     :root    - dep source, default = :standard
-    :user    - dep source, default = :standard
+    :user    - dep source, default = nil
     :project - dep source, default = :standard (\"./deps.edn\")
     :extra   - dep source, default = nil
     :aliases - coll of aliases of argmaps to apply to subprocesses"
@@ -27,4 +27,4 @@
    (create-basis nil))
   ([params]
    (dir/with-dir (jio/file api/*project-root*)
-     (deps/create-basis params))))
+     (deps/create-basis (merge {:user nil} params)))))
