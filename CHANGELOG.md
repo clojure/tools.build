@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.4.1 452db44 on Sep 16, 2021
   * Add some param spec checking
 * v0.4.0 801a22f on Sep 15, 2021
   * uber - TBUILD-2 - add support for configurable conflict handlers
