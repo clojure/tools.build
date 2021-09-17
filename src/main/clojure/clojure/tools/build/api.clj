@@ -422,7 +422,7 @@
 ;; Maven tasks
 
 (defn install
-  "Generate pom file and install pom and jar to local Maven repo.
+  "Install pom and jar to local Maven repo.
   Returns nil.
 
   Options:
