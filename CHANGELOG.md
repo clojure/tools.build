@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Update to latest tools.deps 0.12.1048
 * v0.5.0 7d77952 on Sep 16, 2021
   * create-basis - do not include user deps.edn by default
 * v0.4.1 452db44 on Sep 16, 2021
