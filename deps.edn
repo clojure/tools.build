@@ -19,7 +19,8 @@
                        :sha "705ad25bbf0228b1c38d0244a36001c2987d7337"}}
          :exec-fn cognitect.test-runner.api/test
          :exec-args {:dirs ["src/test/clojure"]
-                     :patterns [".*"]}}
+                     :patterns [".*"]}
+         :jvm-opts ["-XX:-OmitStackTraceInFastThrow"]}
 
   ;; Regenerate docs in docs/
   ;; clj -X:docs
