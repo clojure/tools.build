@@ -1,6 +1,9 @@
 Changelog
 ===========
 
+* next
+  * compile-clj - TBUILD-20 - fix regression with including class dir on classpath
+  * copy-dir - add option to filter binary files by extension during replace
 * v0.5.1 21da7d4 on Sep 21, 2021
   * Update to latest tools.deps 0.12.1048
 * v0.5.0 7d77952 on Sep 16, 2021
