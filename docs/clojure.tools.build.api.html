@@ -34,7 +34,9 @@ Options:
   :include    - glob of files to include, default = "**"
   :ignores    - collection of ignore regex patterns (applied only to file names),
                 see clojure.tools.build.tasks.copy/default-ignores for defaults
-  :replace    - map of source to replacement string in files</pre></div></div><div class="public anchor" id="var-copy-file"><h3>copy-file</h3><div class="usage"><code>(copy-file {:keys [src target], :as params})</code></div><div class="doc"><pre class="plaintext">Copy one file from source to target, creating target dirs if needed.
+  :replace    - map of source to replacement string in files
+  :non-filtered-exts - coll of extensions to skip filtering,
+                default = ["jpg" "jpeg" "png" "gif" "bmp"]</pre></div></div><div class="public anchor" id="var-copy-file"><h3>copy-file</h3><div class="usage"><code>(copy-file {:keys [src target], :as params})</code></div><div class="doc"><pre class="plaintext">Copy one file from source to target, creating target dirs if needed.
 Returns nil.
 
 Options:
