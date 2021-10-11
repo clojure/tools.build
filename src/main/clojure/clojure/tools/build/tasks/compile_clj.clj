@@ -64,8 +64,7 @@
   [{:keys [basis src-dirs compile-opts ns-compile filter-nses class-dir sort] :as params
     :or {sort :topo}}]
   (let [working-dir (.toFile (Files/createTempDirectory "compile-clj" (into-array FileAttribute [])))]
-    (let [{:keys [classpath]} basis
-          compile-dir-file (file/ensure-dir (api/resolve-path class-dir))
+    (let [compile-dir-file (file/ensure-dir (api/resolve-path class-dir))
           nses (cond
                  (seq ns-compile) ns-compile
                  (= sort :topo) (nses-in-topo src-dirs)
@@ -74,13 +73,11 @@
           working-compile-dir (file/ensure-dir (jio/file working-dir "compile-clj"))
           compile-script (jio/file working-dir "compile.clj")
           _ (write-compile-script! compile-script working-compile-dir nses compile-opts)
-          cp-str (->> (-> classpath keys (conj (.getPath working-compile-dir) (.getPath compile-dir-file)))
-                   (map #(api/resolve-path %))
-                   deps/join-classpath)
-          _ (spit (jio/file working-dir "compile.cp") cp-str)
-          process-args (process/java-command {:basis basis
+          process-args (process/java-command {:cp [(.getPath working-compile-dir) (.getPath compile-dir-file)]
+                                              :basis basis
                                               :main 'clojure.main
                                               :main-args [(.getCanonicalPath compile-script)]})
+          _ (spit (jio/file working-dir "compile.args") (str/join " " (:command-args process-args)))
           exit (:exit (process/process process-args))]
       (if (zero? exit)
         (do

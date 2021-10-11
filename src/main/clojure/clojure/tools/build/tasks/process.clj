@@ -73,22 +73,25 @@
         err-str (assoc :err err-str)))))
 
 (defn java-command
-  "Create Java command line args from a basis.
+  "Create Java command line args. The classpath will be the combination of
+  :cp followed by the classpath from the basis, both are optional.
 
   Options:
     :java-cmd - Java command, default = \"java\"
-    :basis - required, runtime basis (used to make a classpath)
+    :cp - coll of string classpath entries, used first (if provided)
+    :basis - runtime basis used for classpath, used last (if provided)
     :java-opts - coll of string jvm opts
     :main - required, main class symbol
     :main-args - coll of main class args
 
   Returns:
     :command-args - coll of command arg strings"
-  [{:keys [java-cmd basis java-opts main main-args]
+  [{:keys [java-cmd cp basis java-opts main main-args]
     :or {java-cmd "java"} :as params}]
   (let [{:keys [classpath]} basis
-        cp-str (->> classpath
-                 keys
+        cp-entries (concat cp (keys classpath))
+        _ (println cp-entries)
+        cp-str (->> cp-entries
                  (map #(api/resolve-path %))
                  deps/join-classpath)]
     {:command-args (vec (concat [java-cmd] java-opts ["-cp" cp-str (name main)] main-args))}))

@@ -154,11 +154,13 @@
 ;; Process tasks
 
 (defn java-command
-  "Create Java command line args from a basis.
+  "Create Java command line args. The classpath will be the combination of
+  :cp followed by the classpath from the basis, both are optional.
 
   Options:
     :java-cmd - Java command, default = \"java\"
-    :basis - required, runtime basis (used to make a classpath)
+    :cp - coll of string classpath entries, used first (if provided)
+    :basis - runtime basis used for classpath, used last (if provided)
     :java-opts - coll of string jvm opts
     :main - required, main class symbol
     :main-args - coll of main class args
@@ -241,7 +243,7 @@
        :direct-linking false}
     :filter-nses - coll of symbols representing a namespace prefix to include"
   [params]
-  (assert-required "compile-clj" params [:basis :class-dir])
+  (assert-required "compile-clj" params [:class-dir])
   (assert-specs "compile-clj" params
     :class-dir ::specs/path
     :src-dirs ::specs/paths)
