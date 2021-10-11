@@ -82,11 +82,13 @@ Options:
   :class-dir - required, dir to include in jar
   :jar-file - required, jar to write
   :main - main class symbol
-  :manifest - map of manifest attributes, merged last over defaults+:main</pre></div></div><div class="public anchor" id="var-java-command"><h3>java-command</h3><div class="usage"><code>(java-command params)</code></div><div class="doc"><pre class="plaintext">Create Java command line args from a basis.
+  :manifest - map of manifest attributes, merged last over defaults+:main</pre></div></div><div class="public anchor" id="var-java-command"><h3>java-command</h3><div class="usage"><code>(java-command params)</code></div><div class="doc"><pre class="plaintext">Create Java command line args. The classpath will be the combination of
+:cp followed by the classpath from the basis, both are optional.
 
 Options:
   :java-cmd - Java command, default = "java"
-  :basis - required, runtime basis (used to make a classpath)
+  :cp - coll of string classpath entries, used first (if provided)
+  :basis - runtime basis used for classpath, used last (if provided)
   :java-opts - coll of string jvm opts
   :main - required, main class symbol
   :main-args - coll of main class args
