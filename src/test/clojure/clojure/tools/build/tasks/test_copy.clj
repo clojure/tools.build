@@ -36,7 +36,7 @@
         (is (.exists source-file))
         (is (clojure.string/includes? contents txt)))
 
-      ;; binary files in filtered exts should be copied but not replaced
+      ;; binary files in replaced exts should be copied but not replaced
       (let [binary-in (jio/file (project-path "resources/test.png"))
             binary-out (jio/file (project-path "target/classes/test.png"))]
         (is (.exists binary-out))

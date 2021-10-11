@@ -116,7 +116,7 @@
     :ignores    - collection of ignore regex patterns (applied only to file names),
                   see clojure.tools.build.tasks.copy/default-ignores for defaults
     :replace    - map of source to replacement string in files
-    :non-filtered-exts - coll of extensions to skip filtering,
+    :non-replaced-exts - coll of extensions to skip when replacing (still copied)
                   default = [\"jpg\" \"jpeg\" \"png\" \"gif\" \"bmp\"]"
   [params]
   (assert-required "copy" params [:target-dir :src-dirs])
