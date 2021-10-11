@@ -72,7 +72,7 @@
                              :size (.getSize entry)}))
               entries)))))))
 
-(defn- copy-stream!
+(defn copy-stream!
   "Copy input stream to output stream using buffer.
   Caller is responsible for passing buffered streams and closing streams."
   [^InputStream is ^OutputStream os ^bytes buffer]

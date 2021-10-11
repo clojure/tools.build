@@ -115,7 +115,9 @@
     :include    - glob of files to include, default = \"**\"
     :ignores    - collection of ignore regex patterns (applied only to file names),
                   see clojure.tools.build.tasks.copy/default-ignores for defaults
-    :replace    - map of source to replacement string in files"
+    :replace    - map of source to replacement string in files
+    :non-filtered-exts - coll of extensions to skip filtering,
+                  default = [\"jpg\" \"jpeg\" \"png\" \"gif\" \"bmp\"]"
   [params]
   (assert-required "copy" params [:target-dir :src-dirs])
   (assert-specs "copy" params

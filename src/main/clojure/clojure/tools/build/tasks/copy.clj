@@ -49,21 +49,36 @@
 (defn ignore? [name ignore-regexes]
   (boolean (some #(re-matches % name) ignore-regexes)))
 
+(def default-non-filtered-exts
+  ["jpg" "jpeg" "png" "gif" "bmp"])
+
+(defn- ends-with-ext?
+  [exts path]
+  (loop [[ext & es] exts]
+    (if ext
+      (if (str/ends-with? path ext)
+        true
+        (recur es))
+      false)))
+
 (defn copy
-  [{:keys [target-dir src-dirs include replace ignores]
-    :or {include "**", ignores default-ignores} :as params}]
+  [{:keys [target-dir src-dirs include replace ignores non-filtered-exts]
+    :or {include "**", ignores default-ignores, non-filtered-exts default-non-filtered-exts}
+    :as params}]
   (let [to-path (.toPath (file/ensure-dir (api/resolve-path target-dir)))
-        ignore-regexes (map re-pattern ignores)]
+        ignore-regexes (map re-pattern ignores)
+        non-filtered (map #(str "." %) default-non-filtered-exts)]
     (doseq [dir src-dirs]
       ;(println "from" dir)
       (let [from-file (api/resolve-path dir)
             paths (match-paths from-file include)]
         (doseq [^Path path paths]
           (let [path-file (.toFile path)
+                path-file-name (.getName path-file)
                 target-file (.toFile (.resolve to-path (.relativize (.toPath from-file) path)))]
-            (when-not (ignore? (.getName path-file) ignore-regexes)
+            (when-not (ignore? path-file-name ignore-regexes)
               ;(println "copying" (.toString path-file) (.toString target-file) (boolean (not (empty? replace))))
-              (if (empty? replace)
+              (if (or (empty? replace) (ends-with-ext? non-filtered (.getName path-file)))
                 (file/copy-file path-file target-file)
                 (let [contents (slurp path-file)
                       replaced (reduce (fn [s [find replace]] (str/replace s find replace))
