@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.6.1 515b334 on Oct 10, 2021
   * copy-dir - update attribute name added in v0.6.0
 * v0.6.0 b139316 on Oct 10, 2021
   * compile-clj - TBUILD-20 - fix regression with including class dir on classpath
