@@ -90,7 +90,6 @@
     :or {java-cmd "java"} :as params}]
   (let [{:keys [classpath]} basis
         cp-entries (concat cp (keys classpath))
-        _ (println cp-entries)
         cp-str (->> cp-entries
                  (map #(api/resolve-path %))
                  deps/join-classpath)]
