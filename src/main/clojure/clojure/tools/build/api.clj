@@ -384,9 +384,9 @@
     :error - throw an error
 
   Default conflict handlers map:
-    {\"^data_readers.clj[cs]?$\" :data_readers
+    {\"^data_readers.clj[cs]?$\" :data-readers
      \"^META-INF/services/\" :append
-     \"(?i)^(META-INF/)?(COPYRIGHT|NOTICE|LICENSE)(\\.(txt|md))?$\" :append-dedupe
+     \"(?i)^(META-INF/)?(COPYRIGHT|NOTICE|LICENSE)(\\\\.(txt|md))?$\" :append-dedupe
      :default :ignore}"
   [params]
   (assert-required "uber" params [:class-dir :uber-file])
