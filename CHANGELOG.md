@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.6.2 226fb52 on Oct 12, 2021
   * Update to tools.deps 0.12.1053
 * v0.6.1 515b334 on Oct 10, 2021
   * copy-dir - update attribute name added in v0.6.0
