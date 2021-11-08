@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* v0.6.3 4a1b53a on Nov 5, 2021
+* v0.6.3 4a1b53a on Nov 8, 2021
   * Update to tools.deps 0.12.1071
 * v0.6.2 226fb52 on Oct 12, 2021
   * Update to tools.deps 0.12.1053
