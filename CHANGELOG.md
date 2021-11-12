@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.6.4 ea76dff on Nov 12, 2021
   * java-command - add control over using classpath file with :use-cp-file (default=:auto)
   * compile-clj - can now accept java-command passthrough args :java-cmd, :java-opts, :use-cp-file
 * v0.6.3 4a1b53a on Nov 8, 2021
