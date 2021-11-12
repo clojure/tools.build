@@ -73,10 +73,12 @@
           working-compile-dir (file/ensure-dir (jio/file working-dir "compile-clj"))
           compile-script (jio/file working-dir "compile.clj")
           _ (write-compile-script! compile-script working-compile-dir nses compile-opts)
-          process-args (process/java-command {:cp [(.getPath working-compile-dir) (.getPath compile-dir-file)]
-                                              :basis basis
-                                              :main 'clojure.main
-                                              :main-args [(.getCanonicalPath compile-script)]})
+          process-args (process/java-command (merge
+                                               (select-keys params [:java-cmd :java-opts :use-cp-file])
+                                               {:cp [(.getPath working-compile-dir) (.getPath compile-dir-file)]
+                                                :basis basis
+                                                :main 'clojure.main
+                                                :main-args [(.getCanonicalPath compile-script)]}))
           _ (spit (jio/file working-dir "compile.args") (str/join " " (:command-args process-args)))
           exit (:exit (process/process process-args))]
       (if (zero? exit)

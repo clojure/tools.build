@@ -10,6 +10,7 @@
   (:require
     [clojure.test :refer :all :as test]
     [clojure.java.io :as jio]
+    [clojure.string :as str]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.test-util :refer :all]))
 
@@ -22,6 +23,21 @@
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar__init.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar$hello.class")))))))
+
+(deftest test-compile-passthrough-opts
+  (let [java-cmd (str/trim (:out (api/process {:command-args ["which" "java"] :out :capture})))]
+    (with-test-dir "test-data/p1"
+      (api/set-project-root! (.getAbsolutePath *test-dir*))
+      (api/compile-clj {:class-dir "target/classes"
+                        :src-dirs ["src"]
+                        :basis (api/create-basis nil)
+                        ;; pass these through to java command
+                        :java-opts ["-Dhi=there"]
+                        :use-cp-file :always
+                        :java-cmd java-cmd})
+      (is (true? (.exists (jio/file (project-path "target/classes/foo/bar.class")))))
+      (is (true? (.exists (jio/file (project-path "target/classes/foo/bar__init.class")))))
+      (is (true? (.exists (jio/file (project-path "target/classes/foo/bar$hello.class"))))))))
 
 (comment
   (run-tests)

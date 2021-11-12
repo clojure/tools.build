@@ -247,7 +247,15 @@
       {:disable-locals-clearing false
        :elide-meta [:doc :file :line ...]
        :direct-linking false}
-    :filter-nses - coll of symbols representing a namespace prefix to include"
+    :filter-nses - coll of symbols representing a namespace prefix to include
+
+  Additional options flow to the forked process doing the compile:
+    :java-cmd - Java command, default = \"java\"
+    :java-opts - coll of string jvm opts
+    :use-cp-file - one of:
+                     :auto (default) - use only if os=windows && Java >= 9 && command length >= 8k
+                     :always - always write classpath to temp file and include
+                     :never - never write classpath to temp file (pass on command line)"
   [params]
   (assert-required "compile-clj" params [:class-dir])
   (assert-specs "compile-clj" params

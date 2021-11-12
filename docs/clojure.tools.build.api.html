@@ -21,7 +21,15 @@ Options:
     {:disable-locals-clearing false
      :elide-meta [:doc :file :line ...]
      :direct-linking false}
-  :filter-nses - coll of symbols representing a namespace prefix to include</pre></div></div><div class="public anchor" id="var-copy-dir"><h3>copy-dir</h3><div class="usage"><code>(copy-dir params)</code></div><div class="doc"><pre class="plaintext">Copy the contents of the src-dirs to the target-dir, optionally do text replacement.
+  :filter-nses - coll of symbols representing a namespace prefix to include
+
+Additional options flow to the forked process doing the compile:
+  :java-cmd - Java command, default = "java"
+  :java-opts - coll of string jvm opts
+  :use-cp-file - one of:
+                   :auto (default) - use only if os=windows &amp;&amp; Java &gt;= 9 &amp;&amp; command length &gt;= 8k
+                   :always - always write classpath to temp file and include
+                   :never - never write classpath to temp file (pass on command line)</pre></div></div><div class="public anchor" id="var-copy-dir"><h3>copy-dir</h3><div class="usage"><code>(copy-dir params)</code></div><div class="doc"><pre class="plaintext">Copy the contents of the src-dirs to the target-dir, optionally do text replacement.
 Returns nil.
 
 Globs are wildcard patterns for specifying sets of files in a directory
