@@ -206,24 +206,62 @@
 
 ;; Git tasks
 
+(defn git-process
+  "Run git process in the specified dir using git-command with git-args (which should not
+  start with \"git\"). git-args may either be a string (split on whitespace) or a vector
+  of strings. By default, stdout is captured, trimmed, and returned.
+
+  Options:
+    :dir - dir to invoke this command from, default = current directory
+    :git-command - git command to use, default = \"git\"
+    :git-args - required, coll of git-arg strings forming a command line OR
+                a string (do not use if args may have embedded spaces)
+    :capture - :out (default) or :err, else nothing
+
+  Examples:
+    (api/git-process {:git-args \"rev-list HEAD --count\"})
+    (api/git-process {:git-args \"branch --show-current\"})
+    (api/git-process {:git-args \"rev-parse --short HEAD\"})
+    (api/git-process {:git-args \"push\", :capture nil})"
+  [params]
+  (assert-required "git-command" params [:git-args])
+  (assert-specs "git-process" params
+    :dir ::specs/path
+    :git-command (s/nilable string?)
+    :git-args (s/or :args (s/coll-of string?) :line string?)
+    :capture (s/nilable keyword?))
+  (let [{:keys [dir git-command git-args capture] :or {git-command "git", capture :out}} params
+        git-args (vec
+                   (concat [git-command]
+                     (if (string? git-args)
+                       (str/split git-args #"\s")
+                       git-args)))
+        _ (println git-args)
+        proc-params (cond-> {:command-args git-args}
+                      capture (assoc capture :capture)
+                      dir (assoc :dir (.getPath (resolve-path dir))))
+        output (process proc-params)]
+    (when capture
+      (some-> output capture str/trim))))
+
 (defn git-count-revs
   "Shells out to git and returns count of commits on this branch:
     git rev-list HEAD --count
 
   Options:
-    :dir - dir to invoke this command from, by default current directory
+    :dir - dir to invoke this command from, default = current directory
+    :git-command - git command to use, default = \"git\"
     :path - path to count commits for relative to dir"
-  [{:keys [dir path] :or {dir "."} :as params}]
+  [{:keys [dir git-command path] :or {git-command "git"} :as params}]
   (assert-specs "git-count-revs" params
     :dir ::specs/path
+    :git-command (s/nilable string?)
     :path ::specs/path)
-  (-> {:command-args (cond-> ["git" "rev-list" "HEAD" "--count"]
-                       path (conj "--" path))
-       :dir (.getPath (resolve-path dir))
-       :out :capture}
-    process
-    :out
-    str/trim))
+  (git-process
+    (cond-> {:git-args (cond-> ["rev-list" "HEAD" "--count"]
+                         path (conj "--" path))}
+      dir (assoc :dir dir)
+      git-command (assoc :git-command git-command))))
 
 ;; Compile tasks
 

@@ -1,6 +1,9 @@
 Changelog
 ===========
 
+* next
+  * git-process - NEW task to run an arbitrary git process and return the output
+  * git-rev-count - updated to use git-process, added :git-command attribute
 * v0.6.4 ea76dff on Nov 12, 2021
   * java-command - add control over using classpath file with :use-cp-file (default=:auto)
   * compile-clj - can now accept java-command passthrough args :java-cmd, :java-opts, :use-cp-file
