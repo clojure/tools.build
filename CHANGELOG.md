@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.6.5 a0c3ff6 on Nov 12, 2021
   * git-process - NEW task to run an arbitrary git process and return the output
   * git-rev-count - updated to use git-process, added :git-command attribute
 * v0.6.4 ea76dff on Nov 12, 2021
