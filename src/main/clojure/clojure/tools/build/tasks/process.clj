@@ -10,9 +10,10 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.tools.deps.alpha :as deps]
-    [clojure.tools.build.api :as api])
+    [clojure.tools.build.api :as api]
+    [clojure.string :as str])
   (:import
-    [java.io InputStream StringWriter]
+    [java.io InputStream StringWriter File]
     [java.lang ProcessBuilder ProcessBuilder$Redirect]
     [java.util List]))
 
@@ -72,6 +73,28 @@
         out-str (assoc :out out-str)
         err-str (assoc :err err-str)))))
 
+(defn- need-cp-file
+  [os-name java-version command-length]
+  (and
+    ;; this is only an issue on Windows
+    (str/starts-with? os-name "Win")
+    ;; CLI support only exists in Java 9+, for Java <= 1.8, the version number is 1.x
+    (not (str/starts-with? java-version "1."))
+    ;; the actual limit on windows is 8191 (<8k), but giving some room
+    (> command-length 8000)))
+
+(defn- make-java-args
+  [java-cmd java-opts cp main main-args use-cp-file]
+  (let [full-args (vec (concat [java-cmd] java-opts ["-cp" cp (name main)] main-args))
+        arg-str (str/join " " full-args)]
+    (if (or (= use-cp-file :always)
+          (and (= use-cp-file :auto)
+            (need-cp-file (System/getProperty "os.name") (System/getProperty "java.version") (count arg-str))))
+      (let [cp-file (doto (File/createTempFile "tbuild-" ".cp") (.deleteOnExit))]
+        (spit cp-file cp)
+        (vec (concat [java-cmd] java-opts ["-cp" (str "@" (.getAbsolutePath cp-file)) (name main)] main-args)))
+      full-args)))
+
 (defn java-command
   "Create Java command line args. The classpath will be the combination of
   :cp followed by the classpath from the basis, both are optional.
@@ -83,14 +106,18 @@
     :java-opts - coll of string jvm opts
     :main - required, main class symbol
     :main-args - coll of main class args
+    :use-cp-file - one of:
+                     :auto (default) - use only if os=windows && Java >= 9 && command length >= 8k
+                     :always - always write classpath to temp file and include
+                     :never - never write classpath to temp file (pass on command line)
 
   Returns:
     :command-args - coll of command arg strings"
-  [{:keys [java-cmd cp basis java-opts main main-args]
-    :or {java-cmd "java"} :as params}]
+  [{:keys [java-cmd cp basis java-opts main main-args use-cp-file]
+    :or {java-cmd "java", use-cp-file :auto} :as params}]
   (let [{:keys [classpath]} basis
         cp-entries (concat cp (keys classpath))
         cp-str (->> cp-entries
                  (map #(api/resolve-path %))
                  deps/join-classpath)]
-    {:command-args (vec (concat [java-cmd] java-opts ["-cp" cp-str (name main)] main-args))}))
+    {:command-args (make-java-args java-cmd java-opts cp-str main main-args use-cp-file)}))

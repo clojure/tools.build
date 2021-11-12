@@ -166,6 +166,10 @@
     :java-opts - coll of string jvm opts
     :main - required, main class symbol
     :main-args - coll of main class args
+    :use-cp-file - one of:
+                     :auto (default) - use only if os=windows && Java >= 9 && command length >= 8k
+                     :always - always write classpath to temp file and include
+                     :never - never write classpath to temp file (pass on command line)
 
   Returns map suitable for passing to process with keys:
     :command-args - coll of command arg strings"

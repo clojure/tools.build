@@ -94,6 +94,10 @@ Options:
   :java-opts - coll of string jvm opts
   :main - required, main class symbol
   :main-args - coll of main class args
+  :use-cp-file - one of:
+                   :auto (default) - use only if os=windows &amp;&amp; Java &gt;= 9 &amp;&amp; command length &gt;= 8k
+                   :always - always write classpath to temp file and include
+                   :never - never write classpath to temp file (pass on command line)
 
 Returns map suitable for passing to process with keys:
   :command-args - coll of command arg strings</pre></div></div><div class="public anchor" id="var-javac"><h3>javac</h3><div class="usage"><code>(javac params)</code></div><div class="doc"><pre class="plaintext">Compile Java source to classes. Returns nil.
