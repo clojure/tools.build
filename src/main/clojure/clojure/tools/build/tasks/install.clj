@@ -8,13 +8,11 @@
 
 (ns clojure.tools.build.tasks.install
   (:require
+    [borkdude.tdn.bbuild :as bbuild]
     [clojure.java.io :as jio]
     [clojure.tools.deps.alpha.util.maven :as mvn]
     [clojure.tools.build.api :as api]
-    [clojure.tools.build.util.file :as file])
-  (:import
-    [org.eclipse.aether.artifact DefaultArtifact]
-    [org.eclipse.aether.installation InstallRequest]))
+    [clojure.tools.build.util.file :as file]))
 
 (set! *warn-on-reflection* true)
 
@@ -28,9 +26,9 @@
         pom (jio/file pom-dir "pom.xml")
         system (mvn/make-system)
         session (mvn/make-session system (or local-repo mvn/default-local-repo))
-        jar-artifact (.setFile (DefaultArtifact. group-id artifact-id classifier "jar" version) jar-file-file)
+        jar-artifact (.setFile (bbuild/default-artifact group-id artifact-id classifier "jar" version) jar-file-file)
         artifacts (cond-> [jar-artifact]
-                    (and pom-dir (.exists pom)) (conj (.setFile (DefaultArtifact. group-id artifact-id classifier "pom" version) pom)))
-        install-request (.setArtifacts (InstallRequest.) artifacts)]
+                    (and pom-dir (.exists pom)) (conj (.setFile (bbuild/default-artifact group-id artifact-id classifier "pom" version) pom)))
+        install-request (.setArtifacts (bbuild/install-request) artifacts)]
     (.install system session install-request)
     nil))

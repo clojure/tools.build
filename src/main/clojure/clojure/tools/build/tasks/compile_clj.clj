@@ -35,7 +35,7 @@
 
 (defn- ns->path
   [ns-sym]
-  (str/replace (clojure.lang.Compiler/munge (str ns-sym)) \. \/))
+  (str/replace (munge (str ns-sym)) \. \/))
 
 (defn- nses-in-bfs
   [dirs]

@@ -5,7 +5,9 @@
   org.clojure/tools.deps.alpha {:mvn/version "0.12.1071"}
   ;org.clojure/tools.deps.alpha {:git/url "https://github.com/clojure/tools.deps.alpha.git"
   ;                              :sha "459222ca6e4fce91cf5838435589a028cedbc784"}
-  org.clojure/tools.namespace {:mvn/version "1.0.0"}
+  org.clojure/tools.namespace
+  {:git/url "https://github.com/babashka/tools.namespace"
+   :git/sha "3625153ee66dfcec2ba600851b5b2cbdab8fae6c"}
   org.slf4j/slf4j-nop {:mvn/version "1.7.32"}}
 
  :aliases
