@@ -6,7 +6,7 @@ tools.bbuild
 > WARNING: this work is experimental and should be used with caution!
 
 This fork of `tools.build` works with babashka. To make it compatible, the
-following changes with the original tools.build were introduced:
+following changes were introduced:
 
 - The `clojure.tools.deps.alpha` library is replaced with
   [tools-deps-native](https://github.com/borkdude/tools-deps-native-experiment)
