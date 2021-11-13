@@ -5,16 +5,20 @@ tools.bbuild
 
 > WARNING: this work is experimental and should be used with caution!
 
-This fork of `tools.build` works in babashka. To make it compatible, the
+This fork of `tools.build` works with babashka. To make it compatible, the
 following changes with the original tools.build were introduced:
 
-- `compile-clj` changes to use clojure.core/munge instead of the
-  Compiler internal.
+- The `clojure.tools.deps.alpha` library is replaced with
+  [tools-deps-native](https://github.com/borkdude/tools-deps-native-experiment)
+  which is used as a [pod](https://github.com/babashka/pods).
 
-- `install` changes to use a helper from tools-deps-native-experiment to
-  construct maven objects.
+- `compile-clj` uses `clojure.core/munge` instead of `clojure.lang.Compiler/munge`
 
-- `javac` changes to use the javac command line.
+- `install` changes to use a helper from
+  [tools-deps-native](https://github.com/borkdude/tools-deps-native-experiment)
+  to construct maven objects.
+
+- `javac` shells out to `javac` rather than using `javax.tools.JavaCompiler`
 
 ## Usage
 
@@ -24,37 +28,46 @@ Download or build
 [tools-deps-native](https://github.com/borkdude/tools-deps-native-experiment)
 and put the binary on your path.
 
-To use with babashka, add this to your `bb.edn`:
+Here is an example how to use this project in your `bb.edn`:
 
 ``` clojure
 {:deps  {io.github.babashka/tools.bbuild
-         {:git/sha "4803c45baf274143aeb185ad5b9843a23a5a08e7"}
+         {:git/sha "7fb61e06e3caf91b35e625098682524237053b49"}
          borkdude/spartan.spec
          {:git/url "https://github.com/borkdude/spartan.spec"
           :sha     "12947185b4f8b8ff8ee3bc0f19c98dbde54d4c90"}}
- :tasks {:requires    ([babashka.pods :as pods]
-                       [spartan.spec]
+ :tasks {:init
+         ;; Load tools-deps-native pod which defines clojure.tools.deps.alpha.
+         ;; This assumes the binar tools-deps-native is on your PATH
+         ;; You can change the call to load from an absolute or relative path instead.
+         (do (pods/load-pod "tools-deps-native")
+             (def version "0.1.0")
+             (def class-dir "target/classes"))
+         :requires    ([babashka.pods :as pods]
+                       [spartan.spec] ;; defines clojure.spec.alpha
                        [clojure.tools.build.api :as b])
-         -tools.build {:task (do
-                               (pods/load-pod "tools-deps-native")
-                               (require '[clojure.tools.deps.alpha :as deps])
-                               (require '[clojure.tools.build.api :as b]))}
-         clean        {:depends [-tools.build]
-                       :task    (b/delete {:path "target"})}
-         write-pom    {:depends [-tools.build]
-                       :task    (let [deps-file (clojure.java.io/file
-                                                 "deps.edn")
-                                      deps-edn  (deps/slurp-deps deps-file)
-                                      basis     (deps/create-basis
-                                                 {:project deps-edn})]
-                                  (b/write-pom
-                                   {:basis     basis
-                                    :src-dirs  [ "src"]
-                                    :class-dir "target/classes"
-                                    :lib       'my/project
-                                    :version   "1.0.0"}))}}}
+         clean        {:task    (b/delete {:path "target"})}
+         basis        {:task (b/create-basis {:project "deps.edn"})}
+         write-pom    {:depends [basis]
+                       :task (b/write-pom
+                              {:basis     basis
+                               :src-dirs  ["src"]
+                               :class-dir class-dir
+                               :lib 'my/example
+                               :version version})}
+         jar         {:depends [basis write-pom]
+                      :task    (do
+                                 (b/copy-dir {:src-dirs ["src"]
+                                              :target-dir class-dir})
+                                 (b/jar
+                                  {:basis     basis
+                                   :src-dirs  ["src"]
+                                   :class-dir class-dir
+                                   :main      "example.core"
+                                   :jar-file  (format "target/example-%s.jar" version)}))}}}
 ```
 
+Then run e.g. `bb jar` to produce a jar file.
 
 Here follows the original README.
 
