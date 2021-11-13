@@ -12,12 +12,14 @@
 
 (def version "0.1.0")
 (def class-dir "target/classes")
-(def basis (b/create-basis {:project "deps.edn"}))
+
+(defn basis [_]
+  (b/create-basis {:project "deps.edn"}))
 
 (defn clean [_]
   (b/delete {:path "target"}))
 
-(defn write-pom [_]
+(defn write-pom [{:keys [basis]}]
   (b/write-pom
    {:basis     basis
     :src-dirs  ["src"]
@@ -25,7 +27,7 @@
     :lib 'my/example
     :version version}))
 
-(defn jar [_]
+(defn jar [{:keys [basis]}]
   (b/copy-dir {:src-dirs ["src"]
                :target-dir class-dir})
   (b/jar

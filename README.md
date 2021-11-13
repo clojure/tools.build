@@ -38,10 +38,12 @@ Here is an example how to use this project in your `bb.edn`:
          {:git/url "https://github.com/borkdude/spartan.spec"
           :sha     "12947185b4f8b8ff8ee3bc0f19c98dbde54d4c90"}}
  :tasks {:requires    ([build :as b])
+         basis        {:task (b/basis {})}
          clean        {:task (b/clean {})}
-         write-pom    {:task (b/write-pom {})}
-         jar          {:depends [write-pom]
-                       :task (b/jar {})}}}
+         write-pom    {:depends [basis]
+                       :task (b/write-pom {:basis basis})}
+         jar          {:depends [basis write-pom]
+                       :task (b/jar {:basis basis})}}}
 ```
 
 with a `build.clj`:
@@ -61,12 +63,14 @@ with a `build.clj`:
 
 (def version "0.1.0")
 (def class-dir "target/classes")
-(def basis (b/create-basis {:project "deps.edn"}))
+
+(defn basis [_]
+  (b/create-basis {:project "deps.edn"}))
 
 (defn clean [_]
   (b/delete {:path "target"}))
 
-(defn write-pom [_]
+(defn write-pom [{:keys [basis]}]
   (b/write-pom
    {:basis     basis
     :src-dirs  ["src"]
@@ -74,7 +78,7 @@ with a `build.clj`:
     :lib 'my/example
     :version version}))
 
-(defn jar [_]
+(defn jar [{:keys [basis]}]
   (b/copy-dir {:src-dirs ["src"]
                :target-dir class-dir})
   (b/jar
