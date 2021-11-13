@@ -90,6 +90,11 @@ with a `build.clj`:
 
 Then run e.g. `bb jar` to produce a jar file.
 
+## Tests
+
+To run tests, run `bb test`. This assumes that the `tools-deps-native` pod is on
+your PATH.
+
 Here follows the original README.
 
 <hr>
