@@ -50,13 +50,12 @@ with a `build.clj`:
 
 ``` clojure
 (require '[babashka.pods :as pods])
-
-(require '[spartan.spec]) ;; defines clojure.spec.alpha
-
 ;; Load tools-deps-native pod which defines clojure.tools.deps.alpha.
 ;; This assumes the binar tools-deps-native is on your PATH
 ;; You can change the call to load from an absolute or relative path instead.
 (pods/load-pod "tools-deps-native")
+
+(require '[spartan.spec]) ;; defines clojure.spec.alpha
 
 (ns build
   (:require [clojure.tools.build.api :as b]))
