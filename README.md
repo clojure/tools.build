@@ -14,7 +14,7 @@ following changes were introduced:
 
 - `compile-clj` uses `clojure.core/munge` instead of `clojure.lang.Compiler/munge`
 
-- `install` changes to use a helper from
+- `install` uses a helper from
   [tools-deps-native](https://github.com/borkdude/tools-deps-native-experiment)
   to construct maven objects.
 
