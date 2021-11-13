@@ -8,11 +8,53 @@ tools.bbuild
 This fork of `tools.build` works in babashka. To make it compatible, the
 following changes with the original tools.build were introduced:
 
-...
+- `compile-clj` changes to use clojure.core/munge instead of the
+  Compiler internal.
+
+- `install` changes to use a helper from tools-deps-native-experiment to
+  construct maven objects.
+
+- `javac` changes to use the javac command line.
+
+## Usage
+
+Ensure you have [babashka](https://github.com/babashka/babashka) 0.6.5 or later.
+
+Download or build
+[tools-deps-native](https://github.com/borkdude/tools-deps-native-experiment)
+and put the binary on your path.
 
 To use with babashka, add this to your `bb.edn`:
 
-....
+``` clojure
+{:deps  {io.github.babashka/tools.bbuild
+         {:git/sha "4803c45baf274143aeb185ad5b9843a23a5a08e7"}
+         borkdude/spartan.spec
+         {:git/url "https://github.com/borkdude/spartan.spec"
+          :sha     "12947185b4f8b8ff8ee3bc0f19c98dbde54d4c90"}}
+ :tasks {:requires    ([babashka.pods :as pods]
+                       [spartan.spec]
+                       [clojure.tools.build.api :as b])
+         -tools.build {:task (do
+                               (pods/load-pod "tools-deps-native")
+                               (require '[clojure.tools.deps.alpha :as deps])
+                               (require '[clojure.tools.build.api :as b]))}
+         clean        {:depends [-tools.build]
+                       :task    (b/delete {:path "target"})}
+         write-pom    {:depends [-tools.build]
+                       :task    (let [deps-file (clojure.java.io/file
+                                                 "deps.edn")
+                                      deps-edn  (deps/slurp-deps deps-file)
+                                      basis     (deps/create-basis
+                                                 {:project deps-edn})]
+                                  (b/write-pom
+                                   {:basis     basis
+                                    :src-dirs  [ "src"]
+                                    :class-dir "target/classes"
+                                    :lib       'my/project
+                                    :version   "1.0.0"}))}}}
+```
+
 
 Here follows the original README.
 
@@ -34,7 +76,7 @@ Latest release:
 
 ```
 io.github.clojure/tools.build {:git/tag "v0.6.5" :git/sha "a0c3ff6"}
-``` 
+```
 
 # Developer Information
 
