@@ -3,7 +3,7 @@ tools.bbuild
 
 ## Babashka maintained fork of tools.build
 
-WARNING: Experimental!
+> WARNING: this work is experimental and should be used with caution!
 
 This fork of `tools.build` works in babashka. To make it compatible, the
 following changes with the original tools.build were introduced:
