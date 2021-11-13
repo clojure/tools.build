@@ -31,40 +31,58 @@ and put the binary on your path.
 Here is an example how to use this project in your `bb.edn`:
 
 ``` clojure
-{:deps  {io.github.babashka/tools.bbuild
+{:paths ["."]
+ :deps  {io.github.babashka/tools.bbuild
          {:git/sha "7fb61e06e3caf91b35e625098682524237053b49"}
          borkdude/spartan.spec
          {:git/url "https://github.com/borkdude/spartan.spec"
           :sha     "12947185b4f8b8ff8ee3bc0f19c98dbde54d4c90"}}
- :tasks {:init
-         ;; Load tools-deps-native pod which defines clojure.tools.deps.alpha.
-         ;; This assumes the binar tools-deps-native is on your PATH
-         ;; You can change the call to load from an absolute or relative path instead.
-         (do (pods/load-pod "tools-deps-native")
-             (def version "0.1.0")
-             (def class-dir "target/classes"))
-         :requires    ([babashka.pods :as pods]
-                       [spartan.spec] ;; defines clojure.spec.alpha
-                       [clojure.tools.build.api :as b])
-         clean        {:task    (b/delete {:path "target"})}
-         basis        {:task (b/create-basis {:project "deps.edn"})}
-         write-pom    {:depends [basis]
-                       :task (b/write-pom
-                              {:basis     basis
-                               :src-dirs  ["src"]
-                               :class-dir class-dir
-                               :lib 'my/example
-                               :version version})}
-         jar         {:depends [basis write-pom]
-                      :task    (do
-                                 (b/copy-dir {:src-dirs ["src"]
-                                              :target-dir class-dir})
-                                 (b/jar
-                                  {:basis     basis
-                                   :src-dirs  ["src"]
-                                   :class-dir class-dir
-                                   :main      "example.core"
-                                   :jar-file  (format "target/example-%s.jar" version)}))}}}
+ :tasks {:requires    ([build :as b])
+         clean        {:task (b/clean {})}
+         write-pom    {:task (b/write-pom {})}
+         jar          {:depends [write-pom]
+                       :task (b/jar {})}}}
+```
+
+with a `build.clj`:
+
+``` clojure
+(require '[babashka.pods :as pods])
+
+(require '[spartan.spec]) ;; defines clojure.spec.alpha
+
+;; Load tools-deps-native pod which defines clojure.tools.deps.alpha.
+;; This assumes the binar tools-deps-native is on your PATH
+;; You can change the call to load from an absolute or relative path instead.
+(pods/load-pod "tools-deps-native")
+
+(ns build
+  (:require [clojure.tools.build.api :as b]))
+
+(def version "0.1.0")
+(def class-dir "target/classes")
+(def basis (b/create-basis {:project "deps.edn"}))
+
+(defn clean [_]
+  (b/delete {:path "target"}))
+
+(defn write-pom [_]
+  (b/write-pom
+   {:basis     basis
+    :src-dirs  ["src"]
+    :class-dir class-dir
+    :lib 'my/example
+    :version version}))
+
+(defn jar [_]
+  (b/copy-dir {:src-dirs ["src"]
+               :target-dir class-dir})
+  (b/jar
+   {:basis     basis
+    :src-dirs  ["src"]
+    :class-dir class-dir
+    :main      "example.core"
+    :jar-file  (format "target/example-%s.jar" version)}))
 ```
 
 Then run e.g. `bb jar` to produce a jar file.
