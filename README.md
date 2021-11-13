@@ -1,5 +1,21 @@
-tools.build
+tools.bbuild
 ========================================
+
+## Babashka maintained fork of tools.build
+
+This fork of `tools.build` works in babashka. To make it compatible, the
+following changes with the original tools.build were introduced:
+
+...
+
+To use with babashka, add this to your `bb.edn`:
+
+....
+
+Here follows the original README.
+
+<hr>
+
 
 A library for building artifacts in Clojure projects.
 
