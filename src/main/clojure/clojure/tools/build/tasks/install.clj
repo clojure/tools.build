@@ -7,10 +7,11 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns clojure.tools.build.tasks.install
-  (:require [borkdude.tdn.bbuild :as bbuild]))
+  (:require [borkdude.tdn.bbuild :as bbuild]
+            [clojure.tools.build.api :as api]))
 
 (set! *warn-on-reflection* true)
 
 (defn install
   [opts]
-  (bbuild/install opts))
+  (bbuild/install (assoc opts :project-root api/*project-root*)))
