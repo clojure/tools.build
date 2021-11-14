@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.6.6 4d41c26 on Nov 14, 2021
   * install - fix use of deprecated local-repo default in install - thanks @borkdude!
 * v0.6.5 a0c3ff6 on Nov 12, 2021
   * git-process - NEW task to run an arbitrary git process and return the output
