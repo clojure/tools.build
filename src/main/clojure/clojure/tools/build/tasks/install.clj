@@ -27,7 +27,7 @@
         pom-dir (jio/file (api/resolve-path class-dir) "META-INF" "maven" group-id artifact-id)
         pom (jio/file pom-dir "pom.xml")
         system (mvn/make-system)
-        session (mvn/make-session system (or local-repo mvn/default-local-repo))
+        session (mvn/make-session system (or local-repo @mvn/cached-local-repo))
         jar-artifact (.setFile (DefaultArtifact. group-id artifact-id classifier "jar" version) jar-file-file)
         artifacts (cond-> [jar-artifact]
                     (and pom-dir (.exists pom)) (conj (.setFile (DefaultArtifact. group-id artifact-id classifier "pom" version) pom)))
