@@ -1,6 +1,6 @@
 {:paths ["."]
  :deps  {io.github.babashka/tools.bbuild
-         {:git/sha "7fb61e06e3caf91b35e625098682524237053b49"}
+         {:local/root "../.."} #_{:git/sha "7fb61e06e3caf91b35e625098682524237053b49"}
          borkdude/spartan.spec
          {:git/url "https://github.com/borkdude/spartan.spec"
           :sha     "12947185b4f8b8ff8ee3bc0f19c98dbde54d4c90"}}
@@ -10,4 +10,6 @@
          write-pom    {:depends [basis]
                        :task (b/write-pom {:basis basis})}
          jar          {:depends [basis write-pom]
-                       :task (b/jar {:basis basis})}}}
+                       :task (b/jar {:basis basis})}
+         install      {:depends [jar]
+                       :task (b/install {:basis basis})}}}

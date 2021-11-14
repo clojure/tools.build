@@ -7,28 +7,10 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns clojure.tools.build.tasks.install
-  (:require
-    [borkdude.tdn.bbuild :as bbuild]
-    [clojure.java.io :as jio]
-    [clojure.tools.deps.alpha.util.maven :as mvn]
-    [clojure.tools.build.api :as api]
-    [clojure.tools.build.util.file :as file]))
+  (:require [borkdude.tdn.bbuild :as bbuild]))
 
 (set! *warn-on-reflection* true)
 
 (defn install
-  [{:keys [basis lib classifier version jar-file class-dir] :as params}]
-  (let [{:mvn/keys [local-repo]} basis
-        group-id (namespace lib)
-        artifact-id (name lib)
-        jar-file-file (api/resolve-path jar-file)
-        pom-dir (jio/file (api/resolve-path class-dir) "META-INF" "maven" group-id artifact-id)
-        pom (jio/file pom-dir "pom.xml")
-        system (mvn/make-system)
-        session (mvn/make-session system (or local-repo mvn/default-local-repo))
-        jar-artifact (.setFile (bbuild/default-artifact group-id artifact-id classifier "jar" version) jar-file-file)
-        artifacts (cond-> [jar-artifact]
-                    (and pom-dir (.exists pom)) (conj (.setFile (bbuild/default-artifact group-id artifact-id classifier "pom" version) pom)))
-        install-request (.setArtifacts (bbuild/install-request) artifacts)]
-    (.install system session install-request)
-    nil))
+  [opts]
+  (bbuild/install opts))
