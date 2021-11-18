@@ -391,12 +391,29 @@
   ((requiring-resolve 'clojure.tools.build.tasks.jar/jar) params))
 
 (defn uber
-  "Create uberjar file containing contents of deps in basis and class-dir.
-  Use main class in manifest if provided. Returns nil.
+  "Create uberjar file. An uberjar is a self-contained jar file containing
+  both the project contents AND the contents of all dependencies.
+
+  The project contents are represented by the class-dir. Use other tasks to
+  put Clojure source, class files, a pom file, or other resources in the
+  class-dir. In particular, see the copy-dir, write-pom, compile-clj, and
+  javac tasks.
+
+  The dependencies are pulled from the basis. All transitive deps will be
+  included. Dependency jars are expanded for inclusion in the uberjar.
+  Use :exclude to exclude specific paths from the expanded deps. Use
+  conflict-handlers to handle conflicts that may occur if two dependency
+  jar files include a file at the same path. See below for more detail.
+
+  If a main class or manifest are provided, those are put in the uberjar
+  META-INF/MANIFEST.MF file. Providing a main allows the jar to be
+  invoked with java -jar.
+
+  Returns nil.
 
   Options:
-    :class-dir - required, local class dir to include
     :uber-file - required, uber jar file to create
+    :class-dir - required, local class dir to include
     :basis - used to pull dep jars
     :main - main class symbol
     :manifest - map of manifest attributes, merged last over defaults + :main
