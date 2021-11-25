@@ -236,7 +236,6 @@
                      (if (string? git-args)
                        (str/split git-args #"\s")
                        git-args)))
-        _ (println git-args)
         proc-params (cond-> {:command-args git-args}
                       capture (assoc capture :capture)
                       dir (assoc :dir (.getPath (resolve-path dir))))
