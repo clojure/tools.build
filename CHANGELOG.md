@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* v0.6.8 d79ae84 on Nov 26, 2021
+  * uber - fix service append regex
 * v0.6.7 8cca4f4 on Nov 24, 2021
   * git-process - remove debug output
 * v0.6.6 4d41c26 on Nov 14, 2021
