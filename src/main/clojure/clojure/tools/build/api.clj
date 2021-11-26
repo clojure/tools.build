@@ -453,7 +453,7 @@
 
   Default conflict handlers map:
     {\"^data_readers.clj[cs]?$\" :data-readers
-     \"^META-INF/services/\" :append
+     \"^META-INF/services/.*\" :append
      \"(?i)^(META-INF/)?(COPYRIGHT|NOTICE|LICENSE)(\\\\.(txt|md))?$\" :append-dedupe
      :default :ignore}"
   [params]
