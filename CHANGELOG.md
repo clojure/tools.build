@@ -1,7 +1,11 @@
 Changelog
 ===========
 
-* next
+* v0.6.8 d79ae84 on Nov 26, 2021
+  * uber - fix service append regex
+* v0.6.7 8cca4f4 on Nov 24, 2021
+  * git-process - remove debug output
+* v0.6.6 4d41c26 on Nov 14, 2021
   * install - fix use of deprecated local-repo default in install - thanks @borkdude!
 * v0.6.5 a0c3ff6 on Nov 12, 2021
   * git-process - NEW task to run an arbitrary git process and return the output
