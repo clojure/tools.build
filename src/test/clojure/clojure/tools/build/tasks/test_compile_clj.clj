@@ -28,6 +28,7 @@
   (-> (api/process {:command-args [(if windows?
                                      "where"
                                      "which") "java"] :out :capture})
+      :out
       str/split-lines
       first))
 
