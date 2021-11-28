@@ -34,7 +34,6 @@
 
 (deftest test-compile-passthrough-opts
   (let [java-cmd (find-java)]
-    (prn :java-cmd java-cmd)
     (with-test-dir "test-data/p1"
       (api/set-project-root! (.getAbsolutePath *test-dir*))
       (api/compile-clj {:class-dir "target/classes"
