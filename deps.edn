@@ -8,6 +8,9 @@
   org.clojure/tools.namespace
   {:git/url "https://github.com/babashka/tools.namespace"
    :git/sha "3625153ee66dfcec2ba600851b5b2cbdab8fae6c"}
+  borkdude/spartan.spec
+  {:git/url "https://github.com/borkdude/spartan.spec"
+   :sha     "12947185b4f8b8ff8ee3bc0f19c98dbde54d4c90"}
   org.slf4j/slf4j-nop {:mvn/version "1.7.32"}}
 
  :aliases
