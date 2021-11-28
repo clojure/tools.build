@@ -1,8 +1,18 @@
 (ns require-deps
   (:require [babashka.deps :as deps]
-            [babashka.pods :as pods]))
+            [babashka.pods :as pods]
+            [clojure.string :as str]))
 
-(pods/load-pod "tools-deps-native")
+(def windows? (str/starts-with?
+               (System/getProperty "os.name")
+               "Windows"))
+
+(def native-executable
+  (if windows?
+    "tools-deps-native.exe"
+    "tools-deps-native"))
+
+(pods/load-pod native-executable)
 
 (deps/add-deps
  '{:deps {borkdude/spartan.spec
