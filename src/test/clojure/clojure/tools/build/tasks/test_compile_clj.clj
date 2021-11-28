@@ -8,9 +8,9 @@
 
 (ns clojure.tools.build.tasks.test-compile-clj
   (:require
-    [clojure.test :refer :all :as test]
     [clojure.java.io :as jio]
     [clojure.string :as str]
+    [clojure.test :refer :all :as test]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.test-util :refer :all]))
 
@@ -25,7 +25,9 @@
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar$hello.class")))))))
 
 (deftest test-compile-passthrough-opts
-  (let [java-cmd (str/trim (:out (api/process {:command-args ["which" "java"] :out :capture})))]
+  (let [java-cmd (str/trim (:out (api/process {:command-args [(if windows?
+                                                                "where"
+                                                                "which") "java"] :out :capture})))]
     (with-test-dir "test-data/p1"
       (api/set-project-root! (.getAbsolutePath *test-dir*))
       (api/compile-clj {:class-dir "target/classes"

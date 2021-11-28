@@ -38,3 +38,8 @@
                           (submap? v (get m2 k))))
       m1)
     (= m1 m2)))
+
+(def windows?
+  (str/starts-with?
+   (System/getProperty "os.name")
+   "Windows"))
