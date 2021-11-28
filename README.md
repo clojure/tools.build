@@ -49,7 +49,7 @@ with a `build.clj`:
 (require '[babashka.pods :as pods])
 
 ;; Load tools-deps-native pod which defines clojure.tools.deps.alpha and some helpers used in tools.bbuild.
-(pods/load-pod 'org.babashka/tools-deps-native "0.0.4")
+(pods/load-pod 'org.babashka/tools-deps-native "0.0.5")
 
 (require '[spartan.spec]) ;; defines clojure.spec.alpha which is used in tools.build (and tools.bbuild since we didn't change this bit)
 
