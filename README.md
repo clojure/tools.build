@@ -33,10 +33,7 @@ Here is an example how to use this project in your `bb.edn`:
 ``` clojure
 {:paths ["."]
  :deps  {io.github.babashka/tools.bbuild
-         {:git/sha "7fb61e06e3caf91b35e625098682524237053b49"}
-         borkdude/spartan.spec
-         {:git/url "https://github.com/borkdude/spartan.spec"
-          :sha     "12947185b4f8b8ff8ee3bc0f19c98dbde54d4c90"}}
+         {:git/sha "0a4959d2b1147f79e9fb37e0243727390b8ba2b3"}}
  :tasks {:requires    ([build :as b])
          basis        {:task (b/basis {})}
          clean        {:task (b/clean {})}
@@ -50,12 +47,11 @@ with a `build.clj`:
 
 ``` clojure
 (require '[babashka.pods :as pods])
-;; Load tools-deps-native pod which defines clojure.tools.deps.alpha.
-;; This assumes the binar tools-deps-native is on your PATH
-;; You can change the call to load from an absolute or relative path instead.
-(pods/load-pod "tools-deps-native")
 
-(require '[spartan.spec]) ;; defines clojure.spec.alpha
+;; Load tools-deps-native pod which defines clojure.tools.deps.alpha and some helpers used in tools.bbuild.
+(pods/load-pod 'org.babashka/tools-deps-native "0.0.4")
+
+(require '[spartan.spec]) ;; defines clojure.spec.alpha which is used in tools.build (and tools.bbuild since we didn't change this bit)
 
 (ns build
   (:require [clojure.tools.build.api :as b]))
