@@ -1,5 +1,6 @@
 (ns require-deps
   (:require [babashka.deps :as deps]
+            [babashka.fs :as fs]
             [babashka.pods :as pods]
             [clojure.string :as str]))
 
@@ -10,7 +11,9 @@
 (def native-executable
   (if windows?
     "tools-deps-native.exe"
-    "tools-deps-native"))
+    (if (fs/exists? "./tools-deps-native")
+      "./tools-deps-native"
+      "tools-deps-native")))
 
 (pods/load-pod native-executable)
 
