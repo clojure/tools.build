@@ -24,8 +24,15 @@
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar__init.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar$hello.class")))))))
 
+(defn find-java []
+  (-> (api/process {:command-args [(if windows? "where" "which") "java"]
+                    :out :capture})
+      :out
+      str/split-lines
+      first))
+
 (deftest test-compile-passthrough-opts
-  (let [java-cmd (str/trim (:out (api/process {:command-args ["which" "java"] :out :capture})))]
+  (let [java-cmd (find-java)]
     (with-test-dir "test-data/p1"
       (api/set-project-root! (.getAbsolutePath *test-dir*))
       (api/compile-clj {:class-dir "target/classes"
