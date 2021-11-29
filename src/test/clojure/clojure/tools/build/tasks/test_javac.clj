@@ -8,6 +8,7 @@
 
 (ns clojure.tools.build.tasks.test-javac
   (:require
+    [clojure.string :as str]
     [clojure.test :refer :all :as test]
     [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
@@ -21,8 +22,8 @@
     (is (true? (.exists (jio/file (project-path "target/classes/foo/Demo1.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/Demo2.class")))))
     (let [class-path (.getPath (jio/file (project-path "target/classes")))]
-      (is (= "Hello\n" (:out (api/process {:command-args ["java" "-cp" class-path "foo.Demo1"] :out :capture}))))
-      (is (= "Hello\n" (:out (api/process {:command-args ["java" "-cp" class-path "foo.Demo2"] :out :capture})))))))
+      (is (= "Hello" (str/trim (:out (api/process {:command-args ["java" "-cp" class-path "foo.Demo1"] :out :capture})))))
+      (is (= "Hello" (str/trim (:out (api/process {:command-args ["java" "-cp" class-path "foo.Demo2"] :out :capture}))))))))
 
 (comment
   (run-tests)

@@ -39,7 +39,4 @@
       m1)
     (= m1 m2)))
 
-(def windows?
-  (str/starts-with?
-   (System/getProperty "os.name")
-   "Windows"))
+(def windows? (str/starts-with? (System/getProperty "os.name") "Windows"))

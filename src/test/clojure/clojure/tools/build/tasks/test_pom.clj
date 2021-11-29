@@ -178,11 +178,12 @@
         (is (str/includes? generated "data.json"))))))
 
 (deftest test-pom-path
-  (is (= "META-INF/maven/a.b/c/pom.xml" (api/pom-path {:lib 'a.b/c})))
+  (is (= (jio/file "META-INF/maven/a.b/c/pom.xml") (jio/file (api/pom-path {:lib 'a.b/c}))))
 
   (let [prior api/*project-root*]
     (api/set-project-root! ".")
-    (is (= "./foo/META-INF/maven/a.b/c/pom.xml" (api/pom-path {:class-dir "foo" :lib 'a.b/c})))
+    (is (= (jio/file "./foo/META-INF/maven/a.b/c/pom.xml")
+          (jio/file (api/pom-path {:class-dir "foo" :lib 'a.b/c}))))
     (api/set-project-root! prior)))
 
 (deftest test-validate-lib
