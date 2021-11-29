@@ -14,11 +14,21 @@ jobs:
         with:
           distribution: "adopt"
           java-version: ${{ matrix.java-version }}
+
       - name: Setup Clojure
         uses: DeLaGuardo/setup-clojure@3.5
         with:
           cli: 1.10.3.1029
+
       - name: Checkout
         uses: actions/checkout@v2-beta
-      - name: Run tests
+
+      - name: Run tests not Windows
+        if: ${{ matrix.os != 'windows-latest' }}
         run: clojure -X:test
+        shell: bash
+
+      - name: Run tests on Windows
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: clojure -X:test
+        shell: powershell
