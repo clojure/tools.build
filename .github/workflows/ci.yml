@@ -1,0 +1,25 @@
+name: Tests
+on: [push]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        clojure-version: ["1.9", "1.10"]
+        java-version: ["8", "11", "17"]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Prepare java
+        uses: actions/setup-java@v2
+        with:
+          distribution: "adopt"
+          java-version: ${{ matrix.java-version }}
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@3.5
+        with:
+          cli: 1.10.3.1029
+      - name: Checkout
+        uses: actions/checkout@v2-beta
+      - name: Run tests
+        run: clojure -X:test
