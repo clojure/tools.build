@@ -8,19 +8,18 @@
 
 (ns clojure.tools.build.tasks.test-pom
   (:require
-   [clojure.test :refer :all :as test]
-   [clojure.java.io :as jio]
-   [clojure.string :as str]
-   [clojure.zip :as zip]
-   [clojure.data.xml :as xml]
-   [clojure.tools.build.api :as api]
-   [clojure.tools.build.tasks.write-pom :as write-pom]
-   [clojure.tools.build.test-util :refer :all]
-   [clojure.java.io :as io])
+    [clojure.test :refer :all :as test]
+    [clojure.java.io :as jio]
+    [clojure.string :as str]
+    [clojure.zip :as zip]
+    [clojure.data.xml :as xml]
+    [clojure.tools.build.api :as api]
+    [clojure.tools.build.tasks.write-pom :as write-pom]
+    [clojure.tools.build.test-util :refer :all])
   (:import
-   [java.io File InputStream]
-   [java.util Properties]
-   [clojure.lang ExceptionInfo]))
+    [java.io File InputStream]
+    [java.util Properties]
+    [clojure.lang ExceptionInfo]))
 
 (set! *warn-on-reflection* true)
 
@@ -179,11 +178,11 @@
         (is (str/includes? generated "data.json"))))))
 
 (deftest test-pom-path
-  (is (= (io/file "META-INF/maven/a.b/c/pom.xml") (io/file (api/pom-path {:lib 'a.b/c}))))
+  (is (= "META-INF/maven/a.b/c/pom.xml" (api/pom-path {:lib 'a.b/c})))
 
   (let [prior api/*project-root*]
     (api/set-project-root! ".")
-    (is (= (io/file "./foo/META-INF/maven/a.b/c/pom.xml") (io/file (api/pom-path {:class-dir "foo" :lib 'a.b/c}))))
+    (is (= "./foo/META-INF/maven/a.b/c/pom.xml" (api/pom-path {:class-dir "foo" :lib 'a.b/c})))
     (api/set-project-root! prior)))
 
 (deftest test-validate-lib
