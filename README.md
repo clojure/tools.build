@@ -20,6 +20,8 @@ io.github.clojure/tools.build {:git/tag "v0.6.8" :git/sha "d79ae84"}
 
 # Developer Information
 
+[![Tests](https://github.com/clojure/tools.build/actions/workflows/ci.yml/badge.svg)](https://github.com/clojure/tools.build/actions/workflows/ci.yml)
+
 * [GitHub project](https://github.com/clojure/tools.build)
 * [How to contribute](https://clojure.org/community/contributing)
 * [Bug Tracker](https://clojure.atlassian.net/browse/TBUILD)
