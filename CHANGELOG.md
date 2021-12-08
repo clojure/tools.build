@@ -3,6 +3,7 @@ Changelog
 
 * next
   * Update to tools.namespace 1.1.1
+  * Update to tools.deps.alpha 0.12.1090
 * v0.6.8 d79ae84 on Nov 26, 2021
   * uber - fix service append regex
 * v0.6.7 8cca4f4 on Nov 24, 2021
