@@ -212,7 +212,7 @@
 (defn write-pom
   ""
   [params]
-  (let [{:keys [basis class-dir src-pom lib version scm src-dirs resource-dirs repos]} params
+  (let [{:keys [basis class-dir target src-pom lib version scm src-dirs resource-dirs repos]} params
         {:keys [libs]} basis
         root-deps (libs->deps libs)
         src-pom-file (api/resolve-path (or src-pom "pom.xml"))
@@ -238,9 +238,11 @@
                    :artifact (name lib)}
                   version (assoc :version version)
                   scm (assoc :scm scm))))
-        class-dir-file (api/resolve-path class-dir)
-        pom-dir (meta-maven-path {:lib lib})
-        pom-dir-file (file/ensure-dir (jio/file class-dir-file pom-dir))]
+        pom-dir-file (file/ensure-dir
+                       (cond
+                         class-dir (jio/file (api/resolve-path class-dir) (meta-maven-path {:lib lib}))
+                         target (-> target api/resolve-path jio/file file/ensure-dir)
+                         :else (throw (ex-info "write-pom requires either :class-dir or :target" {}))))]
     (spit (jio/file pom-dir-file "pom.xml") (xml/indent-str pom))
     (spit (jio/file pom-dir-file "pom.properties")
       (str/join (System/lineSeparator)

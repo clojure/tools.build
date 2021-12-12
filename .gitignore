@@ -4,6 +4,7 @@ target/
 .nrepl*
 .cpcache
 .lein*
+.java-version
 project.clj
 out*
 test-out

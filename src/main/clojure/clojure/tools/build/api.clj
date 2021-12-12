@@ -344,7 +344,8 @@
 (defn write-pom
   "Write pom.xml and pom.properties files to the class dir under
   META-INF/maven/group-id/artifact-id/ (where Maven typically writes
-  these files). The pom deps, dirs, and repos are either synced from
+  these files), or to target (exactly one of :class-dir and :target must
+  be provided). The pom deps, dirs, and repos are either synced from
   the src-pom or generated from the basis.
 
   If a repos map is provided it supersedes the repos in the basis.
@@ -353,8 +354,9 @@
 
   Options:
     :basis - required, used to pull deps, repos
-    :class-dir - required, root dir for writing pom files, created if needed
     :src-pom - source pom.xml to synchronize from, default = \"./pom.xml\"
+    :class-dir - root dir for writing pom files, created if needed
+    :target - file path to write pom if no :class-dir specified
     :lib - required, project lib symbol
     :version - required, project version
     :scm - map of scm properties to write in pom
@@ -364,11 +366,14 @@
     :resource-dirs - coll of resource dirs
     :repos - map of repo name to repo config, replaces repos from deps.edn"
   [params]
-  (assert-required "write-pom" params [:basis :class-dir :lib :version])
+  (assert-required "write-pom" params [:basis :lib :version])
   (assert-specs "write-pom" params
-    :lib ::specs/lib
-    :class-dir ::specs/path
     :src-pom ::specs/path
+    :class-dir ::specs/path
+    :target ::specs/path
+    :lib ::specs/lib
+    :version string?
+    :scm map?
     :src-dirs ::specs/paths
     :resource-dirs ::specs/paths)
   ((requiring-resolve 'clojure.tools.build.tasks.write-pom/write-pom) params))
