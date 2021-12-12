@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.7.0 16eddbf on Dec 12, 2021
   * write-pom - TBUILD-23 - specify explicit output path with :target
   * Update to tools.namespace 1.2.0
   * Update to tools.deps.alpha 0.12.1090
