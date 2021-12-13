@@ -14,7 +14,7 @@
     [clojure.tools.build.util.file :as file])
   (:import
     [java.io File]
-    [java.nio.file FileSystems FileVisitor FileVisitResult Files Path]))
+    [java.nio.file FileSystems FileVisitor FileVisitResult Files Path LinkOption]))
 
 (set! *warn-on-reflection* true)
 
@@ -82,5 +82,10 @@
                 (file/copy-file path-file target-file)
                 (let [contents (slurp path-file)
                       replaced (reduce (fn [s [find replace]] (str/replace s find replace))
-                                 contents replace)]
-                  (file/ensure-file target-file replaced :append false))))))))))
+                                 contents replace)
+                      perms (Files/getPosixFilePermissions (.toPath path-file)
+                              (into-array LinkOption [LinkOption/NOFOLLOW_LINKS]))]
+                  (file/ensure-file target-file replaced :append false)
+                  (when perms
+                    (Files/setPosixFilePermissions (.toPath target-file) perms)
+                    nil))))))))))

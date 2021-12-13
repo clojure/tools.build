@@ -11,10 +11,13 @@
     [clojure.test :refer :all :as test]
     [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
+    [clojure.tools.build.util.file :as file]
     [clojure.tools.build.util.zip :as zip]
     [clojure.tools.build.test-util :refer :all])
   (:import
-    [java.io File FileInputStream ByteArrayOutputStream]))
+    [java.io File FileInputStream ByteArrayOutputStream]
+    [java.nio.file Files LinkOption]
+    [java.nio.file.attribute PosixFilePermission]))
 
 (defn slurp-binary
   [^File f]
@@ -40,7 +43,21 @@
       (let [binary-in (jio/file (project-path "resources/test.png"))
             binary-out (jio/file (project-path "target/classes/test.png"))]
         (is (.exists binary-out))
-        (= (seq (slurp-binary binary-in)) (seq (slurp-binary binary-out)))))))
+        (is (= (seq (slurp-binary binary-in)) (seq (slurp-binary binary-out))))))))
+
+(deftest test-replace-retains-perms
+  (with-test-dir "test-data/p1"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (let [start-file (jio/file (project-path "target/x/f"))
+          start (file/ensure-file start-file "abc")
+          start-path (.toPath start-file)]
+      (Files/setPosixFilePermissions start-path #{PosixFilePermission/OWNER_READ PosixFilePermission/GROUP_READ PosixFilePermission/OWNER_EXECUTE})
+      (api/copy-dir {:src-dirs [(project-path "target/x")] :target-dir (project-path "target/y") :replace {"abc" "xyz"}})
+      (let [end (jio/file (project-path "target/y/f"))
+            end-path (.toPath end)
+            perms (Files/getPosixFilePermissions end-path (into-array LinkOption [LinkOption/NOFOLLOW_LINKS]))]
+        (is (= (slurp end) "xyz"))
+        (is (contains? perms PosixFilePermission/OWNER_EXECUTE))))))
 
 (comment
   (run-tests)
