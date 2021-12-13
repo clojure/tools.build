@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.7.1 13f0fec on Dec 12, 2021
   * copy-dir - TBUILD-24 - retain file permissions when doing string replace
 * v0.7.0 16eddbf on Dec 12, 2021
   * write-pom - TBUILD-23 - specify explicit output path with :target
