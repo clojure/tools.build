@@ -83,8 +83,10 @@
                 (let [contents (slurp path-file)
                       replaced (reduce (fn [s [find replace]] (str/replace s find replace))
                                  contents replace)
-                      perms (Files/getPosixFilePermissions (.toPath path-file)
-                              (into-array LinkOption [LinkOption/NOFOLLOW_LINKS]))]
+                      perms (try
+                              (Files/getPosixFilePermissions (.toPath path-file)
+                                (into-array LinkOption [LinkOption/NOFOLLOW_LINKS]))
+                              (catch UnsupportedOperationException _))]
                   (file/ensure-file target-file replaced :append false)
                   (when perms
                     (Files/setPosixFilePermissions (.toPath target-file) perms)
