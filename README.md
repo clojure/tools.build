@@ -15,7 +15,7 @@ Latest release:
 [deps.edn](https://clojure.org/reference/deps_and_cli) dependency information:
 
 ```
-io.github.clojure/tools.build {:git/tag "v0.7.1" :git/sha "13f0fec"}
+io.github.clojure/tools.build {:git/tag "v0.7.2" :git/sha "0361dde"}
 ``` 
 
 # Developer Information

@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.7.2 0361dde on Dec 13, 2021
   * copy-dir - copy posix file permissions only when posix permissions are supported
 * v0.7.1 13f0fec on Dec 12, 2021
   * copy-dir - TBUILD-24 - retain file permissions when doing string replace
