@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* v0.7.3 2699924 on Dec 22, 2021
+  * Update to tools.deps.alpha 0.12.1098 (fix occasional race condition in parallel load of S3TransporterFactory)
 * v0.7.2 0361dde on Dec 13, 2021
   * copy-dir - copy posix file permissions only when posix permissions are supported
 * v0.7.1 13f0fec on Dec 12, 2021
