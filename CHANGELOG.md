@@ -1,8 +1,10 @@
 Changelog
 ===========
 
-* next
+* v0.7.5 34727f7 on Jan 5, 2021
   * Update to tools.deps.alpha 0.12.1109
+* v0.7.4 ac442da on Dec 23, 2021
+  * Update to tools.deps.alpha 0.12.1104
 * v0.7.3 2699924 on Dec 22, 2021
   * Update to tools.deps.alpha 0.12.1098 (fix occasional race condition in parallel load of S3TransporterFactory)
 * v0.7.2 0361dde on Dec 13, 2021
