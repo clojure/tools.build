@@ -19,10 +19,15 @@
     [clojure.tools.build.tasks.test-jar :as test-jar]
     [clojure.edn :as edn])
   (:import
-    [clojure.lang ExceptionInfo]))
+    [clojure.lang ExceptionInfo]
+    [java.io ByteArrayInputStream]))
+
+(defn- string->stream
+  [^String s]
+  (ByteArrayInputStream. (.getBytes s "UTF-8")))
 
 (deftest string-stream-rt
-  (are [s] (= s (#'uber/stream->string (#'uber/string->stream s)))
+  (are [s] (= s (#'uber/stream->string (string->stream s)))
     ""
     "abc"))
 
@@ -43,7 +48,7 @@
         (is (set/subset?
               #{"META-INF/MANIFEST.MF" "foo/" "foo/bar.clj" "foo/Demo2.class" "foo/Demo1.class"}
               (set (map :name (zip/list-zip (project-path uber-path))))))
-        (is (= (str/includes? (test-jar/slurp-manifest uf) "Main-Class: foo.bar")))))))
+        (is (str/includes? (test-jar/slurp-manifest uf) "Main-Class: foo.bar"))))))
 
 (deftest test-custom-manifest
   (let [uber-path "target/p1-uber.jar"]
@@ -63,8 +68,8 @@
         (is (= #{"META-INF/MANIFEST.MF" "foo/" "foo/bar.clj" "foo/Demo2.class" "foo/Demo1.class"}
               (set (map :name (zip/list-zip (project-path uber-path))))))
         (let [manifest-out (test-jar/slurp-manifest uf)]
-          (is (= (str/includes? manifest-out "Main-Class: baz")))
-          (is (= (str/includes? manifest-out "Custom-Thing: 100"))))))))
+          (is (str/includes? manifest-out "Main-Class: baz"))
+          (is (str/includes? manifest-out "Custom-Thing: 100")))))))
 
 (deftest test-conflicts
   (with-test-dir "test-data/uber-conflict"

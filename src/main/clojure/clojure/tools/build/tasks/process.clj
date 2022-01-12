@@ -114,7 +114,7 @@
   Returns:
     :command-args - coll of command arg strings"
   [{:keys [java-cmd cp basis java-opts main main-args use-cp-file]
-    :or {java-cmd "java", use-cp-file :auto} :as params}]
+    :or {java-cmd "java", use-cp-file :auto} :as _params}]
   (let [{:keys [classpath]} basis
         cp-entries (concat cp (keys classpath))
         cp-str (->> cp-entries

@@ -64,7 +64,7 @@
   (assert-specs "delete" params :path ::specs/path)
   (let [root-file (resolve-path path)]
     ;(println "root-file" root-file)
-    (if (.exists root-file)
+    (when (.exists root-file)
       (file/delete root-file))))
 
 (defn copy-file

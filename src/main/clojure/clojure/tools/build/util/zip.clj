@@ -40,8 +40,6 @@
 
 (defn copy-to-zip
   ([^ZipOutputStream jos ^File root]
-   (copy-to-zip jos root root))
-  ([^ZipOutputStream jos ^File root ^File path]
    (let [root-path (.toPath root)
          files (file/collect-files root :dirs true)]
      (run! (fn [^File f]

@@ -9,12 +9,12 @@
 (ns clojure.tools.build.tasks.test-jar
   (:require
     [clojure.string :as str]
-    [clojure.test :refer :all :as test]
+    [clojure.test :refer :all]
     [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.test-util :refer :all]
     [clojure.tools.build.util.zip :as zip])
-  (:import [java.util.zip ZipFile ZipOutputStream ZipEntry]))
+  (:import [java.util.zip ZipFile ZipEntry]))
 
 (defn slurp-manifest
   [z]
@@ -45,7 +45,7 @@
       (is (= #{"META-INF/MANIFEST.MF" "foo/" "foo/bar.clj"}
             (set (map :name (zip/list-zip (project-path jar-path))))))
       (let [manifest-out (slurp-manifest (project-path jar-path))]
-        (is (= (str/includes? manifest-out "Abc: 100")))))))
+        (is (str/includes? manifest-out "Abc: 100"))))))
 
 (comment
   (run-tests)

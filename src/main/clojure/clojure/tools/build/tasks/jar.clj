@@ -13,7 +13,7 @@
     [clojure.tools.build.util.zip :as zip]
     [clojure.string :as str])
   (:import
-    [java.io File FileOutputStream]
+    [java.io FileOutputStream]
     [java.util.jar Manifest JarOutputStream]))
 
 (defn jar

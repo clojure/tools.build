@@ -8,3 +8,4 @@ target/
 project.clj
 out*
 test-out
+.clj-kondo/.cache

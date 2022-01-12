@@ -17,7 +17,7 @@
     [clojure.tools.build.util.file :as file]
     [clojure.tools.build.util.zip :as zip])
   (:import
-    [java.io File InputStream FileInputStream BufferedInputStream ByteArrayInputStream
+    [java.io File InputStream FileInputStream BufferedInputStream
              OutputStream FileOutputStream BufferedOutputStream ByteArrayOutputStream]
     [java.nio.file Files]
     [java.nio.file.attribute FileAttribute]
@@ -61,10 +61,6 @@
         _ (copy-stream! is baos (byte-array 4096))]
     (.toString baos "UTF-8")))
 
-(defn- string->stream
-  [^String s]
-  (ByteArrayInputStream. (.getBytes s "UTF-8")))
-
 (defn conflict-overwrite
   [{:keys [path in]}]
   {:write {path {:stream in}}})
@@ -74,7 +70,7 @@
   {:write {path {:string (str "\n" (stream->string in)), :append true}}})
 
 (defn- conflict-append-dedupe
-  [{:keys [path in ^File existing state] :as params}]
+  [{:keys [path in ^File existing state] :as _params}]
   (let [existing-content (slurp existing)
         existing-lower (str/lower-case existing-content)
         new-content (stream->string in)
@@ -113,7 +109,7 @@
     (Files/setLastModifiedTime (.toPath out-file) (.getLastModifiedTime ^JarEntry entry))))
 
 (defn- handle-conflict
-  [handlers entry buffer out-dir {:keys [state lib path] :as handler-params}]
+  [handlers entry buffer out-dir {:keys [state path] :as handler-params}]
   (let [use-handler (loop [[[re handler] & hs] (dissoc handlers :default)]
                       (if re
                         (if (re-matches re path)

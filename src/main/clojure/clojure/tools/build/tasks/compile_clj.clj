@@ -11,7 +11,6 @@
     [clojure.java.io :as jio]
     [clojure.pprint :as pprint]
     [clojure.string :as str]
-    [clojure.tools.deps.alpha :as deps]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.util.file :as file]
     [clojure.tools.build.tasks.process :as process]
@@ -63,29 +62,29 @@
 (defn compile-clj
   [{:keys [basis src-dirs compile-opts ns-compile filter-nses class-dir sort] :as params
     :or {sort :topo}}]
-  (let [working-dir (.toFile (Files/createTempDirectory "compile-clj" (into-array FileAttribute [])))]
-    (let [compile-dir-file (file/ensure-dir (api/resolve-path class-dir))
-          nses (cond
-                 (seq ns-compile) ns-compile
-                 (= sort :topo) (nses-in-topo src-dirs)
-                 (= sort :bfs) (nses-in-bfs src-dirs)
-                 :else (throw (ex-info "Missing :ns-compile or :sort order in compile-clj task" {})))
-          working-compile-dir (file/ensure-dir (jio/file working-dir "compile-clj"))
-          compile-script (jio/file working-dir "compile.clj")
-          _ (write-compile-script! compile-script working-compile-dir nses compile-opts)
-          process-args (process/java-command (merge
-                                               (select-keys params [:java-cmd :java-opts :use-cp-file])
-                                               {:cp [(.getPath working-compile-dir) (.getPath compile-dir-file)]
-                                                :basis basis
-                                                :main 'clojure.main
-                                                :main-args [(.getCanonicalPath compile-script)]}))
-          _ (spit (jio/file working-dir "compile.args") (str/join " " (:command-args process-args)))
-          exit (:exit (process/process process-args))]
-      (if (zero? exit)
-        (do
-          (if (seq filter-nses)
-            (file/copy-contents working-compile-dir compile-dir-file (map ns->path filter-nses))
-            (file/copy-contents working-compile-dir compile-dir-file))
-          ;; only delete on success, otherwise leave the evidence!
-          (file/delete working-dir))
-        (throw (ex-info "Clojure compilation failed" {}))))))
+  (let [working-dir (.toFile (Files/createTempDirectory "compile-clj" (into-array FileAttribute [])))
+        compile-dir-file (file/ensure-dir (api/resolve-path class-dir))
+        nses (cond
+               (seq ns-compile) ns-compile
+               (= sort :topo) (nses-in-topo src-dirs)
+               (= sort :bfs) (nses-in-bfs src-dirs)
+               :else (throw (ex-info "Missing :ns-compile or :sort order in compile-clj task" {})))
+        working-compile-dir (file/ensure-dir (jio/file working-dir "compile-clj"))
+        compile-script (jio/file working-dir "compile.clj")
+        _ (write-compile-script! compile-script working-compile-dir nses compile-opts)
+        process-args (process/java-command (merge
+                                             (select-keys params [:java-cmd :java-opts :use-cp-file])
+                                             {:cp [(.getPath working-compile-dir) (.getPath compile-dir-file)]
+                                              :basis basis
+                                              :main 'clojure.main
+                                              :main-args [(.getCanonicalPath compile-script)]}))
+        _ (spit (jio/file working-dir "compile.args") (str/join " " (:command-args process-args)))
+        exit (:exit (process/process process-args))]
+    (if (zero? exit)
+      (do
+        (if (seq filter-nses)
+          (file/copy-contents working-compile-dir compile-dir-file (map ns->path filter-nses))
+          (file/copy-contents working-compile-dir compile-dir-file))
+        ;; only delete on success, otherwise leave the evidence!
+        (file/delete working-dir))
+      (throw (ex-info "Clojure compilation failed" {})))))

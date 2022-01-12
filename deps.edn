@@ -29,5 +29,10 @@
          :exec-args {:source-paths ["src/main/clojure"]
                      :namespaces [clojure.tools.build.api]
                      :output-path "docs"}}
+
+   ;; Lint the source
+   ;; clj -M:lint
+   :lint {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2021.12.19"}}
+          :main-opts ["-m" "clj-kondo.main" "--lint" "src"]}
   }
 }

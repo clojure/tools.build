@@ -8,8 +8,9 @@
 
 (ns clojure.tools.build.tasks.test-copy
   (:require
-    [clojure.test :refer :all :as test]
+    [clojure.test :refer :all]
     [clojure.java.io :as jio]
+    [clojure.string :as str]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.util.file :as file]
     [clojure.tools.build.util.zip :as zip]
@@ -17,7 +18,8 @@
   (:import
     [java.io File FileInputStream ByteArrayOutputStream]
     [java.nio.file Files LinkOption FileSystems]
-    [java.nio.file.attribute PosixFilePermission]))
+    [java.nio.file.attribute PosixFilePermission]
+    [java.util UUID]))
 
 (defn slurp-binary
   [^File f]
@@ -29,7 +31,7 @@
 
 (deftest test-copy
   (with-test-dir "test-data/p1"
-    (let [txt (str (java.util.UUID/randomUUID))]
+    (let [txt (str (UUID/randomUUID))]
       (api/set-project-root! (.getAbsolutePath *test-dir*))
       (api/copy-dir {:target-dir "target/classes"
                      :src-dirs ["src" "resources"]
@@ -37,7 +39,7 @@
       (let [source-file (jio/file (project-path "target/classes/foo/bar.clj"))
             contents    (slurp source-file)]
         (is (.exists source-file))
-        (is (clojure.string/includes? contents txt)))
+        (is (str/includes? contents txt)))
 
       ;; binary files in replaced exts should be copied but not replaced
       (let [binary-in (jio/file (project-path "resources/test.png"))
@@ -50,7 +52,7 @@
    (with-test-dir "test-data/p1"
      (api/set-project-root! (.getAbsolutePath *test-dir*))
      (let [start-file (jio/file (project-path "target/x/f"))
-           start (file/ensure-file start-file "abc")
+           _start (file/ensure-file start-file "abc")
            start-path (.toPath start-file)]
        (Files/setPosixFilePermissions start-path #{PosixFilePermission/OWNER_READ PosixFilePermission/GROUP_READ PosixFilePermission/OWNER_EXECUTE})
        (api/copy-dir {:src-dirs [(project-path "target/x")] :target-dir (project-path "target/y") :replace {"abc" "xyz"}})

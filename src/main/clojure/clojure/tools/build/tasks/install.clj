@@ -10,8 +10,7 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.tools.deps.alpha.util.maven :as mvn]
-    [clojure.tools.build.api :as api]
-    [clojure.tools.build.util.file :as file])
+    [clojure.tools.build.api :as api])
   (:import
     [org.eclipse.aether.artifact DefaultArtifact]
     [org.eclipse.aether.installation InstallRequest]))
