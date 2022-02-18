@@ -73,7 +73,7 @@
     :or {sort :topo}}]
   (let [working-dir (.toFile (Files/createTempDirectory "compile-clj" (into-array FileAttribute [])))
         compile-dir-file (file/ensure-dir (api/resolve-path class-dir))
-        clj-paths (or (basis-paths basis) src-dirs)
+        clj-paths (or src-dirs (basis-paths basis))
         nses (cond
                (seq ns-compile) ns-compile
                (= sort :topo) (nses-in-topo clj-paths)

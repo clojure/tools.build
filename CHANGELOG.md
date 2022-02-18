@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * compile-clj - TBUILD-27 - Fix bug in prior impl
 * v0.7.6 3549b5f on Feb 18, 2021
   * compile-clj - TBUILD-27 - Use basis as default src dirs
   * Update to tools.deps.alpha 0.12.1148
