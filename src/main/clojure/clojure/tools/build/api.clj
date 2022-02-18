@@ -265,14 +265,14 @@
 ;; Compile tasks
 
 (defn compile-clj
-  "Compile Clojure source to classes. Returns nil.
+  "Compile Clojure source to classes in :class-dir.
 
-  To determine the namespaces to compile:
-  * If :ns-compile - use coll of explicit namespaces to compile
-  * Else if :sort = :topo (default) - topologically sort all
-    namespaces in :src-dirs and compile from least dependent
-  * Else if :sort = :bfs - compile all namespaces in :src-dirs
-    and compile in breadth-first search order
+  Clojure source files are found in :basis paths by default, else in :src-dirs.
+
+  Namespaces and order of compilation are one of:
+    * :ns-compile - compile these namespaces, in this order
+    * :sort - find all namespaces in source dirs and use either :topo (default)
+              or :bfs to order them for compilation
 
   Options:
     :basis - required, basis to use when compiling
@@ -292,7 +292,9 @@
     :use-cp-file - one of:
                      :auto (default) - use only if os=windows && Java >= 9 && command length >= 8k
                      :always - always write classpath to temp file and include
-                     :never - never write classpath to temp file (pass on command line)"
+                     :never - never write classpath to temp file (pass on command line)
+
+  Returns nil."
   [params]
   (assert-required "compile-clj" params [:class-dir])
   (assert-specs "compile-clj" params

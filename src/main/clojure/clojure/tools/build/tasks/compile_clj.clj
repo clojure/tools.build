@@ -59,15 +59,25 @@
       (concat ns-candidates) ;; but make sure everything is in there at least once
       distinct)))
 
+(defn- basis-paths
+  "Extract all path entries from basis, in classpath order"
+  [{:keys [classpath classpath-roots]}]
+  (let [path-set (->> classpath
+                   (filter #(contains? (val %) :path-key))
+                   (map key)
+                   set)]
+    (filter path-set classpath-roots)))
+
 (defn compile-clj
   [{:keys [basis src-dirs compile-opts ns-compile filter-nses class-dir sort] :as params
     :or {sort :topo}}]
   (let [working-dir (.toFile (Files/createTempDirectory "compile-clj" (into-array FileAttribute [])))
         compile-dir-file (file/ensure-dir (api/resolve-path class-dir))
+        clj-paths (or (basis-paths basis) src-dirs)
         nses (cond
                (seq ns-compile) ns-compile
-               (= sort :topo) (nses-in-topo src-dirs)
-               (= sort :bfs) (nses-in-bfs src-dirs)
+               (= sort :topo) (nses-in-topo clj-paths)
+               (= sort :bfs) (nses-in-bfs clj-paths)
                :else (throw (ex-info "Missing :ns-compile or :sort order in compile-clj task" {})))
         working-compile-dir (file/ensure-dir (jio/file working-dir "compile-clj"))
         compile-script (jio/file working-dir "compile.clj")

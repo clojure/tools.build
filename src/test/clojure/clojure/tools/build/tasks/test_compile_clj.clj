@@ -24,6 +24,16 @@
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar__init.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar$hello.class")))))))
 
+;; use :src-dirs from basis paths
+(deftest test-compile-basis-paths
+  (with-test-dir "test-data/p1"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/compile-clj {:class-dir "target/classes"
+                      :basis (api/create-basis nil)})
+    (is (true? (.exists (jio/file (project-path "target/classes/foo/bar.class")))))
+    (is (true? (.exists (jio/file (project-path "target/classes/foo/bar__init.class")))))
+    (is (true? (.exists (jio/file (project-path "target/classes/foo/bar$hello.class")))))))
+
 (defn find-java []
   (-> (api/process {:command-args [(if windows? "where" "which") "java"]
                     :out :capture})

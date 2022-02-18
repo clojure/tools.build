@@ -2,6 +2,7 @@ Changelog
 ===========
 
 * next
+  * compile-clj - TBUILD-27 - Use basis as default src dirs
   * Update to tools.deps.alpha 0.12.1135
 * v0.7.5 34727f7 on Jan 5, 2021
   * Update to tools.deps.alpha 0.12.1109
