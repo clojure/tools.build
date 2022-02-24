@@ -1,6 +1,9 @@
 Changelog
 ===========
 
+* next
+  * compile-clj - always create classpath entries relative to `*project-root*`
+  * java-command - don't resolve classpath entries, leave them relative to `*project-root*`
 * v0.7.7 1474ad6 on Feb 18, 2021
   * compile-clj - TBUILD-27 - Fix bug in prior impl
 * v0.7.6 3549b5f on Feb 18, 2021
