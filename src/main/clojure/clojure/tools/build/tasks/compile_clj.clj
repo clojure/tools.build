@@ -100,4 +100,4 @@
           (file/copy-contents working-compile-dir compile-dir-file))
         ;; only delete on success, otherwise leave the evidence!
         (file/delete working-dir))
-      (throw (ex-info "Clojure compilation failed" {})))))
+      (throw (ex-info (str "Clojure compilation failed, working dir preserved: " (.toString working-dir)) {})))))
