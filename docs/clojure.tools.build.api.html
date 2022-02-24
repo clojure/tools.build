@@ -113,6 +113,11 @@ Options:
   :manifest - map of manifest attributes, merged last over defaults+:main</pre></div></div><div class="public anchor" id="var-java-command"><h3>java-command</h3><div class="usage"><code>(java-command params)</code></div><div class="doc"><pre class="plaintext">Create Java command line args. The classpath will be the combination of
 :cp followed by the classpath from the basis, both are optional.
 
+Note that 'java-command' will NOT resolve any relative paths from basis
+or cp in terms of *project-root*, you will get a classpath with the same
+relative paths. 'process' (if run with this output), will run in the
+context of the *project-root* directory.
+
 Options:
   :java-cmd - Java command, default = "java"
   :cp - coll of string classpath entries, used first (if provided)
@@ -125,7 +130,7 @@ Options:
                    :always - always write classpath to temp file and include
                    :never - never write classpath to temp file (pass on command line)
 
-Returns map suitable for passing to process with keys:
+Returns map suitable for passing to 'process' with keys:
   :command-args - coll of command arg strings</pre></div></div><div class="public anchor" id="var-javac"><h3>javac</h3><div class="usage"><code>(javac params)</code></div><div class="doc"><pre class="plaintext">Compile Java source to classes. Returns nil.
 
 Options:
@@ -143,11 +148,11 @@ path in jar.
 Options:
   :lib - required, used to form the relative path in jar to pom.xml
   :class-dir - optional, if provided will be resolved and form the root of the path</pre></div></div><div class="public anchor" id="var-process"><h3>process</h3><div class="usage"><code>(process params)</code></div><div class="doc"><pre class="plaintext">Exec the command made from command-args, redirect out and err as directed,
-and return {:exit exit-code, :out captured-out, :err captured-err}
+and return {:exit exit-code, :out captured-out, :err captured-err}.
 
 Options:
   :command-args - required, coll of string args
-  :dir - directory to run the command from, default current directory
+  :dir - directory to run the command from, default *project-root*
   :out - one of :inherit :capture :write :append :ignore
   :err - one of :inherit :capture :write :append :ignore
   :out-file - file path to write if :out is :write or :append
