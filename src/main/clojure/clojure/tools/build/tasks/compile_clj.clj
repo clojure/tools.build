@@ -38,11 +38,11 @@
 
 (defn- nses-in-bfs
   [dirs]
-  (mapcat #(find/find-namespaces-in-dir (api/resolve-path %) find/clj) dirs))
+  (mapcat #(find/find-namespaces-in-dir % find/clj) dirs))
 
 (defn- nses-in-topo
   [dirs]
-  (let [ns-decls (mapcat #(find/find-ns-decls-in-dir (api/resolve-path %)) dirs)
+  (let [ns-decls (mapcat find/find-ns-decls-in-dir dirs)
         ns-candidates (set (map parse/name-from-ns-decl ns-decls))
         graph (reduce
                 (fn [graph decl]
@@ -73,7 +73,7 @@
     :or {sort :topo}}]
   (let [working-dir (.toFile (Files/createTempDirectory "compile-clj" (into-array FileAttribute [])))
         compile-dir-file (file/ensure-dir (api/resolve-path class-dir))
-        clj-paths (or src-dirs (basis-paths basis))
+        clj-paths (map api/resolve-path (or src-dirs (basis-paths basis)))
         nses (cond
                (seq ns-compile) ns-compile
                (= sort :topo) (nses-in-topo clj-paths)
@@ -82,9 +82,12 @@
         working-compile-dir (file/ensure-dir (jio/file working-dir "compile-clj"))
         compile-script (jio/file working-dir "compile.clj")
         _ (write-compile-script! compile-script working-compile-dir nses compile-opts)
+
+        ;; java-command will run in context of *project-dir* - basis, classpaths, etc
+        ;; should all be relative to that (or absolute like working-compile-dir)
         process-args (process/java-command (merge
                                              (select-keys params [:java-cmd :java-opts :use-cp-file])
-                                             {:cp [(.getPath working-compile-dir) (.getPath compile-dir-file)]
+                                             {:cp [(.getPath working-compile-dir) class-dir]
                                               :basis basis
                                               :main 'clojure.main
                                               :main-args [(.getCanonicalPath compile-script)]}))
