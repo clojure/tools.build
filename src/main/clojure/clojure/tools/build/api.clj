@@ -159,6 +159,11 @@
   "Create Java command line args. The classpath will be the combination of
   :cp followed by the classpath from the basis, both are optional.
 
+  Note that 'java-command' will NOT resolve any relative paths from basis
+  or cp in terms of *project-root*, you will get a classpath with the same
+  relative paths. 'process' (if run with this output), will run in the
+  context of the *project-root* directory.
+
   Options:
     :java-cmd - Java command, default = \"java\"
     :cp - coll of string classpath entries, used first (if provided)
@@ -171,7 +176,7 @@
                      :always - always write classpath to temp file and include
                      :never - never write classpath to temp file (pass on command line)
 
-  Returns map suitable for passing to process with keys:
+  Returns map suitable for passing to 'process' with keys:
     :command-args - coll of command arg strings"
   [params]
   (assert-required "java-command" params [:basis :main])
@@ -179,11 +184,11 @@
 
 (defn process
   "Exec the command made from command-args, redirect out and err as directed,
-  and return {:exit exit-code, :out captured-out, :err captured-err}
+  and return {:exit exit-code, :out captured-out, :err captured-err}.
 
   Options:
     :command-args - required, coll of string args
-    :dir - directory to run the command from, default current directory
+    :dir - directory to run the command from, default *project-root*
     :out - one of :inherit :capture :write :append :ignore
     :err - one of :inherit :capture :write :append :ignore
     :out-file - file path to write if :out is :write or :append
