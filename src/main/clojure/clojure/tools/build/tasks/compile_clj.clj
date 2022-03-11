@@ -25,12 +25,21 @@
 (set! *warn-on-reflection* true)
 
 (defn- write-compile-script!
-  ^File [^File script-file ^File compile-dir nses compiler-opts]
-  (let [script `(binding [~'*compile-path* ~(str compile-dir)
-                          ~'*compiler-options* ~compiler-opts]
-                  ~@(map (fn [n] `(~'compile '~n)) nses)
-                  (System/exit 0))]
-    (spit script-file (with-out-str (pprint/pprint script)))))
+  ^File [^File script-file ^File compile-dir nses compiler-opts bindings]
+  (let [compile-bindings (merge bindings
+                           {#'*compile-path* (.toString compile-dir)
+                            #'*compiler-options* compiler-opts})
+        binding-nses (->> compile-bindings keys
+                       (map #(.. ^clojure.lang.Var % ns name)) ;; Var->namespace
+                       distinct (remove #(= % 'clojure.core)))
+        requires (map (fn [n] `(require '~n)) binding-nses)
+        do-compile `(with-bindings ~compile-bindings
+                      ~@(map (fn [n] `(~'compile '~n)) nses)
+                      (System/exit 0))
+        script (->> (conj (vec requires) do-compile)
+                 (map #(with-out-str (pprint/pprint %)))
+                 (str/join "\n"))]
+    (spit script-file script)))
 
 (defn- ns->path
   [ns-sym]
@@ -69,7 +78,7 @@
     (filter path-set classpath-roots)))
 
 (defn compile-clj
-  [{:keys [basis src-dirs compile-opts ns-compile filter-nses class-dir sort] :as params
+  [{:keys [basis src-dirs compile-opts ns-compile filter-nses class-dir sort bindings] :as params
     :or {sort :topo}}]
   (let [working-dir (.toFile (Files/createTempDirectory "compile-clj" (into-array FileAttribute [])))
         compile-dir-file (file/ensure-dir (api/resolve-path class-dir))
@@ -81,7 +90,7 @@
                :else (throw (ex-info "Missing :ns-compile or :sort order in compile-clj task" {})))
         working-compile-dir (file/ensure-dir (jio/file working-dir "compile-clj"))
         compile-script (jio/file working-dir "compile.clj")
-        _ (write-compile-script! compile-script working-compile-dir nses compile-opts)
+        _ (write-compile-script! compile-script working-compile-dir nses compile-opts bindings)
 
         ;; java-command will run in context of *project-dir* - basis, classpaths, etc
         ;; should all be relative to that (or absolute like working-compile-dir)

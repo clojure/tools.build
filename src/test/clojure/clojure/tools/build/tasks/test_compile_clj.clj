@@ -57,6 +57,25 @@
         (is (true? (.exists (jio/file (project-path "target/classes/foo/bar__init.class")))))
         (is (true? (.exists (jio/file (project-path "target/classes/foo/bar$hello.class")))))))))
 
+(deftest test-turn-off-assert-with-bindings
+  (with-test-dir "test-data/assert"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (let [basis (api/create-basis nil)
+          invoke #(-> {:basis basis :main 'clojure.main :main-args ["-e" "((requiring-resolve 'foo.check-assert/f) 100)"]}
+                    api/java-command
+                    (merge {:out :capture, :err :ignore})
+                    api/process)
+          compile-params {:class-dir "target/classes" :src-dirs ["src"] :basis basis}]
+
+      ;; by default, assertions are on when compiling, then invocation fails (assertion expects keyword)
+      (api/compile-clj compile-params) ;; no :bindings set
+      (is (= {:exit 1} (invoke)))
+
+      ;; recompile with binding to turn off assertions, then it passes (assertion not checked)
+      (api/delete {:path "target/classes"})
+      (api/compile-clj (assoc compile-params :bindings {#'clojure.core/*assert* false})) ;; turn off asserts
+      (is (= {:exit 0, :out "100\n"} (invoke))))))
+
 (comment
   (run-tests)
   )

@@ -289,6 +289,8 @@
       {:disable-locals-clearing false
        :elide-meta [:doc :file :line ...]
        :direct-linking false}
+    :bindings - map of Var to value to be set during compilation, for example:
+      {#'clojure.core/*assert* false}
     :filter-nses - coll of symbols representing a namespace prefix to include
 
   Additional options flow to the forked process doing the compile:
@@ -304,7 +306,9 @@
   (assert-required "compile-clj" params [:class-dir])
   (assert-specs "compile-clj" params
     :class-dir ::specs/path
-    :src-dirs ::specs/paths)
+    :src-dirs ::specs/paths
+    :compile-opts map?
+    :bindings map?)
   ((requiring-resolve 'clojure.tools.build.tasks.compile-clj/compile-clj) params))
 
 (defn javac
