@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * compile-clj - TBUILD-29 - add support for setting bindings during compilation 
 * v0.8.0 e3e3532 on Feb 24, 2021
   * compile-clj - always create classpath entries relative to `*project-root*`
   * java-command - don't resolve classpath entries, leave them relative to `*project-root*`
