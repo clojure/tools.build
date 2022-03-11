@@ -15,7 +15,7 @@ Latest release:
 [deps.edn](https://clojure.org/reference/deps_and_cli) dependency information:
 
 ```
-io.github.clojure/tools.build {:git/tag "v0.8.0" :git/sha "e3e3532"}
+io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}
 ``` 
 
 # Developer Information
@@ -28,7 +28,7 @@ io.github.clojure/tools.build {:git/tag "v0.8.0" :git/sha "e3e3532"}
 
 # Copyright and License
 
-Copyright © 2021 Rich Hickey, Alex Miller, and contributors
+Copyright © 2022 Rich Hickey, Alex Miller, and contributors
 
 All rights reserved. The use and
 distribution terms for this software are covered by the

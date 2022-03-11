@@ -1,17 +1,17 @@
 Changelog
 ===========
 
-* next
+* v0.8.1 7d40500 on Mar 11, 2022
   * compile-clj - TBUILD-29 - add support for setting bindings during compilation 
-* v0.8.0 e3e3532 on Feb 24, 2021
+* v0.8.0 e3e3532 on Feb 24, 2022
   * compile-clj - always create classpath entries relative to `*project-root*`
   * java-command - don't resolve classpath entries, leave them relative to `*project-root*`
-* v0.7.7 1474ad6 on Feb 18, 2021
+* v0.7.7 1474ad6 on Feb 18, 2022
   * compile-clj - TBUILD-27 - Fix bug in prior impl
-* v0.7.6 3549b5f on Feb 18, 2021
+* v0.7.6 3549b5f on Feb 18, 2022
   * compile-clj - TBUILD-27 - Use basis as default src dirs
   * Update to tools.deps.alpha 0.12.1148
-* v0.7.5 34727f7 on Jan 5, 2021
+* v0.7.5 34727f7 on Jan 5, 2022
   * Update to tools.deps.alpha 0.12.1109
 * v0.7.4 ac442da on Dec 23, 2021
   * Update to tools.deps.alpha 0.12.1104
