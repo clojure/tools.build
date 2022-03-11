@@ -74,7 +74,7 @@
       ;; recompile with binding to turn off assertions, then it passes (assertion not checked)
       (api/delete {:path "target/classes"})
       (api/compile-clj (assoc compile-params :bindings {#'clojure.core/*assert* false})) ;; turn off asserts
-      (is (= {:exit 0, :out "100\n"} (invoke))))))
+      (is (= {:exit 0, :out (str "100" (System/lineSeparator))} (invoke))))))
 
 (comment
   (run-tests)
