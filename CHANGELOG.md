@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* v0.8.2 on May 6, 2022
+  * Update deps to latest
 * v0.8.1 7d40500 on Mar 11, 2022
   * compile-clj - TBUILD-29 - add support for setting bindings during compilation 
 * v0.8.0 e3e3532 on Feb 24, 2022
