@@ -16,8 +16,7 @@
     [clojure.tools.build.tasks.uber :as uber]
     [clojure.tools.build.test-util :refer :all]
     [clojure.tools.build.util.zip :as zip]
-    [clojure.tools.build.tasks.test-jar :as test-jar]
-    [clojure.edn :as edn])
+    [clojure.tools.build.tasks.test-jar :as test-jar])
   (:import
     [clojure.lang ExceptionInfo]
     [java.io ByteArrayInputStream]))
@@ -109,7 +108,15 @@
     ;; data_readers.clj merge
     (is (= '{j1a my.foo/j1a-reader, j1b my.bar/j1b-reader,
              j2a my.foo/j2a-reader, j2b my.bar/j2b-reader}
-          (edn/read-string (slurp (project-path "target/unzip/data_readers.clj")))))
+          (read-string (slurp (project-path "target/unzip/data_readers.clj")))))
+
+    ;; data_readers.cljc merge
+    (is (= {'j1a (reader-conditional '(:cljs my.cljs.foo/j1a-reader :clj my.clj.foo/j1a-reader) false)
+            'j1b (reader-conditional '(:cljs my.cljs.foo/j1b-reader :clj my.clj.foo/j1b-reader) false)
+            'j2a (reader-conditional '(:cljs my.cljs.foo/j2a-reader :clj my.clj.foo/j2a-reader) false)
+            'j2b (reader-conditional '(:cljs my.cljs.foo/j2b-reader :clj my.clj.foo/j2b-reader) false)}
+         (read-string {:read-cond :preserve :features #{:clj}}
+                      (slurp (project-path "target/unzip/data_readers.cljc")))))
 
     ;; ignore files ignore, so first one wins
     (is (= (slurp (project-path "j1/ignore.txt"))
