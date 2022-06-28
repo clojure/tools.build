@@ -224,7 +224,7 @@
     :else (throw (ex-info (str "Invalid handler: " handler) {}))))
 
 (def ^:private default-handlers
-  {"^data_readers.clj[cs]?$" :data-readers
+  {"^data_readers.clj[c]?$" :data-readers
    "^META-INF/services/.*" :append
    "(?i)^(META-INF/)?(COPYRIGHT|NOTICE|LICENSE)(\\.(txt|md))?$" :append-dedupe
    :default :ignore})
