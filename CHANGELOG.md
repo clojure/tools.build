@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.8.3 0d20256 on Jun 28, 2022
   * uber - TBUILD-32 - Preserve reader conditionals when merging data\_readers.cljc
   * uber - TBUILD-33 - Adjust regex for data\_readers to omit .cljs
   * Update to tools.deps.alpha 0.14.1212
