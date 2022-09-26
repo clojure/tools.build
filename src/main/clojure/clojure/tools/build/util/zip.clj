@@ -39,15 +39,15 @@
     (.closeEntry output-stream)))
 
 (defn copy-to-zip
-  ([^ZipOutputStream jos ^File root]
-   (let [root-path (.toPath root)
-         files (file/collect-files root :dirs true)]
-     (run! (fn [^File f]
-             (let [rel-path (.toString (.relativize root-path (.toPath f)))]
-               (when-not (= rel-path "")
-                 ;(println "  Adding" rel-path)
-                 (add-zip-entry jos rel-path f))))
-       files))))
+  [^ZipOutputStream jos ^File root]
+  (let [root-path (.toPath root)
+        files (file/collect-files root :dirs true)]
+    (run! (fn [^File f]
+            (let [rel-path (.toString (.relativize root-path (.toPath f)))]
+              (when-not (= rel-path "")
+                ;(println "  Adding" rel-path)
+                (add-zip-entry jos rel-path f))))
+      files)))
 
 (defn fill-manifest!
   [^Manifest manifest props]
