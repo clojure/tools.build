@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* v0.8.4 8c3cd69 on Nov 3, 2022
+  * TBUILD-26 Released as a Maven artifact
 * v0.8.3 0d20256 on Jun 28, 2022
   * uber - TBUILD-32 - Preserve reader conditionals when merging data\_readers.cljc
   * uber - TBUILD-33 - Adjust regex for data\_readers to omit .cljs
