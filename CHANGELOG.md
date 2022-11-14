@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Add support for snapshot and release policies on :mvn/repos (see TDEPS-101)
 * v0.8.4 8c3cd69 on Nov 3, 2022
   * TBUILD-26 Released as a Maven artifact
 * v0.8.3 0d20256 on Jun 28, 2022
