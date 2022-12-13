@@ -14,8 +14,8 @@
     [clojure.data.xml.tree :as tree]
     [clojure.data.xml.event :as event]
     [clojure.zip :as zip]
-    [clojure.tools.deps.alpha.util.maven :as maven]
-    [clojure.tools.deps.alpha.util.io :refer [printerrln]]
+    [clojure.tools.deps.util.maven :as maven]
+    [clojure.tools.deps.util.io :refer [printerrln]]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.util.file :as file])
   (:import [clojure.data.xml.node Element]

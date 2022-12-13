@@ -10,8 +10,8 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
-    [clojure.tools.deps.alpha :as deps]
-    [clojure.tools.deps.alpha.util.dir :as dir]))
+    [clojure.tools.deps :as deps]
+    [clojure.tools.deps.util.dir :as dir]))
 
 (defn create-basis
   "Wrapper for deps/create-basis, but ensure relative paths are resolved

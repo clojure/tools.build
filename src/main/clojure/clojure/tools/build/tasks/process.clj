@@ -9,7 +9,7 @@
 (ns clojure.tools.build.tasks.process
   (:require
     [clojure.java.io :as jio]
-    [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps :as deps]
     [clojure.tools.build.api :as api]
     [clojure.string :as str])
   (:import
