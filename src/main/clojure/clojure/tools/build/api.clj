@@ -24,6 +24,11 @@
   [root]
   (alter-var-root #'*project-root* (constantly root)))
 
+(defmacro with-project-root
+  "Execute forms in a bound project path (string) other than the default (\".\")"
+  [path & forms]
+  `(binding [*project-root* ~path] ~@forms))
+
 (defn resolve-path
   "If path is absolute or root-path is nil then return path,
   otherwise resolve relative to *project-root*."
