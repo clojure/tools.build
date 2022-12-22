@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.9.0 8c93e0c on Dec 22, 2022
   * Add clojure.tools.build.api/with-project-root macro
   * java-command, compile-clj - TBUILD-34 - Use Clojure CLI logic in finding Java executable
   * Switch to tools.deps 0.16.1264
