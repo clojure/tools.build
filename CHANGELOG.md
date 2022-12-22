@@ -2,8 +2,9 @@ Changelog
 ===========
 
 * next
-  * Switch to tools.deps 0.16.1264
   * Add clojure.tools.build.api/with-project-root macro
+  * java-command, compile-clj - TBUILD-34 - Use Clojure CLI logic in finding Java executable
+  * Switch to tools.deps 0.16.1264
 * v0.8.5 9c738da on Nov 14, 2022
   * Add support for snapshot and release policies on :mvn/repos (see TDEPS-101)
 * v0.8.4 8c3cd69 on Nov 3, 2022

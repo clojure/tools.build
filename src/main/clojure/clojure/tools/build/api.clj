@@ -170,7 +170,7 @@
   context of the *project-root* directory.
 
   Options:
-    :java-cmd - Java command, default = \"java\"
+    :java-cmd - Java command, default = $JAVA_CMD or 'java' on $PATH, or $JAVA_HOME/bin/java
     :cp - coll of string classpath entries, used first (if provided)
     :basis - runtime basis used for classpath, used last (if provided)
     :java-opts - coll of string jvm opts
@@ -299,7 +299,7 @@
     :filter-nses - coll of symbols representing a namespace prefix to include
 
   Additional options flow to the forked process doing the compile:
-    :java-cmd - Java command, default = \"java\"
+    :java-cmd - Java command, default = $JAVA_CMD or 'java' on $PATH, or $JAVA_HOME/bin/java
     :java-opts - coll of string jvm opts
     :use-cp-file - one of:
                      :auto (default) - use only if os=windows && Java >= 9 && command length >= 8k
