@@ -29,9 +29,11 @@
   (let [compile-bindings (merge bindings
                            {#'*compile-path* (.toString compile-dir)
                             #'*compiler-options* compiler-opts})
-        binding-nses (->> compile-bindings keys
-                       (map #(.. ^clojure.lang.Var % ns name)) ;; Var->namespace
-                       distinct (remove #(= % 'clojure.core)))
+        binding-nses (->> compile-bindings 
+                       keys
+                       (map #(-> % symbol namespace symbol)) ;; Var->namespace
+                       distinct
+                       (remove #(= % 'clojure.core)))
         requires (map (fn [n] `(require '~n)) binding-nses)
         do-compile `(with-bindings ~compile-bindings
                       ~@(map (fn [n] `(~'compile '~n)) nses)
