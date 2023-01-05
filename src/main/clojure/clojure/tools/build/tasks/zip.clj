@@ -8,7 +8,6 @@
 
 (ns clojure.tools.build.tasks.zip
   (:require
-    [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.util.file :as file]
     [clojure.tools.build.util.zip :as zip])

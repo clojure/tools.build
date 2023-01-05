@@ -12,7 +12,8 @@
     [clojure.string :as str])
   (:import
     [java.io File]
-    [java.nio.file Path Files LinkOption CopyOption StandardCopyOption]))
+    [java.nio.file Path Files LinkOption CopyOption StandardCopyOption]
+    [clojure.lang PersistentQueue]))
 
 (set! *warn-on-reflection* true)
 
@@ -25,7 +26,7 @@
                  :or {dirs false
                       collect (constantly true)}}]
   (when (.exists root)
-    (loop [queue (conj (clojure.lang.PersistentQueue/EMPTY) root)
+    (loop [queue (conj (PersistentQueue/EMPTY) root)
            collected []]
       (let [^File file (peek queue)]
         (if file
@@ -79,7 +80,7 @@
    (when (.exists src-dir)
      (let [root (.toPath src-dir)
            target (.toPath target-dir)]
-       (loop [queue (conj (clojure.lang.PersistentQueue/EMPTY) src-dir)]
+       (loop [queue (conj (PersistentQueue/EMPTY) src-dir)]
          (let [^File file (peek queue)]
            (when file
              (let [path (.toPath file)
@@ -110,7 +111,7 @@
   (let [d (jio/file dir)]
     (if (.exists d)
       d
-      (if-let [created (.mkdirs d)]
+      (if (.mkdirs d)
         d
         (throw (ex-info (str "Can't create directory " dir) {}))))))
 

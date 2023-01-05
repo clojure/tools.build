@@ -9,7 +9,7 @@
 (ns clojure.tools.build.tasks.process
   (:require
     [clojure.java.io :as jio]
-    [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps :as deps]
     [clojure.tools.build.api :as api]
     [clojure.string :as str])
   (:import
@@ -95,12 +95,54 @@
         (vec (concat [java-cmd] java-opts ["-cp" (str "@" (.getAbsolutePath cp-file)) (name main)] main-args)))
       full-args)))
 
+(defn which
+  "Given the name of an executable, return either a full path to
+   its location on the system PATH or nil if not found"
+  [cmd]
+  (when-let [path (System/getenv "PATH")]
+    (let [paths (str/split path (re-pattern File/pathSeparator))]
+      (loop [paths paths]
+        (when-first [p paths]
+          (let [f (jio/file p cmd)]
+            (if (and (.isFile f) (.canExecute f))
+              (.getCanonicalPath f)
+              (recur (rest paths)))))))))
+
+(defn- windows?
+  []
+  (str/starts-with? (System/getProperty "os.name") "Windows"))
+
+(defn- java-exe
+  []
+  (if (windows?) "java.exe" "java"))
+
+(defn- java-home-bin
+  "Returns path $JAVA_HOME/bin/java if JAVA_HOME set, or nil"
+  []
+  (when-let [jhome (System/getenv "JAVA_HOME")]
+    (let [exe (jio/file jhome "bin" (java-exe))]
+      (when (and (.exists exe) (.canExecute exe))
+        (.getCanonicalPath exe)))))
+
+(defn java-executable
+  "Given the environment, emulate the Clojure CLI logic to determine the
+   Java executable path and return it by trying in order:
+     $JAVA_CMD
+     java on the PATH
+     $JAVA_HOME/bin/java"
+  []
+  (or
+   (System/getenv "JAVA_CMD")
+   (which (java-exe))
+   (java-home-bin)
+   (throw (ex-info "Couldn't find java executable via $JAVA_CMD, $PATH, or $JAVA_HOME" {}))))
+
 (defn java-command
   "Create Java command line args. The classpath will be the combination of
   :cp followed by the classpath from the basis, both are optional.
 
   Options:
-    :java-cmd - Java command, default = \"java\"
+    :java-cmd - Java command, default = $JAVA_CMD or 'java' on $PATH, or $JAVA_HOME/bin/java
     :cp - coll of string classpath entries, used first (if provided)
     :basis - runtime basis used for classpath, used last (if provided)
     :java-opts - coll of string jvm opts
@@ -114,10 +156,9 @@
   Returns:
     :command-args - coll of command arg strings"
   [{:keys [java-cmd cp basis java-opts main main-args use-cp-file]
-    :or {java-cmd "java", use-cp-file :auto} :as params}]
-  (let [{:keys [classpath]} basis
-        cp-entries (concat cp (keys classpath))
-        cp-str (->> cp-entries
-                 (map #(api/resolve-path %))
-                 deps/join-classpath)]
-    {:command-args (make-java-args java-cmd java-opts cp-str main main-args use-cp-file)}))
+    :or {use-cp-file :auto} :as _params}]
+  (let [cmd (or java-cmd (java-executable))
+        {:keys [classpath-roots]} basis
+        cp-entries (concat cp classpath-roots)
+        cp-str (deps/join-classpath cp-entries)]
+    {:command-args (make-java-args cmd java-opts cp-str main main-args use-cp-file)}))

@@ -8,7 +8,6 @@
 
 (ns clojure.tools.build.tasks.javac
   (:require
-    [clojure.java.io :as jio]
     [clojure.string :as str]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.tasks.process :as process]

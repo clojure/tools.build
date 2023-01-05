@@ -1,5 +1,6 @@
 (ns clojure.tools.build.api
   (:require
+    [clojure.tools.build.util.pod] ;; this must be loaded first!
     [clojure.java.io :as jio]
     [clojure.set :as set]
     [clojure.spec.alpha :as s]
@@ -23,6 +24,11 @@
   "Set *project-root* dir (default is \".\")"
   [root]
   (alter-var-root #'*project-root* (constantly root)))
+
+(defmacro with-project-root
+  "Execute forms in a bound project path (string) other than the default (\".\")"
+  [path & forms]
+  `(binding [*project-root* ~path] ~@forms))
 
 (defn resolve-path
   "If path is absolute or root-path is nil then return path,
@@ -64,7 +70,7 @@
   (assert-specs "delete" params :path ::specs/path)
   (let [root-file (resolve-path path)]
     ;(println "root-file" root-file)
-    (if (.exists root-file)
+    (when (.exists root-file)
       (file/delete root-file))))
 
 (defn copy-file
@@ -159,8 +165,13 @@
   "Create Java command line args. The classpath will be the combination of
   :cp followed by the classpath from the basis, both are optional.
 
+  Note that 'java-command' will NOT resolve any relative paths from basis
+  or cp in terms of *project-root*, you will get a classpath with the same
+  relative paths. 'process' (if run with this output), will run in the
+  context of the *project-root* directory.
+
   Options:
-    :java-cmd - Java command, default = \"java\"
+    :java-cmd - Java command, default = $JAVA_CMD or 'java' on $PATH, or $JAVA_HOME/bin/java
     :cp - coll of string classpath entries, used first (if provided)
     :basis - runtime basis used for classpath, used last (if provided)
     :java-opts - coll of string jvm opts
@@ -171,7 +182,7 @@
                      :always - always write classpath to temp file and include
                      :never - never write classpath to temp file (pass on command line)
 
-  Returns map suitable for passing to process with keys:
+  Returns map suitable for passing to 'process' with keys:
     :command-args - coll of command arg strings"
   [params]
   (assert-required "java-command" params [:basis :main])
@@ -179,11 +190,11 @@
 
 (defn process
   "Exec the command made from command-args, redirect out and err as directed,
-  and return {:exit exit-code, :out captured-out, :err captured-err}
+  and return {:exit exit-code, :out captured-out, :err captured-err}.
 
   Options:
     :command-args - required, coll of string args
-    :dir - directory to run the command from, default current directory
+    :dir - directory to run the command from, default *project-root*
     :out - one of :inherit :capture :write :append :ignore
     :err - one of :inherit :capture :write :append :ignore
     :out-file - file path to write if :out is :write or :append
@@ -265,14 +276,14 @@
 ;; Compile tasks
 
 (defn compile-clj
-  "Compile Clojure source to classes. Returns nil.
+  "Compile Clojure source to classes in :class-dir.
 
-  To determine the namespaces to compile:
-  * If :ns-compile - use coll of explicit namespaces to compile
-  * Else if :sort = :topo (default) - topologically sort all
-    namespaces in :src-dirs and compile from least dependent
-  * Else if :sort = :bfs - compile all namespaces in :src-dirs
-    and compile in breadth-first search order
+  Clojure source files are found in :basis paths by default, else in :src-dirs.
+
+  Namespaces and order of compilation are one of:
+    * :ns-compile - compile these namespaces, in this order
+    * :sort - find all namespaces in source dirs and use either :topo (default)
+              or :bfs to order them for compilation
 
   Options:
     :basis - required, basis to use when compiling
@@ -284,20 +295,26 @@
       {:disable-locals-clearing false
        :elide-meta [:doc :file :line ...]
        :direct-linking false}
+    :bindings - map of Var to value to be set during compilation, for example:
+      {#'clojure.core/*assert* false}
     :filter-nses - coll of symbols representing a namespace prefix to include
 
   Additional options flow to the forked process doing the compile:
-    :java-cmd - Java command, default = \"java\"
+    :java-cmd - Java command, default = $JAVA_CMD or 'java' on $PATH, or $JAVA_HOME/bin/java
     :java-opts - coll of string jvm opts
     :use-cp-file - one of:
                      :auto (default) - use only if os=windows && Java >= 9 && command length >= 8k
                      :always - always write classpath to temp file and include
-                     :never - never write classpath to temp file (pass on command line)"
+                     :never - never write classpath to temp file (pass on command line)
+
+  Returns nil."
   [params]
   (assert-required "compile-clj" params [:class-dir])
   (assert-specs "compile-clj" params
     :class-dir ::specs/path
-    :src-dirs ::specs/paths)
+    :src-dirs ::specs/paths
+    :compile-opts map?
+    :bindings map?)
   ((requiring-resolve 'clojure.tools.build.tasks.compile-clj/compile-clj) params))
 
 (defn javac
@@ -344,7 +361,8 @@
 (defn write-pom
   "Write pom.xml and pom.properties files to the class dir under
   META-INF/maven/group-id/artifact-id/ (where Maven typically writes
-  these files). The pom deps, dirs, and repos are either synced from
+  these files), or to target (exactly one of :class-dir and :target must
+  be provided). The pom deps, dirs, and repos are either synced from
   the src-pom or generated from the basis.
 
   If a repos map is provided it supersedes the repos in the basis.
@@ -353,8 +371,9 @@
 
   Options:
     :basis - required, used to pull deps, repos
-    :class-dir - required, root dir for writing pom files, created if needed
     :src-pom - source pom.xml to synchronize from, default = \"./pom.xml\"
+    :class-dir - root dir for writing pom files, created if needed
+    :target - file path to write pom if no :class-dir specified
     :lib - required, project lib symbol
     :version - required, project version
     :scm - map of scm properties to write in pom
@@ -364,11 +383,14 @@
     :resource-dirs - coll of resource dirs
     :repos - map of repo name to repo config, replaces repos from deps.edn"
   [params]
-  (assert-required "write-pom" params [:basis :class-dir :lib :version])
+  (assert-required "write-pom" params [:basis :lib :version])
   (assert-specs "write-pom" params
-    :lib ::specs/lib
-    :class-dir ::specs/path
     :src-pom ::specs/path
+    :class-dir ::specs/path
+    :target ::specs/path
+    :lib ::specs/lib
+    :version string?
+    :scm map?
     :src-dirs ::specs/paths
     :resource-dirs ::specs/paths)
   ((requiring-resolve 'clojure.tools.build.tasks.write-pom/write-pom) params))
@@ -452,7 +474,7 @@
     :error - throw an error
 
   Default conflict handlers map:
-    {\"^data_readers.clj[cs]?$\" :data-readers
+    {\"^data_readers.clj[c]?$\" :data-readers
      \"^META-INF/services/.*\" :append
      \"(?i)^(META-INF/)?(COPYRIGHT|NOTICE|LICENSE)(\\\\.(txt|md))?$\" :append-dedupe
      :default :ignore}"

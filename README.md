@@ -8,7 +8,7 @@ tools.bbuild
 This fork of `tools.build` works with babashka. To make it compatible, the
 following changes were introduced:
 
-- The `clojure.tools.deps.alpha` library is replaced with
+- The `clojure.tools.deps` library is replaced with
   [tools-deps-native](https://github.com/borkdude/tools-deps-native-experiment)
   which is used as a [pod](https://github.com/babashka/pods).
 
@@ -22,37 +22,18 @@ following changes were introduced:
 
 ## Usage
 
-Ensure you have [babashka](https://github.com/babashka/babashka) 0.6.5 or later.
+Ensure you have [babashka](https://github.com/babashka/babashka) 1.0.169 or later.
 
-Download or build
-[tools-deps-native](https://github.com/borkdude/tools-deps-native-experiment)
-and put the binary on your path.
-
-Here is an example how to use this project in your `bb.edn`:
+In your `bb.edn` add `:paths ["."]` to add `build.clj` to your babashka classpath.
+Also add this library to `bb.edn`:
 
 ``` clojure
-{:paths ["."]
- :deps  {io.github.babashka/tools.bbuild
-         {:git/sha "0a4959d2b1147f79e9fb37e0243727390b8ba2b3"}}
- :tasks {:requires    ([build :as b])
-         basis        {:task (b/basis {})}
-         clean        {:task (b/clean {})}
-         write-pom    {:depends [basis]
-                       :task (b/write-pom {:basis basis})}
-         jar          {:depends [basis write-pom]
-                       :task (b/jar {:basis basis})}}}
+io.github.babashka/tools.bbuild {:git/sha "<sha>"}
 ```
 
-with a `build.clj`:
+Create a `build.clj`:
 
 ``` clojure
-(require '[babashka.pods :as pods])
-
-;; Load tools-deps-native pod which defines clojure.tools.deps.alpha and some helpers used in tools.bbuild.
-(pods/load-pod 'org.babashka/tools-deps-native "0.0.5")
-
-(require '[spartan.spec]) ;; defines clojure.spec.alpha which is used in tools.build (and tools.bbuild since we didn't change this bit)
-
 (ns build
   (:require [clojure.tools.build.api :as b]))
 
@@ -84,7 +65,7 @@ with a `build.clj`:
     :jar-file  (format "target/example-%s.jar" version)}))
 ```
 
-Then run e.g. `bb jar` to produce a jar file.
+Then run e.g. `bb -x build/jar` to produce a jar file.
 
 ## Tests
 
@@ -109,11 +90,21 @@ Latest release:
 
 [deps.edn](https://clojure.org/reference/deps_and_cli) dependency information:
 
+As a git dep:
+
+```clojure
+io.github.clojure/tools.build {:git/tag "v0.9.0" :git/sha "8c93e0c"}
 ```
-io.github.clojure/tools.build {:git/tag "v0.6.8" :git/sha "d79ae84"}
+
+As a Maven dep:
+
+```clojure
+org.clojure/tools.build {:mvn/version "0.9.0"}
 ```
 
 # Developer Information
+
+[![Tests](https://github.com/clojure/tools.build/actions/workflows/ci.yml/badge.svg)](https://github.com/clojure/tools.build/actions/workflows/ci.yml)
 
 * [GitHub project](https://github.com/clojure/tools.build)
 * [How to contribute](https://clojure.org/community/contributing)
@@ -121,7 +112,7 @@ io.github.clojure/tools.build {:git/tag "v0.6.8" :git/sha "d79ae84"}
 
 # Copyright and License
 
-Copyright © 2021 Rich Hickey, Alex Miller, and contributors
+Copyright © 2022 Rich Hickey, Alex Miller, and contributors
 
 All rights reserved. The use and
 distribution terms for this software are covered by the

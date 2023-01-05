@@ -8,13 +8,12 @@
 
 (ns clojure.tools.build.tasks.copy
   (:require
-    [clojure.java.io :as jio]
     [clojure.string :as str]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.util.file :as file])
   (:import
     [java.io File]
-    [java.nio.file FileSystems FileVisitor FileVisitResult Files Path]))
+    [java.nio.file FileSystems FileVisitor FileVisitResult Files Path LinkOption]))
 
 (set! *warn-on-reflection* true)
 
@@ -30,11 +29,11 @@
         matcher (.getPathMatcher (FileSystems/getDefault) (str "glob:" glob))
         paths (volatile! [])
         visitor (reify FileVisitor
-                  (visitFile [_ path attrs]
+                  (visitFile [_ path _attrs]
                     (when (.matches matcher (.relativize root-path ^Path path))
                       (vswap! paths conj path))
                     FileVisitResult/CONTINUE)
-                  (visitFileFailed [_ path ex] FileVisitResult/CONTINUE)
+                  (visitFileFailed [_ _path _ex] FileVisitResult/CONTINUE)
                   (preVisitDirectory [_ _ _] FileVisitResult/CONTINUE)
                   (postVisitDirectory [_ _ _] FileVisitResult/CONTINUE))]
     (Files/walkFileTree root-path visitor)
@@ -64,7 +63,7 @@
 (defn copy
   [{:keys [target-dir src-dirs include replace ignores non-replaced-exts]
     :or {include "**", ignores default-ignores, non-replaced-exts default-non-replaced-exts}
-    :as params}]
+    :as _params}]
   (let [to-path (.toPath (file/ensure-dir (api/resolve-path target-dir)))
         ignore-regexes (map re-pattern ignores)
         non-replaced (map #(str "." %) default-non-replaced-exts)]
@@ -82,5 +81,11 @@
                 (file/copy-file path-file target-file)
                 (let [contents (slurp path-file)
                       replaced (reduce (fn [s [find replace]] (str/replace s find replace))
-                                 contents replace)]
-                  (file/ensure-file target-file replaced :append false))))))))))
+                                 contents replace)
+                      perms (when (contains? (.supportedFileAttributeViews (FileSystems/getDefault)) "posix")
+                              (Files/getPosixFilePermissions (.toPath path-file)
+                               (into-array LinkOption [LinkOption/NOFOLLOW_LINKS])))]
+                  (file/ensure-file target-file replaced :append false)
+                  (when perms
+                    (Files/setPosixFilePermissions (.toPath target-file) perms)
+                    nil))))))))))

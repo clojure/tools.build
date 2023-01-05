@@ -204,6 +204,35 @@
           (is (str/includes? m "unqualified-lib"))
           (is (str/includes? m "qualified-ident?")))))))
 
+(deftest test-target
+  (with-test-dir "test-data/p1"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/delete {:path "target"})
+    (api/write-pom {:lib 'test/p1
+                    :version "1.2.3"
+                    :target "target/output-pom.xml"
+                    :src-dirs ["src"]
+                    :src-pom "pom.xml"
+                    :resource-dirs ["resources"]
+                    :basis (api/create-basis nil)})
+    (is (.exists (jio/file (project-path "target/output-pom.xml"))))))
+
+(deftest test-target-or-class-dir
+  (with-test-dir "test-data/p1"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/delete {:path "target"})
+    (try
+      (api/write-pom {:lib 'test/p1
+                      :version "1.2.3"
+                      ;; NO :target or :class-dir
+                      :src-dirs ["src"]
+                      :src-pom "pom.xml"
+                      :resource-dirs ["resources"]
+                      :basis (api/create-basis nil)})
+      (is false)
+      (catch Throwable t
+        (is true)))))
+
 (comment
   (run-tests)
   (test-validate-lib)

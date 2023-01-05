@@ -1,6 +1,44 @@
 Changelog
 ===========
 
+* v0.9.0 8c93e0c on Dec 22, 2022
+  * Add clojure.tools.build.api/with-project-root macro
+  * java-command, compile-clj - TBUILD-34 - Use Clojure CLI logic in finding Java executable
+  * Switch to tools.deps 0.16.1264
+* v0.8.5 9c738da on Nov 14, 2022
+  * Add support for snapshot and release policies on :mvn/repos (see TDEPS-101)
+* v0.8.4 8c3cd69 on Nov 3, 2022
+  * TBUILD-26 Released as a Maven artifact
+* v0.8.3 0d20256 on Jun 28, 2022
+  * uber - TBUILD-32 - Preserve reader conditionals when merging data\_readers.cljc
+  * uber - TBUILD-33 - Adjust regex for data\_readers to omit .cljs
+  * Update to tools.deps.alpha 0.14.1212
+* v0.8.2 ba1a2bf on May 6, 2022
+  * Update deps to latest
+* v0.8.1 7d40500 on Mar 11, 2022
+  * compile-clj - TBUILD-29 - add support for setting bindings during compilation 
+* v0.8.0 e3e3532 on Feb 24, 2022
+  * compile-clj - always create classpath entries relative to `*project-root*`
+  * java-command - don't resolve classpath entries, leave them relative to `*project-root*`
+* v0.7.7 1474ad6 on Feb 18, 2022
+  * compile-clj - TBUILD-27 - Fix bug in prior impl
+* v0.7.6 3549b5f on Feb 18, 2022
+  * compile-clj - TBUILD-27 - Use basis as default src dirs
+  * Update to tools.deps.alpha 0.12.1148
+* v0.7.5 34727f7 on Jan 5, 2022
+  * Update to tools.deps.alpha 0.12.1109
+* v0.7.4 ac442da on Dec 23, 2021
+  * Update to tools.deps.alpha 0.12.1104
+* v0.7.3 2699924 on Dec 22, 2021
+  * Update to tools.deps.alpha 0.12.1098 (fix occasional race condition in parallel load of S3TransporterFactory)
+* v0.7.2 0361dde on Dec 13, 2021
+  * copy-dir - copy posix file permissions only when posix permissions are supported
+* v0.7.1 13f0fec on Dec 12, 2021
+  * copy-dir - TBUILD-24 - retain file permissions when doing string replace
+* v0.7.0 16eddbf on Dec 12, 2021
+  * write-pom - TBUILD-23 - specify explicit output path with :target
+  * Update to tools.namespace 1.2.0
+  * Update to tools.deps.alpha 0.12.1090
 * v0.6.8 d79ae84 on Nov 26, 2021
   * uber - fix service append regex
 * v0.6.7 8cca4f4 on Nov 24, 2021

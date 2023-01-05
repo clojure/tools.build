@@ -24,6 +24,16 @@
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar__init.class")))))
     (is (true? (.exists (jio/file (project-path "target/classes/foo/bar$hello.class")))))))
 
+;; use :src-dirs from basis paths
+(deftest test-compile-basis-paths
+  (with-test-dir "test-data/p1"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/compile-clj {:class-dir "target/classes"
+                      :basis (api/create-basis nil)})
+    (is (true? (.exists (jio/file (project-path "target/classes/foo/bar.class")))))
+    (is (true? (.exists (jio/file (project-path "target/classes/foo/bar__init.class")))))
+    (is (true? (.exists (jio/file (project-path "target/classes/foo/bar$hello.class")))))))
+
 (defn find-java []
   (-> (api/process {:command-args [(if windows? "where" "which") "java"]
                     :out :capture})
@@ -46,6 +56,25 @@
         (is (true? (.exists (jio/file (project-path "target/classes/foo/bar.class")))))
         (is (true? (.exists (jio/file (project-path "target/classes/foo/bar__init.class")))))
         (is (true? (.exists (jio/file (project-path "target/classes/foo/bar$hello.class")))))))))
+
+(deftest test-turn-off-assert-with-bindings
+  (with-test-dir "test-data/assert"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (let [basis (api/create-basis nil)
+          invoke #(-> {:basis basis :main 'clojure.main :main-args ["-e" "((requiring-resolve 'foo.check-assert/f) 100)"]}
+                    api/java-command
+                    (merge {:out :capture, :err :ignore})
+                    api/process)
+          compile-params {:class-dir "target/classes" :src-dirs ["src"] :basis basis}]
+
+      ;; by default, assertions are on when compiling, then invocation fails (assertion expects keyword)
+      (api/compile-clj compile-params) ;; no :bindings set
+      (is (= {:exit 1} (invoke)))
+
+      ;; recompile with binding to turn off assertions, then it passes (assertion not checked)
+      (api/delete {:path "target/classes"})
+      (api/compile-clj (assoc compile-params :bindings {#'clojure.core/*assert* false})) ;; turn off asserts
+      (is (= {:exit 0, :out (str "100" (System/lineSeparator))} (invoke))))))
 
 (comment
   (run-tests)

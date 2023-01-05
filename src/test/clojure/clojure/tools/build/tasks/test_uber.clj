@@ -16,13 +16,17 @@
     [clojure.tools.build.tasks.uber :as uber]
     [clojure.tools.build.test-util :refer :all]
     [clojure.tools.build.util.zip :as zip]
-    [clojure.tools.build.tasks.test-jar :as test-jar]
-    [clojure.edn :as edn])
+    [clojure.tools.build.tasks.test-jar :as test-jar])
   (:import
-    [clojure.lang ExceptionInfo]))
+    [clojure.lang ExceptionInfo]
+    [java.io ByteArrayInputStream]))
+
+(defn- string->stream
+  [^String s]
+  (ByteArrayInputStream. (.getBytes s "UTF-8")))
 
 (deftest string-stream-rt
-  (are [s] (= s (#'uber/stream->string (#'uber/string->stream s)))
+  (are [s] (= s (#'uber/stream->string (string->stream s)))
     ""
     "abc"))
 
@@ -43,7 +47,7 @@
         (is (set/subset?
               #{"META-INF/MANIFEST.MF" "foo/" "foo/bar.clj" "foo/Demo2.class" "foo/Demo1.class"}
               (set (map :name (zip/list-zip (project-path uber-path))))))
-        (is (= (str/includes? (test-jar/slurp-manifest uf) "Main-Class: foo.bar")))))))
+        (is (str/includes? (test-jar/slurp-manifest uf) "Main-Class: foo.bar"))))))
 
 (deftest test-custom-manifest
   (let [uber-path "target/p1-uber.jar"]
@@ -63,8 +67,8 @@
         (is (= #{"META-INF/MANIFEST.MF" "foo/" "foo/bar.clj" "foo/Demo2.class" "foo/Demo1.class"}
               (set (map :name (zip/list-zip (project-path uber-path))))))
         (let [manifest-out (test-jar/slurp-manifest uf)]
-          (is (= (str/includes? manifest-out "Main-Class: baz")))
-          (is (= (str/includes? manifest-out "Custom-Thing: 100"))))))))
+          (is (str/includes? manifest-out "Main-Class: baz"))
+          (is (str/includes? manifest-out "Custom-Thing: 100")))))))
 
 (deftest test-conflicts
   (with-test-dir "test-data/uber-conflict"
@@ -104,7 +108,15 @@
     ;; data_readers.clj merge
     (is (= '{j1a my.foo/j1a-reader, j1b my.bar/j1b-reader,
              j2a my.foo/j2a-reader, j2b my.bar/j2b-reader}
-          (edn/read-string (slurp (project-path "target/unzip/data_readers.clj")))))
+          (read-string (slurp (project-path "target/unzip/data_readers.clj")))))
+
+    ;; data_readers.cljc merge
+    (is (= {'j1a (reader-conditional '(:cljs my.cljs.foo/j1a-reader :clj my.clj.foo/j1a-reader) false)
+            'j1b (reader-conditional '(:cljs my.cljs.foo/j1b-reader :clj my.clj.foo/j1b-reader) false)
+            'j2a (reader-conditional '(:cljs my.cljs.foo/j2a-reader :clj my.clj.foo/j2a-reader) false)
+            'j2b (reader-conditional '(:cljs my.cljs.foo/j2b-reader :clj my.clj.foo/j2b-reader) false)}
+         (read-string {:read-cond :preserve :features #{:clj}}
+                      (slurp (project-path "target/unzip/data_readers.cljc")))))
 
     ;; ignore files ignore, so first one wins
     (is (= (slurp (project-path "j1/ignore.txt"))
