@@ -149,6 +149,8 @@
       (loop [the-state state]
         (if-let [entry (.getNextJarEntry jis)]
           (let [path (.getName entry)
+                ;; should rarely happen (except /), but chop to make relative:
+                path (if (str/starts-with? path "/") (subs path 1) path)
                 out-file (jio/file out-dir path)
                 parent-file (.getParentFile out-file)]
             (cond

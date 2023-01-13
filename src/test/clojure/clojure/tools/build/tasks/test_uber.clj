@@ -165,6 +165,14 @@
       (let [fs (map :name (zip/list-zip (project-path "target/collision.jar")))]
         (is (= #{"META-INF/MANIFEST.MF" "foo/" "foo/hi.txt"} (set fs)))))))
 
+;; TBUILD-35 - it is rare but possible for a jar to contain a / dir entry
+(deftest test-bad-zip-with-root-dir
+  (with-test-dir "test-data/bad-zip"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (let [basis (api/create-basis {:root nil})]
+      (api/uber {:class-dir "target/classes" :basis basis, :uber-file "target/out.jar"})
+      (.exists (jio/file (api/resolve-path "target/out.jar"))))))
+
 (comment
   (test-conflicts)
   (test-case-sensitive-dir-file-collision)
