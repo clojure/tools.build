@@ -86,11 +86,11 @@
   [{:keys [path in ^File existing]}]
   (binding [*read-eval* false]
     (let [existing-str (slurp existing)
-          existing-reader-fns (read-string 
-                               {:read-cond :preserve :features #{:clj}} 
+          existing-reader-fns (read-string
+                               {:read-cond :preserve :features #{:clj}}
                                existing-str)
-          append-reader-fns (read-string 
-                             {:read-cond :preserve :features #{:clj}} 
+          append-reader-fns (read-string
+                             {:read-cond :preserve :features #{:clj}}
                              (stream->string in))
           reader-str (with-out-str (pprint/pprint (merge existing-reader-fns append-reader-fns)))]
       {:write {path {:string reader-str}}})))
