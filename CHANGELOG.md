@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * uber - fix from TBUILD-30 to close copied file streams
 * v0.9.1 27ff8a4 on Jan 13, 2023
   * uber - TBUILD-35 Fix error on exploding jar with / entry
   * uber - TBUILD-30 Apply exclusions and conflict handlers for local and git libs

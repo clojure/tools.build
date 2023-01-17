@@ -190,10 +190,14 @@
       (loop [[^File f & restf] fs, the-state state]
         (if f
           (let [is (when (.isFile f) (jio/input-stream f))
-                path (.toString (.relativize source-path (.toPath f)))
-                source-time (FileTime/fromMillis (.lastModified f))
-                out-file (jio/file out-dir path)]
-            (recur restf (explode1 is path (.isDirectory f) source-time out-file lib context the-state)))
+                new-state (try
+                            (let [path (.toString (.relativize source-path (.toPath f)))
+                                  source-time (FileTime/fromMillis (.lastModified f))
+                                  out-file (jio/file out-dir path)]
+                              (explode1 is path (.isDirectory f) source-time out-file lib context the-state))
+                            (finally
+                              (when is (.close ^InputStream is))))]
+            (recur restf new-state))
           the-state)))
 
     :else
