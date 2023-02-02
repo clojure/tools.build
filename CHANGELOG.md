@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* v0.9.3 e537cd1 on Feb 1, 2023
+  * NO CHANGES - just moved Maven artifact to io.github.clojure groupId to match git dep
 * v0.9.2 fe6b140 on Jan 17, 2023
   * uber - fix from TBUILD-30 to close copied file streams
 * v0.9.1 27ff8a4 on Jan 13, 2023
