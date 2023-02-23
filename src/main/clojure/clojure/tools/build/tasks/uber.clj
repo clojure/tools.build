@@ -179,8 +179,13 @@
                 path (if (str/starts-with? path "/") (subs path 1) path)
                 out-file (jio/file out-dir path)]
             (recur
-             (explode1 jis path (.isDirectory entry) (.getLastModifiedTime ^JarEntry entry)
-                       out-file lib context the-state)))
+             (try
+               (explode1 jis path (.isDirectory entry) (.getLastModifiedTime ^JarEntry entry)
+                         out-file lib context the-state)
+               (catch Throwable t
+                 (println "Unexpected error during uber at" path "from" (.getPath lib-file) "dir?" (.isDirectory entry))
+                 (.printStackTrace t)
+                 (throw t)))))
           the-state)))
 
     (.isDirectory lib-file)
@@ -194,7 +199,12 @@
                             (let [path (.toString (.relativize source-path (.toPath f)))
                                   source-time (FileTime/fromMillis (.lastModified f))
                                   out-file (jio/file out-dir path)]
-                              (explode1 is path (.isDirectory f) source-time out-file lib context the-state))
+                              (try
+                                (explode1 is path (.isDirectory f) source-time out-file lib context the-state)
+                                (catch Throwable t
+                                  (println "Unexpected error during uber at" path "from" (.getPath lib-file) "dir?" (.isDirectory f))
+                                  (.printStackTrace t)
+                                  (throw t))))
                             (finally
                               (when is (.close ^InputStream is))))]
             (recur restf new-state))
