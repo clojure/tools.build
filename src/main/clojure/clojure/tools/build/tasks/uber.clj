@@ -28,8 +28,10 @@
   [#"project.clj"
    #"META-INF/.*\.(?:SF|RSA|DSA|MF)"
    #"module-info\.class"
-   #"(.*/)?\.DS_Store"
-   #"(.*/)?\.keep"
+   #"(.*/)?\.DS_Store" ;; Mac metadata
+   #".+~" ;; emacs backup files
+   #".#.*" ;; emacs
+   #"(.*/)?\.keep" ;; convention in dirs to keep that are empty
    #".*\.pom"
    #"(?i)META-INF/(?:INDEX\.LIST|DEPENDENCIES)(?:\.txt)?"])
 
