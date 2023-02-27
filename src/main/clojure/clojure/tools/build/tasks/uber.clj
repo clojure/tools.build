@@ -16,7 +16,7 @@
     [clojure.tools.build.util.file :as file]
     [clojure.tools.build.util.zip :as zip])
   (:import
-    [java.io File InputStream FileInputStream BufferedInputStream
+    [java.io File InputStream FileInputStream BufferedInputStream IOException
              OutputStream FileOutputStream BufferedOutputStream ByteArrayOutputStream]
     [java.nio.file Files]
     [java.nio.file.attribute FileAttribute FileTime]
@@ -191,7 +191,12 @@
           fs (file/collect-files source-dir :dirs true)]
       (loop [[^File f & restf] fs, the-state state]
         (if f
-          (let [is (when (.isFile f) (jio/input-stream f))
+          (let [is (when (.isFile f)
+                     (try
+                       (jio/input-stream f)
+                       (catch IOException e
+                         (throw (ex-info (str "Uber task found file but can't read its content in " lib " at path " (.getPath f))
+                                         {:path (.getPath f)} e)))))
                 new-state (try
                             (let [path (.toString (.relativize source-path (.toPath f)))
                                   source-time (FileTime/fromMillis (.lastModified f))
