@@ -361,8 +361,13 @@
   "Write pom.xml and pom.properties files to the class dir under
   META-INF/maven/group-id/artifact-id/ (where Maven typically writes
   these files), or to target (exactly one of :class-dir and :target must
-  be provided). The pom deps, dirs, and repos are either synced from
-  the src-pom or generated from the basis.
+  be provided).
+
+  Optionally use :src-pom to provide a pom template (or a default will
+  be generated from the provided attributes). The pom deps, dirs, and
+  repos from the basis will replace those sections of the template. Note
+  that the :src-pom template is not validated and should contain required
+  elements such as modelVersion.
 
   If a repos map is provided it supersedes the repos in the basis.
 
