@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.9.4 76b78fe on Mar 6, 2023
   * uber - exclude Emacs backup files from uberjar inclusion (useful with local/git deps)
   * uber - improve error message when file in local or git lib can't be read
   * write-pom - improve docstring
