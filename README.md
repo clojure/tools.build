@@ -36,7 +36,7 @@ io.github.clojure/tools.build {:mvn/version "0.9.4"}
 
 # Copyright and License
 
-Copyright © 2022 Rich Hickey, Alex Miller, and contributors
+Copyright © 2023 Rich Hickey, Alex Miller, and contributors
 
 All rights reserved. The use and
 distribution terms for this software are covered by the
