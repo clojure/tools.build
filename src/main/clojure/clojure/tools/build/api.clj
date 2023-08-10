@@ -172,7 +172,7 @@
   Options:
     :java-cmd - Java command, default = $JAVA_CMD or 'java' on $PATH, or $JAVA_HOME/bin/java
     :cp - coll of string classpath entries, used first (if provided)
-    :basis - runtime basis used for classpath, used last (if provided)
+    :basis - runtime basis used for classpath and jvm opts from aliases, used last (if provided)
     :java-opts - coll of string jvm opts
     :main - required, main class symbol
     :main-args - coll of main class args

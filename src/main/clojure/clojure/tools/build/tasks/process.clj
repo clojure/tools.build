@@ -158,7 +158,8 @@
   [{:keys [java-cmd cp basis java-opts main main-args use-cp-file]
     :or {use-cp-file :auto} :as _params}]
   (let [cmd (or java-cmd (java-executable))
-        {:keys [classpath-roots]} basis
+        {:keys [classpath-roots argmap]} basis
         cp-entries (concat cp classpath-roots)
-        cp-str (deps/join-classpath cp-entries)]
-    {:command-args (make-java-args cmd java-opts cp-str main main-args use-cp-file)}))
+        cp-str (deps/join-classpath cp-entries)
+        combined-java-opts (concat java-opts (:jvm-opts argmap))]
+    {:command-args (make-java-args cmd combined-java-opts cp-str main main-args use-cp-file)}))
