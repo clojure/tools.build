@@ -198,7 +198,7 @@
                          (throw (ex-info (str "Uber task found file but can't read its content in " lib " at path " (.getPath f))
                                          {:path (.getPath f)} e)))))
                 new-state (try
-                            (let [path (.toString (.relativize source-path (.toPath f)))
+                            (let [path (str/replace (.toString (.relativize source-path (.toPath f))) \\ \/)
                                   source-time (FileTime/fromMillis (.lastModified f))
                                   out-file (jio/file out-dir path)]
                               (explode1 is path (.isDirectory f) source-time out-file lib context the-state))
