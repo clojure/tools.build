@@ -68,28 +68,21 @@
 
 (defn- conflict-append
   [{:keys [path in]}]
-  {:write {path {:string (str (System/lineSeparator) (stream->string in)), :append true}}})
+  {:write {path {:string (str "\n" (stream->string in)), :append true}}})
 
 (defn- conflict-append-dedupe
-  [{:keys [lib path in ^File existing state] :as _params}]
+  [{:keys [path in ^File existing state] :as _params}]
   (let [existing-content (slurp existing)
         existing-lower (str/lower-case existing-content)
         new-content (stream->string in)
         new-content-lower (str/lower-case new-content)
         seen (or (get-in state [:append-dedupe path]) #{existing-lower})]
-    (println "\nconflict-append-dedupe" path lib)
-    (println "state:" state)
-    (println "seen:" seen)
-    (println "existing:" existing-lower)
-    (println "new content:" new-content-lower)
-    (println "contains:" (contains? seen new-content-lower))
-    (println)
     (if (contains? seen new-content-lower)
       ;; already seen
       {:state (assoc-in state [:append-dedupe path] seen)}
       ;; record and append
       {:state (assoc-in state [:append-dedupe path] (conj seen new-content))
-       :write {path {:string (str (System/lineSeparator) new-content), :append true}}})))
+       :write {path {:string (str "\n" new-content), :append true}}})))
 
 (defn conflict-data-readers
   [{:keys [path in ^File existing]}]
@@ -116,23 +109,19 @@
   [^FileTime last-modified-time buffer out-dir path write-spec]
   (let [{:keys [string stream append] :or {append false}} write-spec
         out-file (jio/file out-dir path)]
-    (when (and append string)
-      (prn "APPEND" path string))
     (if string
       (spit out-file string :append ^boolean append)
       (copy-stream! ^InputStream stream (BufferedOutputStream. (FileOutputStream. out-file ^boolean append)) buffer))
     (Files/setLastModifiedTime (.toPath out-file) last-modified-time)))
 
 (defn- handle-conflict
-  [handlers last-modified-time buffer out-dir {:keys [lib state path] :as handler-params}]
+  [handlers last-modified-time buffer out-dir {:keys [state path] :as handler-params}]
   (let [use-handler (loop [[[re handler] & hs] (dissoc handlers :default)]
                       (if re
                         (if (re-matches re path)
                           handler
                           (recur hs))
                         (:default handlers)))]
-    (when (= "META-INF/LICENSE.txt" path)
-      (println "handle-conflict" (.getPath ^File out-dir) path lib (.getName (class use-handler))))
     (if use-handler
       (let [{new-state :state, write :write} (use-handler handler-params)]
         (when write
@@ -156,11 +145,6 @@
    Returns possibly updated state for further exploding."
   [^InputStream is ^String path dir? ^FileTime last-modified-time
    ^File out-file lib {:keys [out-dir buffer exclude handlers] :as context} state]
-  (when (= path "META-INF\\LICENSE.txt")
-    (println "in explode1"
-      (exclude-from-uber? exclude path)
-      dir?
-      (.exists out-file)))
   (cond
     ;; excluded or directory - do nothing
     (or (exclude-from-uber? exclude path) dir?)
@@ -217,8 +201,6 @@
                             (let [path (.toString (.relativize source-path (.toPath f)))
                                   source-time (FileTime/fromMillis (.lastModified f))
                                   out-file (jio/file out-dir path)]
-                              (when (str/includes? path "LICENSE")
-                                (println "explode1 path" path source-path))
                               (explode1 is path (.isDirectory f) source-time out-file lib context the-state))
                             (finally
                               (when is (.close ^InputStream is))))]

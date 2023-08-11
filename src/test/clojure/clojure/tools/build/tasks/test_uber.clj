@@ -127,17 +127,16 @@
           (slurp (project-path "target/unzip/overwrite.txt"))))
 
     ;; append files append
-    (is (= (str (slurp (project-path "j1/append.txt")) (System/lineSeparator)
+    (is (= (str (slurp (project-path "j1/append.txt")) "\n"
              (slurp (project-path "j2/append.txt")))
           (slurp (project-path "target/unzip/append.txt"))))
 
     ;; LICENSE files append but no dupes - include j1 and j2, but not j3 (dupe of j1)
-    (is (= (str (slurp (project-path "j1/META-INF/LICENSE.txt")) (System/lineSeparator)
+    (is (= (str (slurp (project-path "j1/META-INF/LICENSE.txt")) "\n"
              (slurp (project-path "j2/META-INF/LICENSE.txt")))
           (slurp (project-path "target/unzip/META-INF/LICENSE.txt"))))))
 
 (deftest test-conflicts-but-files
-  (println "\n>>>test-conflicts-but-files")
   (with-test-dir "test-data/uber-conflict"
     (api/set-project-root! (.getAbsolutePath *test-dir*))
 
@@ -193,27 +192,14 @@
            (slurp (project-path "target/unzip/overwrite.txt"))))
 
     ;; append files append
-    (is (= (str (slurp (project-path "j1/append.txt")) (System/lineSeparator)
+    (is (= (str (slurp (project-path "j1/append.txt")) "\n"
                 (slurp (project-path "j2/append.txt")))
            (slurp (project-path "target/unzip/append.txt"))))
 
-    ;(println "j1: " (slurp (project-path "j1/META-INF/LICENSE.txt")))
-    ;(println "j2: " (slurp (project-path "j2/META-INF/LICENSE.txt")))
-    ;(println "j3: " (slurp (project-path "j3/META-INF/LICENSE.txt")))
-    ;(println "unzip: " (slurp (project-path "target/unzip/META-INF/LICENSE.txt")))
-
-    (println "<<<test-conflicts-but-files")
-    (println)
-
     ;; LICENSE files append but no dupes - include j1 and j2, but not j3 (dupe of j1)
-    (is (= (str (slurp (project-path "j1/META-INF/LICENSE.txt")) (System/lineSeparator)
+    (is (= (str (slurp (project-path "j1/META-INF/LICENSE.txt")) "\n"
                 (slurp (project-path "j2/META-INF/LICENSE.txt")))
            (slurp (project-path "target/unzip/META-INF/LICENSE.txt"))))))
-
-(comment
-  (run-tests)
-  (test-conflicts-but-files)
-  )
 
 (deftest test-case-sensitive-dir-file-collision
   (with-test-dir "test-data/case-sensitive-collision"
