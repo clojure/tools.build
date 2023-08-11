@@ -71,13 +71,13 @@
   {:write {path {:string (str (System/lineSeparator) (stream->string in)), :append true}}})
 
 (defn- conflict-append-dedupe
-  [{:keys [path in ^File existing state] :as _params}]
+  [{:keys [lib path in ^File existing state] :as _params}]
   (let [existing-content (slurp existing)
         existing-lower (str/lower-case existing-content)
         new-content (stream->string in)
         new-content-lower (str/lower-case new-content)
         seen (or (get-in state [:append-dedupe path]) #{existing-lower})]
-    (println "\nconflict-append-dedupe" path)
+    (println "\nconflict-append-dedupe" path lib)
     (println "state:" state)
     (println "seen:" seen)
     (println "existing:" existing-lower)
