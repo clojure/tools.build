@@ -68,7 +68,7 @@
 
 (defn- conflict-append
   [{:keys [path in]}]
-  {:write {path {:string (str "\n" (stream->string in)), :append true}}})
+  {:write {path {:string (str (System/lineSeparator) (stream->string in)), :append true}}})
 
 (defn- conflict-append-dedupe
   [{:keys [path in ^File existing state] :as _params}]
@@ -82,7 +82,7 @@
       {:state (assoc-in state [:append-dedupe path] seen)}
       ;; record and append
       {:state (assoc-in state [:append-dedupe path] (conj seen new-content))
-       :write {path {:string (str "\n" new-content), :append true}}})))
+       :write {path {:string (str (System/lineSeparator) new-content), :append true}}})))
 
 (defn conflict-data-readers
   [{:keys [path in ^File existing]}]
