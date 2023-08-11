@@ -207,6 +207,7 @@
            (slurp (project-path "target/unzip/META-INF/LICENSE.txt"))))))
 
 (comment
+  (run-tests)
   (test-conflicts-but-files)
   )
 
