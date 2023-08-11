@@ -1,8 +1,9 @@
 Changelog
 ===========
 
-* next
+* v0.9.5 24f2894 on Aug 11, 2023
   * java-command - TBUILD-14 Use :jvm-opts from aliases in basis, if provided
+  * Update to latest deps
 * v0.9.4 76b78fe on Mar 6, 2023
   * uber - exclude Emacs backup files from uberjar inclusion (useful with local/git deps)
   * uber - improve error message when file in local or git lib can't be read
