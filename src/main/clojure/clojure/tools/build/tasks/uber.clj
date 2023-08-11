@@ -212,6 +212,8 @@
                             (let [path (.toString (.relativize source-path (.toPath f)))
                                   source-time (FileTime/fromMillis (.lastModified f))
                                   out-file (jio/file out-dir path)]
+                              (when (str/includes? path "LICENSE")
+                                (println "explode1 path" path source-path))
                               (explode1 is path (.isDirectory f) source-time out-file lib context the-state))
                             (finally
                               (when is (.close ^InputStream is))))]
