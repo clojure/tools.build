@@ -124,13 +124,15 @@
     (Files/setLastModifiedTime (.toPath out-file) last-modified-time)))
 
 (defn- handle-conflict
-  [handlers last-modified-time buffer out-dir {:keys [state path] :as handler-params}]
+  [handlers last-modified-time buffer out-dir {:keys [lib state path] :as handler-params}]
   (let [use-handler (loop [[[re handler] & hs] (dissoc handlers :default)]
                       (if re
                         (if (re-matches re path)
                           handler
                           (recur hs))
                         (:default handlers)))]
+    (when (= "META-INF/LICENSE.txt" path)
+      (println "handle-conflict" (.getPath ^File out-dir) path lib (.getName (class use-handler))))
     (if use-handler
       (let [{new-state :state, write :write} (use-handler handler-params)]
         (when write
