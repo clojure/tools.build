@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * uber - fix exlcusions and conflict handling when including local deps on windows
 * v0.9.5 24f2894 on Aug 11, 2023
   * java-command - TBUILD-14 Use :jvm-opts from aliases in basis, if provided
   * Update to latest deps
