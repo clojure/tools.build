@@ -156,6 +156,11 @@
    Returns possibly updated state for further exploding."
   [^InputStream is ^String path dir? ^FileTime last-modified-time
    ^File out-file lib {:keys [out-dir buffer exclude handlers] :as context} state]
+  (when (= path "META-INF\\LICENSE.txt")
+    (println "in explode1"
+      (exclude-from-uber? exclude path)
+      dir?
+      (.exists out-file)))
   (cond
     ;; excluded or directory - do nothing
     (or (exclude-from-uber? exclude path) dir?)
