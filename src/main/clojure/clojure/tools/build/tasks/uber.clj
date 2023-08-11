@@ -77,6 +77,9 @@
         new-content (stream->string in)
         new-content-lower (str/lower-case new-content)
         seen (or (get-in state [:append-dedupe path]) #{existing-lower})]
+    (println "\nconflict-append-dedupe, seen=" seen)
+    (println "new content:" new-content)
+    (println "contains:" (contains? seen new-content-lower))
     (if (contains? seen new-content-lower)
       ;; already seen
       {:state (assoc-in state [:append-dedupe path] seen)}
