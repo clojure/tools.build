@@ -192,12 +192,12 @@
            (slurp (project-path "target/unzip/overwrite.txt"))))
 
     ;; append files append
-    (is (= (str (slurp (project-path "j1/append.txt")) "\n"
+    (is (= (str (slurp (project-path "j1/append.txt")) (System/lineSeparator)
                 (slurp (project-path "j2/append.txt")))
            (slurp (project-path "target/unzip/append.txt"))))
 
     ;; LICENSE files append but no dupes - include j1 and j2, but not j3 (dupe of j1)
-    (is (= (str (slurp (project-path "j1/META-INF/LICENSE.txt")) "\n"
+    (is (= (str (slurp (project-path "j1/META-INF/LICENSE.txt")) (System/lineSeparator)
                 (slurp (project-path "j2/META-INF/LICENSE.txt")))
            (slurp (project-path "target/unzip/META-INF/LICENSE.txt"))))))
 
