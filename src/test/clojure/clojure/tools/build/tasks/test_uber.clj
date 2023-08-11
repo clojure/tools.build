@@ -196,10 +196,10 @@
                 (slurp (project-path "j2/append.txt")))
            (slurp (project-path "target/unzip/append.txt"))))
 
-    (println "j1: " (slurp (project-path "j1/META-INF/LICENSE.txt")))
-    (println "j2: " (slurp (project-path "j2/META-INF/LICENSE.txt")))
-    (println "j3: " (slurp (project-path "j3/META-INF/LICENSE.txt")))
-    (println "unzip: " (slurp (project-path "target/unzip/META-INF/LICENSE.txt")))
+    ;(println "j1: " (slurp (project-path "j1/META-INF/LICENSE.txt")))
+    ;(println "j2: " (slurp (project-path "j2/META-INF/LICENSE.txt")))
+    ;(println "j3: " (slurp (project-path "j3/META-INF/LICENSE.txt")))
+    ;(println "unzip: " (slurp (project-path "target/unzip/META-INF/LICENSE.txt")))
 
     ;; LICENSE files append but no dupes - include j1 and j2, but not j3 (dupe of j1)
     (is (= (str (slurp (project-path "j1/META-INF/LICENSE.txt")) (System/lineSeparator)
