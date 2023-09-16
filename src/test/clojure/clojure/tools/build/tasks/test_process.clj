@@ -9,6 +9,8 @@
 (ns clojure.tools.build.tasks.test-process
   (:require
     [clojure.test :refer :all]
+    [clojure.set :as set]
+    [clojure.tools.build.api :as api]
     [clojure.tools.build.tasks.process :as process]))
 
 (deftest test-need-cp-file
@@ -19,3 +21,9 @@
       "Windows 10" "9.0.1" 5000 false
       "Windows 10" "1.8.0_261" 10000 false
       "Mac OS X" "17" 10000 false)))
+
+(deftest test-java-process-uses-and-merges-basis-jvm-opts
+  (let [basis (api/create-basis {:extra {:aliases {:opts {:jvm-opts ["-Dhi=there"]}}}
+                                 :aliases [:opts]})
+        command (api/java-command {:basis basis, :main 'clojure.main, :java-opts ["-Dfoo=bar"]})]
+    (is (set/subset? #{"-Dhi=there" "-Dfoo=bar"} (set (:command-args command))))))

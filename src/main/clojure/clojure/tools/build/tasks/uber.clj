@@ -16,10 +16,10 @@
     [clojure.tools.build.util.file :as file]
     [clojure.tools.build.util.zip :as zip])
   (:import
-    [java.io File InputStream FileInputStream BufferedInputStream
+    [java.io File InputStream FileInputStream BufferedInputStream IOException
              OutputStream FileOutputStream BufferedOutputStream ByteArrayOutputStream]
     [java.nio.file Files]
-    [java.nio.file.attribute FileAttribute]
+    [java.nio.file.attribute FileAttribute FileTime]
     [java.util.jar JarEntry JarInputStream JarOutputStream Manifest]))
 
 (set! *warn-on-reflection* true)
@@ -28,8 +28,10 @@
   [#"project.clj"
    #"META-INF/.*\.(?:SF|RSA|DSA|MF)"
    #"module-info\.class"
-   #"(.*/)?\.DS_Store"
-   #"(.*/)?\.keep"
+   #"(.*/)?\.DS_Store" ;; Mac metadata
+   #".+~" ;; emacs backup files
+   #".#.*" ;; emacs
+   #"(.*/)?\.keep" ;; convention in dirs to keep that are empty
    #".*\.pom"
    #"(?i)META-INF/(?:INDEX\.LIST|DEPENDENCIES)(?:\.txt)?"])
 
@@ -86,11 +88,11 @@
   [{:keys [path in ^File existing]}]
   (binding [*read-eval* false]
     (let [existing-str (slurp existing)
-          existing-reader-fns (read-string 
-                               {:read-cond :preserve :features #{:clj}} 
+          existing-reader-fns (read-string
+                               {:read-cond :preserve :features #{:clj}}
                                existing-str)
-          append-reader-fns (read-string 
-                             {:read-cond :preserve :features #{:clj}} 
+          append-reader-fns (read-string
+                             {:read-cond :preserve :features #{:clj}}
                              (stream->string in))
           reader-str (with-out-str (pprint/pprint (merge existing-reader-fns append-reader-fns)))]
       {:write {path {:string reader-str}}})))
@@ -104,16 +106,16 @@
   (throw (ex-info (str "Conflicting path at " path " from " lib) {})))
 
 (defn- handler-emit
-  [entry buffer out-dir path write-spec]
+  [^FileTime last-modified-time buffer out-dir path write-spec]
   (let [{:keys [string stream append] :or {append false}} write-spec
         out-file (jio/file out-dir path)]
     (if string
       (spit out-file string :append ^boolean append)
       (copy-stream! ^InputStream stream (BufferedOutputStream. (FileOutputStream. out-file ^boolean append)) buffer))
-    (Files/setLastModifiedTime (.toPath out-file) (.getLastModifiedTime ^JarEntry entry))))
+    (Files/setLastModifiedTime (.toPath out-file) last-modified-time)))
 
 (defn- handle-conflict
-  [handlers entry buffer out-dir {:keys [state path] :as handler-params}]
+  [handlers last-modified-time buffer out-dir {:keys [state path] :as handler-params}]
   (let [use-handler (loop [[[re handler] & hs] (dissoc handlers :default)]
                       (if re
                         (if (re-matches re path)
@@ -124,7 +126,7 @@
       (let [{new-state :state, write :write} (use-handler handler-params)]
         (when write
           (doseq [[path write-spec] write]
-            (handler-emit entry buffer out-dir path write-spec)))
+            (handler-emit last-modified-time buffer out-dir path write-spec)))
         (or new-state state))
       (throw (ex-info (format "No handler found for conflict at %s" path) {})))))
 
@@ -138,8 +140,34 @@
       true
       (throw (ex-info (str "Unable to create parent dirs for: " (.toString child)) {})))))
 
+(defn- explode1
+  "Given one entry/src file, copy to target pursuant to excludes and handlers.
+   Returns possibly updated state for further exploding."
+  [^InputStream is ^String path dir? ^FileTime last-modified-time
+   ^File out-file lib {:keys [out-dir buffer exclude handlers] :as context} state]
+  (cond
+    ;; excluded or directory - do nothing
+    (or (exclude-from-uber? exclude path) dir?)
+    state
+
+    ;; conflict, same file from multiple sources - handle
+    (.exists out-file)
+    (handle-conflict handlers last-modified-time buffer out-dir
+                     {:lib lib, :path path, :in is, :existing out-file, :state state})
+
+    ;; write new file, parent dir exists for writing
+    (ensure-dir (.getParentFile out-file) out-file)
+    (do
+      (copy-stream! ^InputStream is (BufferedOutputStream. (FileOutputStream. out-file)) buffer)
+      (Files/setLastModifiedTime (.toPath out-file) last-modified-time)
+      state)
+
+    :parent-dir-is-a-file
+    (throw (ex-info (format "Cannot write %s from %s as parent dir is a file from another lib. One of them must be excluded."
+                            path lib) {}))))
+
 (defn- explode
-  [^File lib-file lib {:keys [out-dir buffer exclude handlers]} state]
+  [^File lib-file lib {:keys [out-dir buffer exclude handlers] :as context} state]
   (cond
     (not (.exists lib-file))
     state
@@ -149,34 +177,35 @@
       (loop [the-state state]
         (if-let [entry (.getNextJarEntry jis)]
           (let [path (.getName entry)
-                out-file (jio/file out-dir path)
-                parent-file (.getParentFile out-file)]
-            (cond
-              ;; excluded or directory - do nothing
-              (or (exclude-from-uber? exclude path) (.isDirectory entry))
-              (recur the-state)
-
-              ;; conflict, same file from multiple sources - handle
-              (.exists out-file)
-              (recur (handle-conflict handlers entry buffer out-dir
-                       {:lib lib, :path path, :in jis, :existing out-file, :state the-state}))
-
-              ;; write new file, parent dir exists for writing
-              (ensure-dir parent-file out-file)
-              (do
-                (copy-stream! ^InputStream jis (BufferedOutputStream. (FileOutputStream. out-file)) buffer)
-                (Files/setLastModifiedTime (.toPath out-file) (.getLastModifiedTime entry))
-                (recur the-state))
-
-              :parent-dir-is-a-file
-              (throw (ex-info (format "Cannot write %s from %s as parent dir is a file from another lib. One of them must be excluded."
-                                path lib) {}))))
+                ;; should rarely happen (except /), but chop to make relative:
+                path (if (str/starts-with? path "/") (subs path 1) path)
+                out-file (jio/file out-dir path)]
+            (recur
+             (explode1 jis path (.isDirectory entry) (.getLastModifiedTime ^JarEntry entry)
+                       out-file lib context the-state)))
           the-state)))
 
     (.isDirectory lib-file)
-    (do
-      (file/copy-contents lib-file out-dir)
-      state)
+    (let [source-dir (.getAbsoluteFile lib-file)
+          source-path (.toPath source-dir)
+          fs (file/collect-files source-dir :dirs true)]
+      (loop [[^File f & restf] fs, the-state state]
+        (if f
+          (let [is (when (.isFile f)
+                     (try
+                       (jio/input-stream f)
+                       (catch IOException e
+                         (throw (ex-info (str "Uber task found file but can't read its content in " lib " at path " (.getPath f))
+                                         {:path (.getPath f)} e)))))
+                new-state (try
+                            (let [path (str/replace (.toString (.relativize source-path (.toPath f))) \\ \/)
+                                  source-time (FileTime/fromMillis (.lastModified f))
+                                  out-file (jio/file out-dir path)]
+                              (explode1 is path (.isDirectory f) source-time out-file lib context the-state))
+                            (finally
+                              (when is (.close ^InputStream is))))]
+            (recur restf new-state))
+          the-state)))
 
     :else
     (throw (ex-info (format "Unexpected lib file: %s" (.toString lib-file)) {}))))

@@ -1,6 +1,24 @@
 Changelog
 ===========
 
+<<<<<<< HEAD
+* next
+  * uber - fix exlcusions and conflict handling when including local deps on windows
+* v0.9.5 24f2894 on Aug 11, 2023
+  * java-command - TBUILD-14 Use :jvm-opts from aliases in basis, if provided
+  * Update to latest deps
+* v0.9.4 76b78fe on Mar 6, 2023
+  * uber - exclude Emacs backup files from uberjar inclusion (useful with local/git deps)
+  * uber - improve error message when file in local or git lib can't be read
+  * write-pom - improve docstring
+  * Switch to tools.deps 0.17.1297
+* v0.9.3 e537cd1 on Feb 1, 2023
+  * NO CHANGES - just moved Maven artifact to io.github.clojure groupId to match git dep
+* v0.9.2 fe6b140 on Jan 17, 2023
+  * uber - fix from TBUILD-30 to close copied file streams
+* v0.9.1 27ff8a4 on Jan 13, 2023
+  * uber - TBUILD-35 Fix error on exploding jar with / entry
+  * uber - TBUILD-30 Apply exclusions and conflict handlers for local and git libs
 * v0.9.0 8c93e0c on Dec 22, 2022
   * Add clojure.tools.build.api/with-project-root macro
   * java-command, compile-clj - TBUILD-34 - Use Clojure CLI logic in finding Java executable

@@ -27,20 +27,20 @@
 (defn- write-compile-script!
   ^File [^File script-file ^File compile-dir nses compiler-opts bindings]
   (let [compile-bindings (merge bindings
-                                {#'*compile-path* (.toString compile-dir)
-                                 #'*compiler-options* compiler-opts})
-        binding-nses (->> compile-bindings
-                          keys
-                          (map #(-> % symbol namespace symbol)) ;; Var->namespace
-                          distinct
-                          (remove #(= % 'clojure.core)))
+                           {#'*compile-path* (.toString compile-dir)
+                            #'*compiler-options* compiler-opts})
+        binding-nses (->> compile-bindings 
+                       keys
+                       (map #(-> % symbol namespace symbol)) ;; Var->namespace
+                       distinct
+                       (remove #(= % 'clojure.core)))
         requires (map (fn [n] `(require '~n)) binding-nses)
         do-compile `(with-bindings ~compile-bindings
                       ~@(map (fn [n] `(~'compile '~n)) nses)
                       (System/exit 0))
         script (->> (conj (vec requires) do-compile)
-                    (map #(with-out-str (pprint/pprint %)))
-                    (str/join (System/lineSeparator)))]
+                 (map #(with-out-str (pprint/pprint %)))
+                 (str/join (System/lineSeparator)))]
     (spit script-file script)))
 
 (defn- ns->path
@@ -79,6 +79,15 @@
                       set)]
     (filter path-set classpath-roots)))
 
+(defn- basis-paths
+  "Extract all path entries from basis, in classpath order"
+  [{:keys [classpath classpath-roots]}]
+  (let [path-set (->> classpath
+                   (filter #(contains? (val %) :path-key))
+                   (map key)
+                   set)]
+    (filter path-set classpath-roots)))
+
 (defn compile-clj
   [{:keys [basis src-dirs compile-opts ns-compile filter-nses class-dir sort bindings] :as params
     :or {sort :topo}}]
@@ -97,13 +106,11 @@
         ;; java-command will run in context of *project-dir* - basis, classpaths, etc
         ;; should all be relative to that (or absolute like working-compile-dir)
         process-args (process/java-command (merge
-                                            (select-keys params [:java-cmd :java-opts :use-cp-file])
-                                            {:out :inherit
-                                             :err :inherit
-                                             :cp [(.getPath working-compile-dir) class-dir]
-                                             :basis basis
-                                             :main 'clojure.main
-                                             :main-args [(.getCanonicalPath compile-script)]}))
+                                             (select-keys params [:java-cmd :java-opts :use-cp-file])
+                                             {:cp [(.getPath working-compile-dir) class-dir]
+                                              :basis basis
+                                              :main 'clojure.main
+                                              :main-args [(.getCanonicalPath compile-script)]}))
         _ (spit (jio/file working-dir "compile.args") (str/join " " (:command-args process-args)))
         exit (:exit (process/process process-args))]
     (if (zero? exit)

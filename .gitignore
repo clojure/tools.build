@@ -8,8 +8,9 @@ target/
 project.clj
 out*
 test-out
-/.lsp/.cache
 .clj-kondo/.cache
 .vscode
 .lsp
 tools-deps-native
+.vscode
+.lsp

@@ -93,13 +93,13 @@ Latest release:
 As a git dep:
 
 ```clojure
-io.github.clojure/tools.build {:git/tag "v0.9.0" :git/sha "8c93e0c"}
+io.github.clojure/tools.build {:git/tag "v0.9.5" :git/sha "24f2894"}
 ```
 
 As a Maven dep:
 
 ```clojure
-org.clojure/tools.build {:mvn/version "0.9.0"}
+io.github.clojure/tools.build {:mvn/version "0.9.5"}
 ```
 
 # Developer Information
@@ -112,7 +112,7 @@ org.clojure/tools.build {:mvn/version "0.9.0"}
 
 # Copyright and License
 
-Copyright © 2022 Rich Hickey, Alex Miller, and contributors
+Copyright © 2023 Rich Hickey, Alex Miller, and contributors
 
 All rights reserved. The use and
 distribution terms for this software are covered by the
