@@ -18,4 +18,4 @@
 
 (or (try (requiring-resolve 'clojure.tools.deps/create-basis)
          (catch Exception _ nil)) ;; pod is loaded via bb.edn
-    (pods/load-pod 'org.babashka/tools-deps-native "0.1.1"))
+    (pods/load-pod 'org.babashka/tools-deps-native "0.1.2"))
