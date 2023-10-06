@@ -21,7 +21,7 @@ jobs:
           cli: 1.11.1.1413
 
       - name: Checkout
-        uses: actions/checkout@v4.1
+        uses: actions/checkout@v4
 
       - name: Run tests not Windows
         if: ${{ matrix.os != 'windows-latest' }}
