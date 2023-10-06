@@ -10,18 +10,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Prepare java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3.13
         with:
           distribution: "adopt"
           java-version: ${{ matrix.java-version }}
 
       - name: Setup Clojure
-        uses: DeLaGuardo/setup-clojure@3.6
+        uses: DeLaGuardo/setup-clojure@12.1
         with:
-          cli: 1.10.3.1040
+          cli: 1.11.1.1413
 
       - name: Checkout
-        uses: actions/checkout@v2-beta
+        uses: actions/checkout@v4.1
 
       - name: Run tests not Windows
         if: ${{ matrix.os != 'windows-latest' }}
