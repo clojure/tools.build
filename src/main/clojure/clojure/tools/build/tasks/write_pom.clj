@@ -13,6 +13,7 @@
     [clojure.data.xml :as xml]
     [clojure.data.xml.tree :as tree]
     [clojure.data.xml.event :as event]
+    [clojure.walk :as walk]
     [clojure.zip :as zip]
     [clojure.tools.deps.util.maven :as maven]
     [clojure.tools.deps.util.io :refer [printerrln]]
@@ -23,6 +24,8 @@
            [java.util Date]))
 
 (xml/alias-uri 'pom "http://maven.apache.org/POM/4.0.0")
+(def ^:private pom-ns (name (.-name ^clojure.lang.Namespace (get (ns-aliases *ns*) 'pom))))
+
 
 (defn- to-dep
   [[lib {:keys [mvn/version exclusions optional] :as coord}]]
@@ -88,35 +91,43 @@
   [::pom/repositories
    (map to-repo repos)])
 
+(defn- pomify
+  [val]
+  (if (and (vector? val) (keyword? (first val)))
+    (into [(keyword pom-ns (name (first val)))] (rest val))
+    val))
+
 (defn- gen-pom
-  [{:keys [deps src-paths resource-paths repos group artifact version scm]
+  [{:keys [deps src-paths resource-paths repos group artifact version scm pom-data]
     :or {version "0.1.0"}}]
   (let [[path & paths] src-paths
         {:keys [connection developerConnection tag url]} scm]
     (xml/sexp-as-element
-      [::pom/project
-       {:xmlns "http://maven.apache.org/POM/4.0.0"
-        (keyword "xmlns:xsi") "http://www.w3.org/2001/XMLSchema-instance"
-        (keyword "xsi:schemaLocation") "http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"}
-       [::pom/modelVersion "4.0.0"]
-       [::pom/packaging "jar"]
-       [::pom/groupId group]
-       [::pom/artifactId artifact]
-       [::pom/version version]
-       [::pom/name artifact]
-       (gen-deps deps)
-       (when (or path (seq resource-paths))
-         (when (seq paths) (apply printerrln "Skipping paths:" paths))
-         [::pom/build
-          (when path (gen-source-dir path))
-          (when (seq resource-paths) (gen-resources resource-paths))])
-       (gen-repos repos)
-       (when scm
-         [::pom/scm
-          (when connection [::pom/connection connection])
-          (when developerConnection [::pom/developerConnection developerConnection])
-          (when tag [::pom/tag tag])
-          (when url [::pom/url url])])])))
+      (into
+        [::pom/project
+         {:xmlns "http://maven.apache.org/POM/4.0.0"
+          (keyword "xmlns:xsi") "http://www.w3.org/2001/XMLSchema-instance"
+          (keyword "xsi:schemaLocation") "http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"}
+         [::pom/modelVersion "4.0.0"]
+         [::pom/packaging "jar"]
+         [::pom/groupId group]
+         [::pom/artifactId artifact]
+         [::pom/version version]
+         [::pom/name artifact]
+         (gen-deps deps)
+         (when (or path (seq resource-paths))
+           (when (seq paths) (apply printerrln "Skipping paths:" paths))
+           [::pom/build
+            (when path (gen-source-dir path))
+            (when (seq resource-paths) (gen-resources resource-paths))])
+         (gen-repos repos)
+         (when scm
+           [::pom/scm
+            (when connection [::pom/connection connection])
+            (when developerConnection [::pom/developerConnection developerConnection])
+            (when tag [::pom/tag tag])
+            (when url [::pom/url url])])]
+        (walk/postwalk pomify pom-data)))))
 
 (defn- make-xml-element
   [{:keys [tag attrs] :as node} children]
@@ -221,7 +232,7 @@
 
 (defn write-pom
   [params]
-  (let [{:keys [basis class-dir target src-pom lib version scm src-dirs resource-dirs repos]} params
+  (let [{:keys [basis class-dir target src-pom lib version scm src-dirs resource-dirs repos pom-data]} params
         {:keys [libs]} basis
         root-deps (libs->deps libs)
         src-pom-file (api/resolve-path (or src-pom "pom.xml"))
@@ -246,7 +257,8 @@
                    :group (namespace lib)
                    :artifact (name lib)}
                   version (assoc :version version)
-                  scm (assoc :scm scm))))
+                  scm (assoc :scm scm)
+                  pom-data (assoc :pom-data pom-data))))
         pom-dir-file (file/ensure-dir
                        (cond
                          class-dir (jio/file (api/resolve-path class-dir) (meta-maven-path {:lib lib}))

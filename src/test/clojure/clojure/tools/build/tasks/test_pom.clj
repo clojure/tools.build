@@ -212,7 +212,6 @@
                     :version "1.2.3"
                     :target "target/output-pom.xml"
                     :src-dirs ["src"]
-                    :src-pom "pom.xml"
                     :resource-dirs ["resources"]
                     :basis (api/create-basis nil)})
     (is (.exists (jio/file (project-path "target/output-pom.xml"))))))
@@ -232,6 +231,29 @@
       (is false)
       (catch Throwable t
         (is true)))))
+
+(deftest test-pom-data
+  (with-test-dir "test-data/p1"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/delete {:path "target"})
+    (api/write-pom {:lib 'test/p1
+                    :version "1.2.3"
+                    :target "target"
+                    :src-dirs ["src"]
+                    :resource-dirs ["resources"]
+                    :basis (api/create-basis nil)
+                    :pom-data [[:licenses
+                                [:license
+                                 [:name "Apache-2.0"]
+                                 [:url "https://www.apache.org/licenses/LICENSE-2.0.txt"]
+                                 [:distribution "repo"]
+                                 [:comments "OSS license"]]]
+                               [:foo
+                                [:bar "hello"]]]})
+    (is (.exists (jio/file (project-path "target/pom.xml"))))
+    (let [written-pom (slurp (project-path "target/pom.xml"))]
+      (is (str/includes? written-pom "<name>Apache-2.0</name>"))
+      (is (str/includes? written-pom "<bar>hello</bar>")))))
 
 (comment
   (run-tests)
