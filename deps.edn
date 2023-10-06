@@ -32,7 +32,7 @@
 
    ;; Lint the source
    ;; clj -M:lint
-   :lint {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2023.07.13"}}
+   :lint {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2023.09.07"}}
           :main-opts ["-m" "clj-kondo.main" "--lint" "src"]}
   }
 }
