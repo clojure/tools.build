@@ -1,8 +1,9 @@
 Changelog
 ===========
 
-* next
-  * uber - fix exlcusions and conflict handling when including local deps on windows
+* v0.9.6 8e78bcc on Oct 6, 2023
+  * write-pom - add :pom-data to supply extra pom data when generating a new pom
+  * uber - fix exclusions and conflict handling when including local deps on windows
 * v0.9.5 24f2894 on Aug 11, 2023
   * java-command - TBUILD-14 Use :jvm-opts from aliases in basis, if provided
   * Update to latest deps
