@@ -277,11 +277,11 @@
 (defn compile-clj
   "Compile Clojure source to classes in :class-dir.
 
-  Clojure source files are found in :basis paths by default, else in :src-dirs.
+  Clojure source files are found in :basis :paths by default, or override with :src-dirs.
 
   Namespaces and order of compilation are one of:
     * :ns-compile - compile these namespaces, in this order
-    * :sort - find all namespaces in source dirs and use either :topo (default)
+    * :sort - find all namespaces in source files and use either :topo (default)
               or :bfs to order them for compilation
 
   Options:
