@@ -17,13 +17,13 @@ Latest release:
 As a git dep:
 
 ```clojure
-io.github.clojure/tools.build {:git/tag "v0.9.6" :git/sha "8e78bcc"}
+io.github.clojure/tools.build {:git/tag "v0.10.0" :git/sha "3a2c484"}
 ``` 
 
 As a Maven dep:
 
 ```clojure
-io.github.clojure/tools.build {:mvn/version "0.9.6"}
+io.github.clojure/tools.build {:mvn/version "0.10.0"}
 ```
 
 # Developer Information
@@ -36,7 +36,7 @@ io.github.clojure/tools.build {:mvn/version "0.9.6"}
 
 # Copyright and License
 
-Copyright © 2023 Rich Hickey, Alex Miller, and contributors
+Copyright © Rich Hickey, Alex Miller, and contributors
 
 All rights reserved. The use and
 distribution terms for this software are covered by the
@@ -46,4 +46,4 @@ in any fashion, you are agreeing to be bound by the terms of this
 license. You must not remove this notice, or any other, from this
 software.
 
-[Eclipse Public License 1.0]: http://opensource.org/licenses/eclipse-1.0.php
+[Eclipse Public License 1.0]: https://opensource.org/license/epl-1-0

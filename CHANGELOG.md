@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* v0.10.0 3a2c484 on Mar 8, 2024
+  * Updated deps to latest tools.deps and Clojure 1.11.2
 * v0.9.6 8e78bcc on Oct 6, 2023
   * write-pom - add :pom-data to supply extra pom data when generating a new pom
   * uber - fix exclusions and conflict handling when including local deps on windows
