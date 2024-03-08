@@ -141,6 +141,7 @@
   Sources are merged in the order - :root, :user, :project, :extra.
 
   Options (note, paths resolved via *project-root*):
+    :dir     - directory root path, defaults to current directory
     :root    - dep source, default = :standard
     :user    - dep source, default = nil (for reproducibility, not included)
     :project - dep source, default = :standard (\"./deps.edn\")
