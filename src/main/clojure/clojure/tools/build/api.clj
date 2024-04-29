@@ -309,7 +309,7 @@
 
   Returns nil."
   [params]
-  (assert-required "compile-clj" params [:class-dir])
+  (assert-required "compile-clj" params [:basis :class-dir])
   (assert-specs "compile-clj" params
     :class-dir ::specs/path
     :src-dirs ::specs/paths
