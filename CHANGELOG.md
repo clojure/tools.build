@@ -1,6 +1,9 @@
 Changelog
 ===========
 
+* next
+  * Update deps to latest
+  * compile-clj - validate that basis is non-nil
 * v0.10.0 3a2c484 on Mar 8, 2024
   * Updated deps to latest tools.deps and Clojure 1.11.2
 * v0.9.6 8e78bcc on Oct 6, 2023
