@@ -26,7 +26,7 @@
                  :or {dirs false
                       collect (constantly true)}}]
   (when (.exists root)
-    (loop [queue (conj (PersistentQueue/EMPTY) root)
+    (loop [queue (conj PersistentQueue/EMPTY root)
            collected []]
       (let [^File file (peek queue)]
         (if file
@@ -80,7 +80,7 @@
    (when (.exists src-dir)
      (let [root (.toPath src-dir)
            target (.toPath target-dir)]
-       (loop [queue (conj (PersistentQueue/EMPTY) src-dir)]
+       (loop [queue (conj PersistentQueue/EMPTY src-dir)]
          (let [^File file (peek queue)]
            (when file
              (let [path (.toPath file)
