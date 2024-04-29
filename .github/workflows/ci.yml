@@ -16,9 +16,9 @@ jobs:
           java-version: ${{ matrix.java-version }}
 
       - name: Setup Clojure
-        uses: DeLaGuardo/setup-clojure@12.1
+        uses: DeLaGuardo/setup-clojure@12.5
         with:
-          cli: 1.11.1.1413
+          cli: latest
 
       - name: Checkout
         uses: actions/checkout@v4
