@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.10.1 5e3b8f3 on Apr 28, 2024
   * Update deps to latest
   * compile-clj - validate that basis is non-nil
 * v0.10.0 3a2c484 on Mar 8, 2024
