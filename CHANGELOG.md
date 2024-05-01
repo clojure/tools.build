@@ -3,8 +3,9 @@ Changelog
 
 * next
   * compile-clj - add simple spec for :basis arg
-* v0.10.1 on Apr 28, 2024
-  * compile-clj - add required check on :basis arg
+* v0.10.1 5e3b8f3 on Apr 28, 2024
+  * Update deps to latest
+  * compile-clj - validate that basis is non-nil
 * v0.10.0 3a2c484 on Mar 8, 2024
   * Updated deps to latest tools.deps and Clojure 1.11.2
 * v0.9.6 8e78bcc on Oct 6, 2023

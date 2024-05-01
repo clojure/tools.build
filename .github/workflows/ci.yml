@@ -5,20 +5,20 @@ jobs:
   test:
     strategy:
       matrix:
-        java-version: ["8", "11", "17", "21"]
+        java-version: ["11", "17", "21"]
         os: [ubuntu-latest, macOS-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Prepare java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: "adopt"
           java-version: ${{ matrix.java-version }}
 
       - name: Setup Clojure
-        uses: DeLaGuardo/setup-clojure@12.1
+        uses: DeLaGuardo/setup-clojure@12.5
         with:
-          cli: 1.11.1.1413
+          cli: latest
 
       - name: Checkout
         uses: actions/checkout@v4
