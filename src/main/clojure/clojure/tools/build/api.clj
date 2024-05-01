@@ -314,7 +314,8 @@
     :class-dir ::specs/path
     :src-dirs ::specs/paths
     :compile-opts map?
-    :bindings map?)
+    :bindings map?
+    :basis ::specs/basis)
   ((requiring-resolve 'clojure.tools.build.tasks.compile-clj/compile-clj) params))
 
 (defn javac

@@ -76,6 +76,14 @@
       (api/compile-clj (assoc compile-params :bindings {#'clojure.core/*assert* false})) ;; turn off asserts
       (is (= {:exit 0, :out (str "100" (System/lineSeparator))} (invoke))))))
 
+(deftest test-accidental-basis-delay
+  (with-test-dir "test-data/p1"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (is (thrown? clojure.lang.ExceptionInfo
+          (api/compile-clj {:class-dir "target/classes"
+                            :src-dirs ["src"]
+                            :basis (delay (api/create-basis nil))})))))
+
 (comment
   (run-tests)
   )
