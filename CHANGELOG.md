@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * uber, jar, zip - TBUILD-42 Use buffered output streams everywhere
 * v0.10.3 15ead66 on May, 2024
   * compile-clj - add simple spec for :basis arg
 * v0.10.1 5e3b8f3 on Apr 28, 2024

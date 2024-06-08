@@ -16,8 +16,7 @@
     [clojure.tools.build.util.file :as file]
     [clojure.tools.build.util.zip :as zip])
   (:import
-    [java.io File InputStream FileInputStream BufferedInputStream IOException
-             OutputStream FileOutputStream BufferedOutputStream ByteArrayOutputStream]
+    [java.io File InputStream IOException OutputStream ByteArrayOutputStream]
     [java.nio.file Files]
     [java.nio.file.attribute FileAttribute FileTime]
     [java.util.jar JarEntry JarInputStream JarOutputStream Manifest]))
@@ -111,7 +110,7 @@
         out-file (jio/file out-dir path)]
     (if string
       (spit out-file string :append ^boolean append)
-      (copy-stream! ^InputStream stream (BufferedOutputStream. (FileOutputStream. out-file ^boolean append)) buffer))
+      (copy-stream! ^InputStream stream (jio/output-stream out-file :append append) buffer))
     (Files/setLastModifiedTime (.toPath out-file) last-modified-time)))
 
 (defn- handle-conflict
@@ -158,7 +157,7 @@
     ;; write new file, parent dir exists for writing
     (ensure-dir (.getParentFile out-file) out-file)
     (do
-      (copy-stream! ^InputStream is (BufferedOutputStream. (FileOutputStream. out-file)) buffer)
+      (copy-stream! ^InputStream is (jio/output-stream out-file) buffer)
       (Files/setLastModifiedTime (.toPath out-file) last-modified-time)
       state)
 
@@ -173,7 +172,7 @@
     state
 
     (str/ends-with? (.getPath lib-file) ".jar")
-    (with-open [jis (JarInputStream. (BufferedInputStream. (FileInputStream. lib-file)))]
+    (with-open [jis (JarInputStream. (jio/input-stream lib-file))]
       (loop [the-state state]
         (if-let [entry (.getNextJarEntry jis)]
           (let [path (.getName entry)
@@ -297,7 +296,7 @@
               (.exists (jio/file working-dir "META-INF" "versions")) (assoc "Multi-Release" "true"))
             mf-attr-strs))
         (file/ensure-dir (.getParent uber-file))
-        (with-open [jos (JarOutputStream. (FileOutputStream. uber-file) manifest)]
+        (with-open [jos (JarOutputStream. (jio/output-stream uber-file) manifest)]
           (zip/copy-to-zip jos working-dir)))
       (finally
         (file/delete working-dir)))))

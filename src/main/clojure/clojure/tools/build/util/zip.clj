@@ -12,8 +12,7 @@
     [clojure.tools.build.util.file :as file]
     [clojure.string :as str])
   (:import
-    [java.io File InputStream BufferedInputStream FileInputStream
-             OutputStream BufferedOutputStream FileOutputStream]
+    [java.io File InputStream OutputStream]
     [java.nio.file Files LinkOption]
     [java.nio.file.attribute BasicFileAttributes]
     [java.util.zip ZipFile ZipInputStream ZipOutputStream ZipEntry]
@@ -33,7 +32,7 @@
                 (.setLastModifiedTime (.lastModifiedTime attrs)))]
     (.putNextEntry output-stream entry)
     (when-not dir
-      (with-open [fis (BufferedInputStream. (FileInputStream. file))]
+      (with-open [fis (jio/input-stream file)]
         (jio/copy fis output-stream)))
 
     (.closeEntry output-stream)))
@@ -84,17 +83,17 @@
 
 (defn unzip
   [^String zip-path ^String target-dir]
-  (let [buffer (byte-array 1024)
+  (let [buffer (byte-array 4096)
         zip-file (jio/file zip-path)]
     (if (.exists zip-file)
-      (with-open [zis (ZipInputStream. (BufferedInputStream. (FileInputStream. zip-file)))]
+      (with-open [zis (ZipInputStream. (jio/input-stream zip-file))]
         (loop []
           (if-let [entry (.getNextEntry zis)]
             ;(println "entry:" (.getName entry) (.isDirectory entry))
             (let [out-file (jio/file target-dir (.getName entry))]
               (jio/make-parents out-file)
               (when-not (.isDirectory entry)
-                (with-open [output (BufferedOutputStream. (FileOutputStream. out-file))]
+                (with-open [output (jio/output-stream out-file)]
                   (copy-stream! zis output buffer)
                   (Files/setLastModifiedTime (.toPath out-file) (.getLastModifiedTime entry))))
               (recur))
