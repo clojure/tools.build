@@ -16,4 +16,5 @@ jobs:
     with:
       releaseVersion: ${{ github.event.inputs.releaseVersion }}
       snapshotVersion: ${{ github.event.inputs.snapshotVersion }}
+      centralDeployServer: "s01"
     secrets: inherit
