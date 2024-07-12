@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.clojure</groupId>
   <artifactId>tools.build</artifactId>
-  <version>0.10.4-SNAPSHOT</version>
+  <version>0.10.5-SNAPSHOT</version>
   <name>tools.build</name>
 
   <parent>

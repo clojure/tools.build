@@ -8,12 +8,12 @@
 
 (ns clojure.tools.build.tasks.jar
   (:require
+    [clojure.java.io :as jio]
     [clojure.tools.build.api :as api]
     [clojure.tools.build.util.file :as file]
     [clojure.tools.build.util.zip :as zip]
     [clojure.string :as str])
   (:import
-    [java.io FileOutputStream]
     [java.util.jar Manifest JarOutputStream]))
 
 (defn jar
@@ -31,5 +31,5 @@
              "Build-Jdk-Spec" (System/getProperty "java.specification.version")}
             main (assoc "Main-Class" (str/replace (str main) \- \_)))
           mf-attr-strs))
-      (with-open [jos (JarOutputStream. (FileOutputStream. jar-file) manifest)]
+      (with-open [jos (JarOutputStream. (jio/output-stream jar-file) manifest)]
         (zip/copy-to-zip jos class-dir-file)))))
