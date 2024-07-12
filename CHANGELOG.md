@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* v0.10.5
+* v0.10.5 2a21b7a on July 12, 2024
   * compile-clj - fix ordering of namespaces not included in topo sort
 * v0.10.4 31388ff on Jun 8, 2024
   * uber, jar, zip - TBUILD-42 Use buffered output streams everywhere
