@@ -12,7 +12,14 @@
     [clojure.java.io :as jio]
     [clojure.string :as str]
     [clojure.tools.build.api :as api]
+    [clojure.tools.build.tasks.compile-clj :as compile-clj]
     [clojure.tools.build.test-util :refer :all]))
+
+(deftest test-topo
+  ;; deps: a -> b -> c, d
+  ;; expect: c b a (reverse topo sort), then d at the end
+  (is (= '[c b a d]
+        (#'compile-clj/nses-in-topo [(jio/file "test-data/nses/src")]))))
 
 (deftest test-compile
   (with-test-dir "test-data/p1"

@@ -67,7 +67,7 @@
     (->> graph
       dependency/topo-sort
       (filter ns-candidates) ;; only keep stuff in these dirs
-      (concat ns-candidates) ;; but make sure everything is in there at least once
+      (#(concat % ns-candidates)) ;; but make sure everything is in there at least once
       distinct)))
 
 (defn- basis-paths

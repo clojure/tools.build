@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* v0.10.4
+  * compile-clj - fix ordering of namespaces not included in topo sort
 * v0.10.3 15ead66 on May, 2024
   * compile-clj - add simple spec for :basis arg
 * v0.10.1 5e3b8f3 on Apr 28, 2024
