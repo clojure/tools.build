@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * java-command - remove assert that :basis is required (that is no longer true)
 * v0.10.5 2a21b7a on July 12, 2024
   * compile-clj - fix ordering of namespaces not included in topo sort
 * v0.10.4 31388ff on Jun 8, 2024
