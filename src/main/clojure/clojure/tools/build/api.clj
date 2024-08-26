@@ -185,7 +185,7 @@
   Returns map suitable for passing to 'process' with keys:
     :command-args - coll of command arg strings"
   [params]
-  (assert-required "java-command" params [:basis :main])
+  (assert-required "java-command" params [:main])
   ((requiring-resolve 'clojure.tools.build.tasks.process/java-command) params))
 
 (defn process
