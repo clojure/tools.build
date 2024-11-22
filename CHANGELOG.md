@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.10.6 52cf7d6 on Nov 22, 2024
   * compile-clj - add stream control args for compilation so out and err can be captured
   * java-command - remove assert that :basis is required (that is no longer true)
 * v0.10.5 2a21b7a on July 12, 2024
