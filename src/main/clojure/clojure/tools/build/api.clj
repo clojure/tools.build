@@ -296,7 +296,8 @@
        :elide-meta [:doc :file :line ...]
        :direct-linking false}
     :bindings - map of Var to value to be set during compilation, for example:
-      {#'clojure.core/*assert* false}
+      {#'clojure.core/*assert* false
+       #'clojure.core/*warn-on-reflection* true}
     :filter-nses - coll of symbols representing a namespace prefix to include
 
   Additional options flow to the forked process doing the compile:
