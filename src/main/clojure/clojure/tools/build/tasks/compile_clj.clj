@@ -96,19 +96,25 @@
 
         ;; java-command will run in context of *project-dir* - basis, classpaths, etc
         ;; should all be relative to that (or absolute like working-compile-dir)
-        process-args (process/java-command (merge
-                                             (select-keys params [:java-cmd :java-opts :use-cp-file])
-                                             {:cp [(.getPath working-compile-dir) class-dir]
-                                              :basis basis
-                                              :main 'clojure.main
-                                              :main-args [(.getCanonicalPath compile-script)]}))
+        process-args (merge
+                       (process/java-command
+                         (merge
+                           (select-keys params [:java-cmd :java-opts :use-cp-file])
+                           {:cp [(.getPath working-compile-dir) class-dir]
+                            :basis basis
+                            :main 'clojure.main
+                            :main-args [(.getCanonicalPath compile-script)]}))
+                       (select-keys params [:out :err :out-file :err-file]))
         _ (spit (jio/file working-dir "compile.args") (str/join " " (:command-args process-args)))
-        exit (:exit (process/process process-args))]
+        {exit :exit, ps-out :out, ps-err :err} (process/process process-args)]
     (if (zero? exit)
       (do
         (if (seq filter-nses)
           (file/copy-contents working-compile-dir compile-dir-file (map ns->path filter-nses))
           (file/copy-contents working-compile-dir compile-dir-file))
         ;; only delete on success, otherwise leave the evidence!
-        (file/delete working-dir))
+        (file/delete working-dir)
+        (cond-> nil
+          ps-out (assoc :out ps-out)
+          ps-err (assoc :err ps-err)))
       (throw (ex-info (str "Clojure compilation failed, working dir preserved: " (.toString working-dir)) {})))))

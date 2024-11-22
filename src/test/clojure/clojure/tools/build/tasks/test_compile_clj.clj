@@ -83,6 +83,27 @@
       (api/compile-clj (assoc compile-params :bindings {#'clojure.core/*assert* false})) ;; turn off asserts
       (is (= {:exit 0, :out (str "100" (System/lineSeparator))} (invoke))))))
 
+(deftest test-capture-reflection
+  (with-test-dir "test-data/reflecting"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (let [basis (api/create-basis nil)
+          compile-params {:class-dir "target/classes"
+                          :src-dirs ["src"]
+                          :basis basis
+                          :ns-compile ['foo.bar]}]
+
+      ;; by default, reflection does not warn
+      (is (nil? (api/compile-clj compile-params))) ;; no :bindings set
+
+      ;; compile with reflection warnings and capture the error output
+      (api/delete {:path "target/classes"})
+      (is (str/starts-with?
+            (:err
+              (api/compile-clj (merge compile-params
+                                 {:bindings {#'clojure.core/*warn-on-reflection* true}
+                                  :err :capture})))
+            "Reflection warning")))))
+
 (deftest test-accidental-basis-delay
   (with-test-dir "test-data/p1"
     (api/set-project-root! (.getAbsolutePath *test-dir*))

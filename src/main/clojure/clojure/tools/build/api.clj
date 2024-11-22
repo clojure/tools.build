@@ -307,8 +307,14 @@
                      :auto (default) - use only if os=windows && Java >= 9 && command length >= 8k
                      :always - always write classpath to temp file and include
                      :never - never write classpath to temp file (pass on command line)
+    :out - one of :inherit :capture :write :append :ignore
+    :err - one of :inherit :capture :write :append :ignore
+    :out-file - file path to write if :out is :write or :append
+    :err-file - file path to write if :err is :write or :append
 
-  Returns nil."
+  Returns nil, or if needed a map with keys:
+    :out captured-out
+    :err captured-err"
   [params]
   (assert-required "compile-clj" params [:basis :class-dir])
   (assert-specs "compile-clj" params
