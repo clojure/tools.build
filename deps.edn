@@ -1,8 +1,8 @@
 {:paths ["src/main/clojure" "src/main/resources"]
 
  :deps
- {org.clojure/clojure {:mvn/version "1.11.3"}
-  org.clojure/tools.deps {:mvn/version "0.19.1428"}
+ {org.clojure/clojure {:mvn/version "1.12.0"}
+  org.clojure/tools.deps {:mvn/version "0.21.1467"}
   ;org.clojure/tools.deps {:git/url "https://github.com/clojure/tools.deps.git"
   ;                        :git/sha "459222ca6e4fce91cf5838435589a028cedbc784"}
   org.clojure/tools.namespace {:mvn/version "1.5.0"}
@@ -32,7 +32,7 @@
 
    ;; Lint the source
    ;; clj -M:lint
-   :lint {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2024.03.13"}}
+   :lint {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2024.11.14"}}
           :main-opts ["-m" "clj-kondo.main" "--lint" "src"]}
   }
 }

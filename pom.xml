@@ -21,7 +21,7 @@
   <properties>
     <!-- used for build -->
     <clojure.warnOnReflection>true</clojure.warnOnReflection>
-    <clojure.version>1.11.2</clojure.version>
+    <clojure.version>1.12.0</clojure.version>
   </properties>
 
   <dependencies>
@@ -33,7 +33,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>tools.deps</artifactId>
-      <version>0.19.1411</version>
+      <version>0.21.1467</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
