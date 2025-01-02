@@ -33,8 +33,14 @@ Additional options flow to the forked process doing the compile:
                    :auto (default) - use only if os=windows &amp;&amp; Java &gt;= 9 &amp;&amp; command length &gt;= 8k
                    :always - always write classpath to temp file and include
                    :never - never write classpath to temp file (pass on command line)
+  :out - one of :inherit :capture :write :append :ignore
+  :err - one of :inherit :capture :write :append :ignore
+  :out-file - file path to write if :out is :write or :append
+  :err-file - file path to write if :err is :write or :append
 
-Returns nil.</pre></div></div><div class="public anchor" id="var-copy-dir"><h3>copy-dir</h3><div class="usage"><code>(copy-dir params)</code></div><div class="doc"><pre class="plaintext">Copy the contents of the src-dirs to the target-dir, optionally do text replacement.
+Returns nil, or if needed a map with keys:
+  :out captured-out
+  :err captured-err</pre></div></div><div class="public anchor" id="var-copy-dir"><h3>copy-dir</h3><div class="usage"><code>(copy-dir params)</code></div><div class="doc"><pre class="plaintext">Copy the contents of the src-dirs to the target-dir, optionally do text replacement.
 Returns nil.
 
 Globs are wildcard patterns for specifying sets of files in a directory
