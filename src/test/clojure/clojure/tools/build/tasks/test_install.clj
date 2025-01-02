@@ -33,7 +33,7 @@
                     :lib lib
                     :class-dir classes
                     :version version})
-      (let [expected-dir (jio/file local-repo (str test-org))
+      (let [expected-dir (jio/file local-repo test-org)
             expected-jar (jio/file expected-dir test-lib version (str test-lib "-1.0.0.jar"))
             expected-pom (jio/file expected-dir test-lib version (str test-lib "-1.0.0.pom"))]
         (is (.exists expected-dir))
