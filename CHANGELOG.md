@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.10.7 573711e on Feb 8, 2025
   * write-pom - add warning if pom-data ignored because src-pom template exists
   * Update deps to latest
 * v0.10.6 52cf7d6 on Nov 22, 2024
