@@ -238,16 +238,19 @@
         src-pom-file (api/resolve-path (or src-pom "pom.xml"))
         repos (or repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) (:mvn/repos basis)))
         pom (if (.exists src-pom-file)
-              (with-open [rdr (jio/reader src-pom-file)]
-                (-> rdr
-                  parse-xml
-                  (replace-deps root-deps)
-                  (replace-paths src-dirs)
-                  (replace-resources resource-dirs)
-                  (replace-repos repos)
-                  (replace-lib lib)
-                  (replace-version version)
-                  (replace-scm scm)))
+              (do
+                (when pom-data
+                  (println "Warning in write-pom: pom-data supplied but not used because pom template exists at" (or src-pom "pom.xml")))
+                (with-open [rdr (jio/reader src-pom-file)]
+                  (-> rdr
+                    parse-xml
+                    (replace-deps root-deps)
+                    (replace-paths src-dirs)
+                    (replace-resources resource-dirs)
+                    (replace-repos repos)
+                    (replace-lib lib)
+                    (replace-version version)
+                    (replace-scm scm))))
               (gen-pom
                 (cond->
                   {:deps root-deps

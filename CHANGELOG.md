@@ -2,6 +2,7 @@ Changelog
 ===========
 
 * next
+  * write-pom - add warning if pom-data ignored because src-pom template exists
   * Update deps to latest
 * v0.10.6 52cf7d6 on Nov 22, 2024
   * compile-clj - add stream control args for compilation so out and err can be captured
