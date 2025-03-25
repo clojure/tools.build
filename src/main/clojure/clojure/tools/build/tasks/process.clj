@@ -9,21 +9,17 @@
 (ns clojure.tools.build.tasks.process
   (:require
     [clojure.java.io :as jio]
+    [clojure.java.process :as proc]
     [clojure.tools.deps :as deps]
     [clojure.tools.build.api :as api]
     [clojure.string :as str])
   (:import
-    [java.io InputStream StringWriter File]
-    [java.lang ProcessBuilder ProcessBuilder$Redirect]
-    [java.util List]))
+    [java.io InputStream StringWriter File]))
 
-(defn- copy-stream
-  [^InputStream input-stream]
-  (let [writer (StringWriter.)]
-    (jio/copy input-stream writer)
-    (let [s (.toString writer)]
-      (when-not (zero? (.length s))
-        s))))
+(set! *warn-on-reflection* true)
+
+(defn- trim-blank [^String s]
+  (if (str/blank? s) nil s))
 
 (defn process
   "Exec the command made from command-args, redirect out and err as directed,
@@ -48,30 +44,36 @@
     :or {dir ".", out :inherit, err :inherit} :as opts}]
   (when (not (seq command-args))
     (throw (ex-info "process missing required arg :command-args" opts)))
-  (let [pb (ProcessBuilder. ^List command-args)]
-    (.directory pb (api/resolve-path (or dir ".")))
-    (case out
-      :inherit (.redirectOutput pb ProcessBuilder$Redirect/INHERIT)
-      :write (.redirectOutput pb (ProcessBuilder$Redirect/to (jio/file (api/resolve-path out-file))))
-      :append (.redirectOutput pb (ProcessBuilder$Redirect/appendTo (jio/file (api/resolve-path out-file))))
-      :capture (.redirectOutput pb ProcessBuilder$Redirect/PIPE)
-      :ignore (.redirectOutput pb ProcessBuilder$Redirect/PIPE))
-    (case err
-      :inherit (.redirectError pb ProcessBuilder$Redirect/INHERIT)
-      :write (.redirectError pb (ProcessBuilder$Redirect/to (jio/file (api/resolve-path err-file))))
-      :append (.redirectError pb (ProcessBuilder$Redirect/appendTo (jio/file (api/resolve-path err-file))))
-      :capture (.redirectError pb ProcessBuilder$Redirect/PIPE)
-      :ignore (.redirectError pb ProcessBuilder$Redirect/PIPE))
-    (when env
-      (let [pb-env (.environment pb)]
-        (run! (fn [[k v]] (.put pb-env k v)) env)))
-    (let [proc (.start pb)
-          exit (.waitFor proc)
-          out-str (when (= out :capture) (copy-stream (.getInputStream proc)))
-          err-str (when (= err :capture) (copy-stream (.getErrorStream proc)))]
-      (cond-> {:exit exit}
-        out-str (assoc :out out-str)
-        err-str (assoc :err err-str)))))
+  (let [stream-opt (fn [opt file]
+                     (case opt
+                       :inherit :inherit
+                       :write (proc/to-file (api/resolve-path file))
+                       :append (proc/to-file (api/resolve-path file) :append true)
+                       :ignore :discard
+                       (:capture :pipe) :pipe))
+        proc-opts {:dir (api/resolve-path (or dir "."))
+              :out (stream-opt out out-file)
+              :err (stream-opt err err-file)
+              :env env}
+        proc (apply proc/start proc-opts command-args)
+        out-f (when (= out :capture) (proc/io-task #(slurp (proc/stdout proc))))
+        err-f (when (= err :capture) (proc/io-task #(slurp (proc/stderr proc))))
+        exit (deref (proc/exit-ref proc))
+        out-str (when out-f (trim-blank @out-f))
+        err-str (when err-f (trim-blank @err-f))]
+    (cond-> {:exit exit}
+      out-str (assoc :out out-str)
+      err-str (assoc :err err-str))))
+
+(comment
+  (api/process {:command-args ["ls" "-l"]})
+  (api/process {:command-args ["git" "log"] :out :ignore})
+  (api/process {:command-args ["java" "-version"] :err :capture})
+  (api/process {:command-args ["java" "--version"] :out :capture})
+  (api/process {:env {"FOO" "hi"}
+                :command-args ["echo" "$FOO"]
+                :out :capture})
+  )
 
 (defn- need-cp-file
   [os-name java-version command-length]

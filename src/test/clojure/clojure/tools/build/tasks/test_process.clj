@@ -13,6 +13,23 @@
     [clojure.tools.build.api :as api]
     [clojure.tools.build.tasks.process :as process]))
 
+(deftest test-large-process-output
+  (is (string? (api/git-process {:git-args ["log"]}))))
+
+(deftest test-capture
+  (is (string? (:out (api/process {:command-args ["java" "--version"]
+                                   :out :capture}))))
+  (is (string? (:err (api/process {:command-args ["java" "-version"]
+                                   :err :capture})))))
+
+(deftest test-env
+  (when-not (#'process/windows?)
+    (is (= "hi\n"
+          (:out
+            (api/process {:env {"FOO" "hi"}
+                          :command-args ["/bin/bash" "-c" "echo $FOO"]
+                          :out :capture}))))))
+
 (deftest test-need-cp-file
   (let [f #'process/need-cp-file]
     (are [os java length expected]

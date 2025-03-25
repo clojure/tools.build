@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * process - TBUILD-1 Fix blocked buffering when capturing large output
 * v0.10.7 573711e on Feb 8, 2025
   * write-pom - add warning if pom-data ignored because src-pom template exists
   * Update deps to latest
