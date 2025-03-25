@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.10.8 2fdfd66 on Mar 25, 2025
   * process - TBUILD-1 Fix blocked buffering when capturing large output
 * v0.10.7 573711e on Feb 8, 2025
   * write-pom - add warning if pom-data ignored because src-pom template exists
