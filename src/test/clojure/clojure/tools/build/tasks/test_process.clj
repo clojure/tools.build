@@ -17,12 +17,10 @@
   (is (string? (api/git-process {:git-args ["log"]}))))
 
 (deftest test-capture
-  (is (string? (:out (api/process {:command-args ["mvn" "-v"]
-                                   :out :capture}))))
   (is (string? (:err (api/process {:command-args ["java" "-version"]
                                    :err :capture})))))
 
-(deftest test-env
+(deftest test-env-and-capture
   (when-not (#'process/windows?)
     (is (= "hi\n"
           (:out
