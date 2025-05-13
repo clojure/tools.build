@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * write-pom - TBUILD-44 - build.properties file should use `SOURCE_DATE_EPOCH` if set for reproducible builds
 * v0.10.8 2fdfd66 on Mar 25, 2025
   * process - TBUILD-1 Fix blocked buffering when capturing large output
 * v0.10.7 573711e on Feb 8, 2025
