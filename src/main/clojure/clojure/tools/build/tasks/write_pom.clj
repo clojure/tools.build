@@ -24,6 +24,8 @@
            [java.time Instant ZoneId ZonedDateTime]
            [java.time.format DateTimeFormatter]))
 
+(set! *warn-on-reflection* true)
+
 (xml/alias-uri 'pom "http://maven.apache.org/POM/4.0.0")
 (def ^:private pom-ns (name (.-name ^clojure.lang.Namespace (get (ns-aliases *ns*) 'pom))))
 
