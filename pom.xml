@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.clojure</groupId>
   <artifactId>tools.build</artifactId>
-  <version>0.10.9-SNAPSHOT</version>
+  <version>0.10.9</version>
   <name>tools.build</name>
 
   <parent>
@@ -116,7 +116,7 @@
     <connection>scm:git:git@github.com:clojure/tools.build.git</connection>
     <developerConnection>scm:git:git@github.com:clojure/tools.build.git</developerConnection>
     <url>git@github.com:clojure/tools.build.git</url>
-    <tag>HEAD</tag>
+    <tag>v0.10.9</tag>
   </scm>
 
   <repositories>
