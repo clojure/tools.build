@@ -1,5 +1,8 @@
 name: Build Docs
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
 
