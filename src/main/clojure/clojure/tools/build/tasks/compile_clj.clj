@@ -106,7 +106,10 @@
                             :main-args [(.getCanonicalPath compile-script)]}))
                        (select-keys params [:out :err :out-file :err-file]))
         _ (spit (jio/file working-dir "compile.args") (str/join " " (:command-args process-args)))
-        {exit :exit, ps-out :out, ps-err :err} (process/process process-args)]
+        {exit :exit, ps-out :out, ps-err :err} (process/process process-args)
+        ret (cond-> nil
+              ps-out (assoc :out ps-out)
+              ps-err (assoc :err ps-err))]
     (if (zero? exit)
       (do
         (if (seq filter-nses)
@@ -114,7 +117,5 @@
           (file/copy-contents working-compile-dir compile-dir-file))
         ;; only delete on success, otherwise leave the evidence!
         (file/delete working-dir)
-        (cond-> nil
-          ps-out (assoc :out ps-out)
-          ps-err (assoc :err ps-err)))
-      (throw (ex-info (str "Clojure compilation failed, working dir preserved: " (.toString working-dir)) {})))))
+        ret)
+      (throw (ex-info (str "Clojure compilation failed, working dir preserved: " (.toString working-dir)) ret)))))
