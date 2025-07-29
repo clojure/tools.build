@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* v0.10.10 deedd62 on Jul 29, 2025
   * compile-clj - TBUILD-46 Capture out and error if process is unsuccessful
 * v0.10.9 e405aac on May 13, 2025
   * write-pom - TBUILD-44 - build.properties file should use `SOURCE_DATE_EPOCH` if set for reproducible builds
