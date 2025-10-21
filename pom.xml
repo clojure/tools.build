@@ -4,6 +4,7 @@
   <artifactId>tools.build</artifactId>
   <version>0.10.10-SNAPSHOT</version>
   <name>tools.build</name>
+  <description>Clojure builds as Clojure programs.</description>
 
   <parent>
     <groupId>org.clojure</groupId>
