@@ -11,3 +11,5 @@ test-out
 .clj-kondo/.cache
 .vscode
 .lsp
+.calva/mcp-server/port
+.portal/vs-code.edn

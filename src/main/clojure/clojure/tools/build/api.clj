@@ -385,6 +385,7 @@
   Options:
     :basis - required, used to pull deps, repos
     :src-pom - source pom.xml to synchronize from, default = \"./pom.xml\"
+               may be :none to ignore any existing pom.xml file
     :class-dir - root dir for writing pom files, created if needed
     :target - file path to write pom if no :class-dir specified
     :lib - required, project lib symbol
@@ -396,7 +397,7 @@
     :resource-dirs - coll of resource dirs
     :repos - map of repo name to repo config, replaces repos from deps.edn
     :pom-data - vector of hiccup-style extra pom top elements to include when
-      no :src-pom is provided:
+      :src-pom is :none or the source pom.xml does not exist:
        [[:licenses
          [:license
           [:name \"Eclipse Public License 1.0\"]
@@ -409,7 +410,7 @@
   [params]
   (assert-required "write-pom" params [:basis :lib :version])
   (assert-specs "write-pom" params
-    :src-pom ::specs/path
+    :src-pom (s/or :none #{:none} :path ::specs/path)
     :class-dir ::specs/path
     :target ::specs/path
     :lib ::specs/lib
@@ -556,4 +557,3 @@
     :jar-file ::specs/path
     :class-dir ::specs/path)
   ((requiring-resolve 'clojure.tools.build.tasks.install/install) params))
-

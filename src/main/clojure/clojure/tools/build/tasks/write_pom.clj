@@ -238,9 +238,10 @@
   (let [{:keys [basis class-dir target src-pom lib version scm src-dirs resource-dirs repos pom-data]} params
         {:keys [libs]} basis
         root-deps (libs->deps libs)
-        src-pom-file (api/resolve-path (or src-pom "pom.xml"))
+        src-pom-file (when-not (= :none src-pom)
+                       (api/resolve-path (or src-pom "pom.xml")))
         repos (or repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) (:mvn/repos basis)))
-        pom (if (.exists src-pom-file)
+        pom (if (and src-pom-file (.exists src-pom-file))
               (do
                 (when pom-data
                   (println "Warning in write-pom: pom-data supplied but not used because pom template exists at" (or src-pom "pom.xml")))

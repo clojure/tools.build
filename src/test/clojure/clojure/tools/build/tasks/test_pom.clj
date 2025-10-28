@@ -120,6 +120,74 @@
       (is (.exists prop-out))
       (is (submap? {"groupId" "test", "artifactId" "p2", "version" "1.2.3"} props)))))
 
+(deftest test-ignore-existing-pom
+  ;; verify existing scm info is preserved if src-pom is supplied:
+  (with-test-dir "test-data/p4"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/delete {:path "target"})
+    (api/write-pom {:lib 'test/p4
+                    :version "1.2.3"
+                    :class-dir "target/classes"
+                    :src-dirs ["src"]
+                    :src-pom "pom.xml"
+                    :resource-dirs ["resources"]
+                    :basis (api/create-basis nil)})
+    (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p4"))
+          pom-out (jio/file pom-dir "pom.xml")
+          pom (read-xml pom-out)
+          prop-out (jio/file pom-dir "pom.properties")
+          props (read-props prop-out)]
+      ;; check xml out
+      (is (.exists pom-out))
+      (are [path val] (= val (xml-path-val pom path))
+        [::pom/packaging] ["jar"]
+        [::pom/groupId] ["test"]
+        [::pom/artifactId] ["p4"]
+        [::pom/version] ["1.2.3"]
+        [::pom/name] ["p4"]
+        [::pom/build ::pom/sourceDirectory] ["src"]
+        [::pom/build ::pom/resources ::pom/resource ::pom/directory] ["resources"]
+        [::pom/scm ::pom/tag] ["HEAD"]
+        [::pom/scm ::pom/url] ["git@github.com:clojure/tools.build.git"])
+      (is (= 2 (count (xml-path-val pom [::pom/dependencies]))))
+      (is (= 1 (count (xml-path-val pom [::pom/repositories]))))
+      ;; check properties out
+      (is (.exists prop-out))
+      (is (submap? {"groupId" "test", "artifactId" "p4", "version" "1.2.3"} props))))
+  ;; verify no scm info is present if src-pom is :none:
+  (with-test-dir "test-data/p4"
+    (api/set-project-root! (.getAbsolutePath *test-dir*))
+    (api/delete {:path "target"})
+    (api/write-pom {:lib 'test/p4
+                    :version "1.2.3"
+                    :class-dir "target/classes"
+                    :src-dirs ["src"]
+                    :src-pom :none
+                    :resource-dirs ["resources"]
+                    :basis (api/create-basis nil)})
+    (let [pom-dir (jio/file (project-path "target/classes/META-INF/maven/test/p4"))
+          pom-out (jio/file pom-dir "pom.xml")
+          pom (read-xml pom-out)
+          prop-out (jio/file pom-dir "pom.properties")
+          props (read-props prop-out)]
+        ;; check xml out
+      (is (.exists pom-out))
+      (are [path val] (= val (xml-path-val pom path))
+        [::pom/packaging] ["jar"]
+        [::pom/groupId] ["test"]
+        [::pom/artifactId] ["p4"]
+        [::pom/version] ["1.2.3"]
+        [::pom/name] ["p4"]
+        [::pom/build ::pom/sourceDirectory] ["src"]
+        [::pom/build ::pom/resources ::pom/resource ::pom/directory] ["resources"]
+        [::pom/scm ::pom/tag] nil
+        [::pom/scm ::pom/url] nil)
+      (is (= 2 (count (xml-path-val pom [::pom/dependencies]))))
+      (is (= 1 (count (xml-path-val pom [::pom/repositories]))))
+        ;; check properties out
+      (is (.exists prop-out))
+      (is (submap? {"groupId" "test", "artifactId" "p4", "version" "1.2.3"} props)))))
+
 ;; check that optional deps are marked optional
 (deftest test-optional
   (with-test-dir "test-data/p3"
