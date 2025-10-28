@@ -1,7 +1,7 @@
 name: Build Docs
 
 permissions:
-  contents: read
+  contents: write
 
 on:
   workflow_dispatch:
