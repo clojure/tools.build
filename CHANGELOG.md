@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* v0.10.11 c6c670a on Oct 28, 2025
+  * write-pom - TBUILD-41 - add :src-pom :none option
 * v0.10.10 deedd62 on Jul 29, 2025
   * compile-clj - TBUILD-46 Capture out and error if process is unsuccessful
 * v0.10.9 e405aac on May 13, 2025

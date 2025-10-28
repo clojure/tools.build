@@ -17,13 +17,13 @@ Latest release:
 As a git dep:
 
 ```clojure
-io.github.clojure/tools.build {:git/tag "v0.10.10" :git/sha "deedd62"}
+io.github.clojure/tools.build {:git/tag "v0.10.11" :git/sha "c6c670a"}
 ``` 
 
 As a Maven dep:
 
 ```clojure
-io.github.clojure/tools.build {:mvn/version "0.10.10"}
+io.github.clojure/tools.build {:mvn/version "0.10.11"}
 ```
 
 # Developer Information
