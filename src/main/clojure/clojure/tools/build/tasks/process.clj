@@ -14,7 +14,7 @@
     [clojure.tools.build.api :as api]
     [clojure.string :as str])
   (:import
-    [java.io InputStream StringWriter File]))
+    [java.io File]))
 
 (set! *warn-on-reflection* true)
 
