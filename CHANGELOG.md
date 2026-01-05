@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* v0.10.12 on Jan 5, 2026
+* v0.10.12 97c5562 on Jan 5, 2026
   * Update parent pom and dep versions
 * v0.10.11 c6c670a on Oct 28, 2025
   * write-pom - TBUILD-41 - add :src-pom :none option
