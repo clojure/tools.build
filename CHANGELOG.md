@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Update to latest tools.deps
 * v0.10.12 97c5562 on Jan 5, 2026
   * Update parent pom and dep versions
 * v0.10.11 c6c670a on Oct 28, 2025
